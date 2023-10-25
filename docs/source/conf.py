@@ -168,7 +168,7 @@ html_theme_options = {
     "navbar_center": ["navbar-nav"],
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
     "switcher": {
-        "json_url": json_url,
+ #       "json_url": json_url,
         "version_match": version_match,
     },
 }
