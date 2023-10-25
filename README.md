@@ -1,9 +1,12 @@
 # ExoSim 2.0
-
 [![release-build](https://github.com/arielmission-space/ExoSim2-public/workflows/release-build/badge.svg)](https://github.com/arielmission-space/ExoSim2.0/actions/workflows/build.yml)
 [![develop-build](https://github.com/arielmission-space/ExoSim2-public/workflows/develop-build/badge.svg)](https://github.com/arielmission-space/ExoSim2.0/actions/workflows/ci_linux.yml)
-[![codecov](https://github.com/arielmission-space/ExoSim2-public/branch/develop/graph/badge.svg?token=1Z0KNUKKI7)](https://codecov.io/gh/arielmission-space/ExoSim2-public)
+[![codecov](https://codecov.io/gh/arielmission-space/ExoSim2-public/graph/badge.svg?token=8LDBCU43CK)](https://codecov.io/gh/arielmission-space/ExoSim2-public)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![PyPI version](https://badge.fury.io/py/exosim.svg)](https://badge.fury.io/py/exosim)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/arielmission-space/ExoSim2-public?color=gree&label=GitHub%20release)
+[![Downloads](https://pepy.tech/badge/exosim)](https://pepy.tech/project/exosim)
+[![Documentation Status](https://readthedocs.org/projects/exosim2-public/badge/?version=latest)](https://exosim2-public.readthedocs.io/en/latest/?badge=latest)
 
 ## Introduction <a name="introduction"></a>
 
