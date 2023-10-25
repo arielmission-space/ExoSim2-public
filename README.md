@@ -52,7 +52,7 @@ Then use `pip` as
 
 If you have installed ExoSim from source-code, to test your ExoSim2 installation simply run from the main ExoSim2 folder
 
-    pip install -e ".[docs]"
+    pip install -e ".[test]"
     python -m unittest discover -s tests
 
 ## Documentation <a name="documentation"></a>
