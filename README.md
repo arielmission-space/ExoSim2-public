@@ -5,12 +5,12 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![PyPI version](https://badge.fury.io/py/exosim.svg)](https://badge.fury.io/py/exosim)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/arielmission-space/ExoSim2-public?color=gree&label=GitHub%20release)
-[![Downloads](https://pepy.tech/badge/exosim)](https://pepy.tech/project/exosim)
+<!-- [![Downloads](https://pepy.tech/badge/exosim)](https://pepy.tech/project/exosim) -->
 [![Documentation Status](https://readthedocs.org/projects/exosim2-public/badge/?version=latest)](https://exosim2-public.readthedocs.io/en/latest/?badge=latest)
 
 ## Introduction <a name="introduction"></a>
 
-ExoSim 2.0 is a Python package for simulating an astrophysics observation. It is based on the [ExoSim package](https://github.com/ExoSim/ExoSimPublic), which was developed for the ARIEL mission concept study. ExoSim 2.0 is a complete rewrite of the original code, with a focus on modularity and extensibility. It is designed to be used as a library and can be easily integrated into other Python projects.
+ExoSim 2 is the next generation of the Exoplanet Observation Simulator [ExoSim](https://github.com/ExoSim/ExoSimPublic) tailored for spectro-photometric observations of transiting exoplanets from space, ground, and sub-orbital platforms. This software is a complete rewrite implemented in Python 3, embracing object-oriented design principles, which allow users to replace each component with their functions when required.
 
 
 ## Table of contents
@@ -26,6 +26,7 @@ ExoSim 2.0 is a Python package for simulating an astrophysics observation. It is
     - [Build the html documentation ](#build-the-html-documentation-)
     - [Build the pdf documentation  ](#build-the-pdf-documentation--)
   - [How to contribute ](#how-to-contribute-)
+  - [How to cite](#how-to-cite)
 
 ## How to install <a name="how-to-install"></a>
 
@@ -87,3 +88,6 @@ Here is reported the use of `pdflatex`, if have another compiler for LaTex, plea
 ## How to contribute <a name="how-to-contribute"></a>
 
 You can contribute to ExoSim 2.0 by reporting bugs, suggesting new features, or contributing to the code itself. If you want to contribute to the code, please follow the steps described in the documentation under `Developer guide/Contributing guidelines`.
+
+## How to cite
+A dedicated publication has been submitted and the relative information will be published soon. In the meanwhile, please, send an email to the developers.  

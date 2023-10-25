@@ -137,6 +137,9 @@ The guide goal is to train the user to customise the simulator according to the 
 
 Cite
 ------
+A dedicated publication has been submitted and the relative information will be published soon. 
+In the meanwhile, please, send an email to the developers.
+
 .. ExoSim2 has been developed from ExoSim (Sarkar et al. 2021).
 
 .. If you use this software please cite:
