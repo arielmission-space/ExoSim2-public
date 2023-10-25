@@ -1,0 +1,105 @@
+{#
+  Inspired by sphinx/themes/basic/defindex.html
+#}
+{%- extends "layout.html" %}
+{% set title = _('ExoSim documentation') %}
+{% block body %}
+<h1>{{ docstitle|e }}</h1>
+
+<p>
+  Welcome! This is the documentation for Exosim {{ release|e }}
+  {%- if last_updated %}, last updated {{ last_updated|e }}{% endif %}.
+</p>
+
+
+<p>
+  ExoSim is the time domain simulator exoplanet observations firstly presented in Sarkar et al., 2021, "ExoSim: the Exoplanet Observation Simulator", Exp. Astron, 51, 287-317.
+      DOI:<a href="https://doi.org/10.1007/s10686-020-09690-9" target="_blank">10.1007/s10686-020-09690-9</a>.
+    This refactored version is meant to be easy to use and largely customisable: almost every part of the code can be customised by the user.
+</p>
+
+<p>
+    This guide will walk you through the simulation steps with example and description of the simulation strategy.
+    The guide goal is to train the user to customise the simulator according to the instrument of the observation needed.
+</p>
+
+
+<h2>Indices:</h2>
+<table class="contentstable" align="center"><tr>
+    <td width="50%">
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("installation") }}">Installation</a><br/>
+	<span class="linkdescr">how to install ExoSim </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("user/index") }}">User guide</a><br/>
+	<span class="linkdescr">how to use ExoSim </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("contributing/index") }}">Developer guide</a><br/>
+	<span class="linkdescr">how to improve or customise ExoSim </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("autoapi/exosim/index") }}">Api guide</a><br/>
+	<span class="linkdescr">complete Api guide </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("FAQs") }}">FAQs</a><br/>
+	<span class="linkdescr"> List of Frequent Asked Questions </span></p>
+
+    <p class="biglink"><a class="smalllink" href="{{ pathto("license") }}"> License</a><br/></p>
+<!--	<span class="linkdescr">license </span></p>-->
+
+    <p class="biglink"><a class="smalllink" href="{{ pathto("CHANGELOG") }}"> Changelog</a><br/></p>
+<!--	<span class="linkdescr">license </span></p>-->
+    </td></tr>
+</table>
+
+<!--<div class="admonition warning">-->
+<!--    <p class="admonition-title">Warning</p>-->
+<!--    <p>We are still completing and testing the software right now, and more functions are coming.-->
+<!--    If you want to be kept updated, subscribe to the gitHub repository.</p>-->
+<!--</div>-->
+<div class="admonition note">
+    <p class="admonition-title">Note</p>
+    <p>This documentation is not completed yet. If you find any issue or difficulty,
+        please contact the <a class="reference external" href="mailto:lorenzo&#46;mugnai&#37;&#52;&#48;uniroma1&#46;it">developers</a> for help.</p>
+</div>
+
+<h2>Cite</h2>
+  <p>
+    ExoSim2 has been developed from ExoSim (Sarkar et al. 2021).
+
+    Until a dedicated publication is provided, if you use this software please cite:
+    Sarkar et al., 2021, "ExoSim: the Exoplanet Observation Simulator", Exp. Astron, 51, 287-317.
+    DOI:<a class="reference external" href="https://doi.org/10.1007/s10686-020-09690-9" target="_blank">10.1007/s10686-020-09690-9</a>
+  </p>
+
+<h2>Acknowledgements</h2>
+
+<span>
+    <div style="float: right", vertical-align:center">
+        <img src="_static/ariel.png" alt="ariel_logo" class="dark-light"  width="120"/>
+        <img src="_static/S2MD.png" alt="s2md_logo" class="dark-light"  width="90"/>
+    </div>
+    <div>
+        <p>
+        ExoSim 2 has been developed under umbrella of <a class="reference external" href="https://arielmission.space/">Ariel Space Mission</a>,
+        with the support of Ariel Consortium and the members of Simulators Software, Management and Documentation Working Group.
+        </p>
+    </div>
+</span>
+
+<span>
+    <p>
+        During the development of first alpha and beta versions of this software,
+        L. V. Mugnai was affiliated to <a class="reference external"  href="https://www.phys.uniroma1.it/fisica/en-welcome"> Sapienza University of Rome</a>
+        and supported by <a class="reference external" href="https://www.asi.it/en/">ASI</a>.
+    </p>
+
+</span>
+
+<span>
+  <p>
+    We also thank Ahmed Al-Refaie for the
+      inspiration provided by his code: <a href="https://arxiv.org/abs/1912.07759" target="_blank">TauREx3</a>.
+  </p>
+</span>
+
+{% endblock %}

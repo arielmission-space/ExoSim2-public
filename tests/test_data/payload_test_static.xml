@@ -1,0 +1,65 @@
+<root>
+    <!--    <ConfigPath> tmp-->
+    <!--        <comment>Main directory for the configuration files</comment>-->
+    <!--    </ConfigPath>-->
+    <fileName>payload_example</fileName>
+
+    <common>
+        <wl_grid>
+            <wl_min unit="micron">0.45</wl_min>
+            <wl_max unit="micron">10.0</wl_max>
+            <logbin_resolution unit="">6000.0</logbin_resolution>
+        </wl_grid>
+        <time_grid>
+            <start_time unit="hour">0.0</start_time>
+            <end_time unit="hour">10.0</end_time>
+            <low_frequencies_resolution unit="second">60.0</low_frequencies_resolution>
+            <!-- T14_override unit=""> 2.5 </T14_override -->
+            <!-- Period_everride unit=""> 1.0 </Period_everride -->
+        </time_grid>
+        <sourceSpectrum>planck
+        </sourceSpectrum>
+    </common>
+
+
+    <Telescope>Tel
+        <Atel unit="m**2">0.19</Atel>
+        <opticalElement>M1
+            <temperature unit='K'>80</temperature>
+            <emissivity>0.03</emissivity>
+            <transmission>0.9</transmission>
+            <!--        -->
+        </opticalElement>
+        <opticalElement>M2
+            <temperature unit='K'>70</temperature>
+            <emissivity>0.03</emissivity>
+            <transmission>0.9</transmission>
+        </opticalElement>
+    </Telescope>
+
+    <channel>ch1
+        <opticalElement>M3
+            <temperature unit='K'>80</temperature>
+            <emissivity>0.03</emissivity>
+            <transmission>0.9</transmission>
+        </opticalElement>
+        <opticalElement>M4
+            <temperature unit='K'>70</temperature>
+            <emissivity>0.03</emissivity>
+            <transmission>0.9</transmission>
+        </opticalElement>
+    </channel>
+
+    <channel>ch2
+        <opticalElement>M5
+            <temperature unit='K'>80</temperature>
+            <emissivity>0.03</emissivity>
+            <transmission>0.9</transmission>
+        </opticalElement>
+        <opticalElement>M6
+            <temperature unit='K'>70</temperature>
+            <emissivity>0.03</emissivity>
+            <transmission>0.9</transmission>
+        </opticalElement>
+    </channel>
+</root>

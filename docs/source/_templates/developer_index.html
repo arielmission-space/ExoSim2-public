@@ -1,0 +1,38 @@
+{#
+  Inspired by sphinx/themes/basic/defindex.html
+#}
+{%- extends "layout.html" %}
+{% set title = _('Developer guide') %}
+{% block body %}
+<h1> Developer Guide </h1>
+
+<!--<img src="_static/exosim.png" alt="ExoSim" class="responsive">-->
+
+<p>
+    Here are reported some light guides to help the user who want to contribute to ExoSim development or wants to customise the default pipelines.
+</p>
+
+<h2>Indices:</h2>
+<table class="contentstable" align="center"><tr>
+    <td width="50%">
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("contributing/guidelines") }}">Contributing guidelines</a><br/>
+	<span class="linkdescr">instructions to start contributing to ExoSim </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("contributing/tasks") }}">Task structure</a><br/>
+	<span class="linkdescr">description of ExoSim's tasks structure and how to create and manipulate Tasks </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("contributing/custom_tasks") }}">Custom Tasks Model </a><br/>
+	<span class="linkdescr">how to customise Tasks or create dedicated pipelines </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("contributing/signals") }}">Signals </a><br/>
+	<span class="linkdescr"> how to use the ExoSim Signal class and its derived classes </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("contributing/runConfig") }}">Run configuration </a><br/>
+	<span class="linkdescr"> how to set important parameters for simulation environment </span></p>
+
+    </td></tr>
+</table>
+
+
+{% endblock %}

@@ -1,0 +1,4 @@
+
+ignore:
+  - "**/tests" 
+  - "test_*.py"      

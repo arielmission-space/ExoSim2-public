@@ -1,0 +1,66 @@
+<root>
+    <source> HD 209458
+        <source_target>True</source_target>
+        <source_type>planck
+        </source_type>
+        <!--        <filename></filename>    -->
+        <path>/usr/local/project_data/sed </path>
+
+<!--        <online_database>-->
+<!--            <url>https://exodb.space/api/v1/star</url>-->
+<!--        </online_database>-->
+
+        <R unit="R_sun"> 1.17967 </R>
+        <M unit="M_sun"> 1.1753 </M>
+        <T unit="K"> 6086 </T>
+        <D unit="pc"> 47.4567 </D>
+        <z unit=""> 0.0 </z>
+
+        <ra> 22h03m10.8s </ra>
+        <dec> +18d53m04s </dec>
+
+            <planet> b 
+                <signal_task>EstimatePlanetarySignal</signal_task>
+                <t0 unit='hour'>4</t0>
+                <period unit='day'>3.525</period>
+                <sma>8.81</sma>
+                <inc unit='deg'>86.71</inc>
+                <w unit='deg'>0.0</w>
+                <ecc>0.0</ecc>
+                <rp>0.12</rp>
+                <limb_darkening>linear</limb_darkening>
+                <limb_darkening_coefficients>[0]</limb_darkening_coefficients>
+            </planet>
+
+    </source>
+
+    <source> HD 209458 1
+        <source_type> planck </source_type>
+        <path>/usr/local/project_data/sed </path>
+
+        <R unit="R_sun"> 1.17967 </R>
+        <M unit="M_sun"> 1.1753 </M>
+        <T unit="K"> 6086 </T>
+        <D unit="pc"> 55 </D>
+        <z unit=""> 0.0 </z>
+
+        <ra> 22h03m10.68s </ra>
+        <dec> +18d53m03s </dec>
+    </source>
+
+
+    <foregrounds>
+        <opticalElement> zodiacal
+            <zodiacal_factor>2.5</zodiacal_factor>
+        </opticalElement>
+
+        <opticalElement> earthsky
+            <task_model>LoadOpticalElement</task_model>
+            <datafile>__ConfigPath__/data/foregrounds/modtran_38km_sun_180az_55zd_los_45zd.ecsv</datafile>
+            <wavelength_key>Wavelength</wavelength_key>
+            <radiance_key>Radiance</radiance_key>
+            <efficiency_key>Transmission</efficiency_key>
+        </opticalElement>
+    </foregrounds>
+
+</root>

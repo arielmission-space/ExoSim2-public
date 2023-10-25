@@ -1,0 +1,15 @@
+<root>
+    <fileName>payload_example</fileName>
+
+    <Telescope>Telescope
+        <config>__ConfigPath__/telescope.xml</config>
+    </Telescope>
+
+    <channel> Photometer
+        <config>__ConfigPath__/photometer.xml</config>
+    </channel>
+    <channel> Spectrometer
+        <config>__ConfigPath__/spectrometer.xml</config>
+    </channel>
+
+</root>

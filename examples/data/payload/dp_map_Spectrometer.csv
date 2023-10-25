@@ -1,0 +1,18 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: spatial_coords, datatype: int64}
+# - {name: spectral_coords, datatype: int64}
+# delimiter: ','
+# schema: astropy-2.0
+spatial_coords,spectral_coords
+11,59
+19,108
+0,144
+13,141
+22,149
+30,89
+21,46
+2,144
+15,64
+20,55

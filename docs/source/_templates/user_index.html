@@ -1,0 +1,78 @@
+{#
+  Inspired by sphinx/themes/basic/defindex.html
+#}
+{%- extends "layout.html" %}
+{% set title = _('User guide') %}
+{% block body %}
+
+
+<h1> User Guide </h1>
+
+<!--<img src="_static/exosim.png" alt="ExoSim" class="responsive">-->
+
+<p>
+    This guide will walk you through ExoSim 2.
+    Here are listed the guides for all ExoSim pipelines and functionalities.
+    <i>ExoSim 2</i> includes multiple pipelines, called <i>recipes</i>.
+    In this section all the recipes are listed and described.
+    Some general information on the run and output can be found in <a class="smalllink" href="{{ pathto("user/quickstart") }}"> Quickstart </a>.
+</p>
+<p>
+    The following figure shows the ExoSim constellation.
+</p>
+
+<p class="aligncenter">
+    <img src="../_static/Exosim_blocks.png" alt="ExoSim building blocks" class="responsive">
+</p>
+
+<p>
+    The figure shows on the left the inputs, which are described in this documentation step by step as they are needed for the described process.
+    The grey area contains the ExoSim recipes: these are the simulation pipelines which lead to the production of the simulated observations.
+    The green column shows the products which are the simulation outputs. ExoSim produces 3 files, one for each pipeline.
+    This allows the to change configuration between recipes as the output of the first is the input for the next one, with no need to re-run the full procedure.
+    Also some <a class="smalllink" href="{{ pathto("user/plotter/index") }}"> Plotters </a> is included in <i>ExoSim 2</i> and it is reported here in yellow.
+    Finally, the picture produced by the <a class="smalllink" href="{{ pathto("user/plotter/index") }}"> Plotters </a>  are reported in green to the far right of the figure.
+</p>
+<p>
+    The starting point is the focal plane creation with <a class="smalllink" href="{{ pathto("user/focal_plane/index") }}"> Focal plane </a>.
+    All the basic inputs scheme is also described in the same section of this documentation.
+    This first step stores its product in the output data file. From this file other recipes can be run.
+    A radiometric model can be run starting from the images of the focal plane, and it is described in <a class="smalllink" href="{{ pathto("user/radiometric_model/index") }}"> Radiometric Model </a>.
+    The second step is the creation of sub-exposures, which is described in <a class="smalllink" href="{{ pathto("user/sub-exposures/index") }}"> sub-exposures </a>.
+    Finally, the NDRs are produced, following the procedure in <a class="smalllink" href="{{ pathto("user/ndrs/indexx") }}"> NDRs </a>.
+</p>
+
+<p>
+    Exosim also includes a set of tools to help the users to prepare the simulation and produce some of the needed input data.
+    Such tools are mentioned in the workflow description and extensively described in <a class="smalllink" href="{{ pathto("user/tools/indexx") }}"> tools </a>.
+</p>
+
+<h2>Indices:</h2>
+<table class="contentstable" align="center"><tr>
+    <td width="50%">
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("user/quickstart") }}">Quickstart</a><br/>
+	<span class="linkdescr">how to launch ExoSim </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("user/focal_plane/index") }}">Focal plane <font size="3">and low frequencies simulation </font></a><br/>
+	<span class="linkdescr">how to produce the instrument focal plane with low frequencies time simulation </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("user/radiometric_model/index") }}">Radiometric Model </a><br/>
+	<span class="linkdescr">how to use the radiometric model </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("user/sub-exposures/index") }}"> Sub-Exposures <font size="3"> with pointing jitter and astronomical signal </font></a><br/>
+	<span class="linkdescr">how to jitter the focal planes, adding astronomical signals and produce Sub-Exposures </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("user/ndrs/index") }}"> NDRs  <font size="3"> with detector noise</font> </a><br/>
+	<span class="linkdescr"> how pass the sub-exposures through the detector to produce the NDRs </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("user/plotter/index") }}">Plotters </a><br/>
+	<span class="linkdescr">how to use ExoSim's plotters </span></p>
+
+    <p class="biglink"><a class="biglink" href="{{ pathto("user/tools/index") }}">Tools </a><br/>
+	<span class="linkdescr"> a set of tools to help ExoSim users </span></p>
+    </td></tr>
+</table>
+
+
+{% endblock %}

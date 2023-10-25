@@ -1,0 +1,84 @@
+<root>
+    <ConfigPath>/home/lorenzo/git/Exosim2.0/examples
+        <comment>Main directory for the configuration files</comment>
+    </ConfigPath>
+
+    <time_grid>
+        <start_time unit="hour">0.0</start_time>
+        <end_time unit="hour">8.0</end_time>
+        <low_frequencies_resolution unit="hour">1</low_frequencies_resolution>
+    </time_grid>
+
+    <channel> Photometer
+        <detector>
+            <spatial_pix>32</spatial_pix>
+            <spectral_pix>32</spectral_pix>
+            <well_depth unit="count"> 100000  </well_depth>
+            <f_well_depth unit=""> 1.0 </f_well_depth>
+
+            <qe_sigma> 0.05 </qe_sigma>
+<!--        <qe_aging_factor> 0.001 </qe_aging_factor>-->
+<!--        <qe_aging_time_scale unit="hr"> 10 </qe_aging_time_scale>-->
+
+            <dc_map_task> DarkCurrentMap </dc_map_task>
+            <dc_mean unit="ct/s"> 1 </dc_mean>
+            <dc_sigma unit="ct/s"> 0.01 </dc_sigma>
+            <dc_aging_factor> 0.5 </dc_aging_factor>
+            <dc_aging_time_scale unit="hr"> 1 </dc_aging_time_scale>
+
+            <dp_mean > 10 </dp_mean>
+            <dp_sigma > 1 </dp_sigma>
+
+            <pnl_coeff_std> 0.005</pnl_coeff_std>
+            <!-- To create a non linearity map of the detector, we randomize the coefficients.
+                This is the standard deviation of the randomization. It is realative to the coefficients.
+                if not specified, the standard deviation is set to 0.5% of the
+                mean value of the polynomial coefficients -->
+        </detector>
+
+        <readout>
+            <n_NRDs_per_group> 1 </n_NRDs_per_group>
+            <n_groups> 2 </n_groups>
+            <readout_frequency unit="Hz">10</readout_frequency>
+            <Ground_time unit ='s'> 0.1 </Ground_time>
+            <Reset_time unit ='s'> 0.1 </Reset_time>
+    <!--        <exposure_time unit="s"> 2 </exposure_time>-->
+        </readout>
+    </channel>
+
+    <channel> Spectrometer
+
+        <detector>
+            <spatial_pix>32</spatial_pix>
+            <spectral_pix>160</spectral_pix>
+
+            <well_depth unit="count"> 100000  </well_depth>
+            <f_well_depth unit=""> 1.0 </f_well_depth>
+
+            <qe_sigma> 0.05 </qe_sigma>
+<!--        <qe_aging_factor> 0.001 </qe_aging_factor>-->
+<!--        <qe_aging_time_scale unit="hr"> 10 </qe_aging_time_scale>-->
+
+            <dc_mean unit="ct/s"> 1 </dc_mean>
+            <dc_sigma unit="ct/s"> 0.01 </dc_sigma>
+            <dc_aging_factor> 0.5 </dc_aging_factor>
+            <dc_aging_time_scale unit="hr"> 1 </dc_aging_time_scale>
+
+            <dp_mean > 10 </dp_mean>
+            <dp_sigma > 1 </dp_sigma>
+
+
+            <ADC_num_bit> 16 </ADC_num_bit>
+            <ADC_max_value> 120000 </ADC_max_value>
+        </detector>
+
+        <readout>
+            <n_NRDs_per_group> 1 </n_NRDs_per_group>
+            <n_groups> 2 </n_groups>
+            <readout_frequency unit="Hz">10</readout_frequency>
+            <Ground_time unit ='s'> 0.1 </Ground_time>
+            <Reset_time unit ='s'> 0.1 </Reset_time>
+    <!--        <exposure_time unit="s"> 2 </exposure_time>-->
+        </readout>
+    </channel>
+</root>

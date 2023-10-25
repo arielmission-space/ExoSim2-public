@@ -1,0 +1,21 @@
+<root>
+    <Atel unit="m**2">0.19</Atel>
+    <optical_path>
+        <opticalElement>M1
+            <task_model>__ConfigPath__/loadOptics_example.py</task_model>
+            <datafile>__ConfigPath__/data/payload/M1.ecsv</datafile>
+            <temperature unit='K'>70</temperature>
+            <wavelength_key>Wavelength</wavelength_key>
+            <emissivity_key>Emissivity</emissivity_key>
+            <efficiency_key>Reflectivity</efficiency_key>
+        </opticalElement>
+        <opticalElement>M2
+            <task_model>LoadOpticalElement</task_model>
+            <datafile>__ConfigPath__/data/payload/M1.ecsv</datafile>
+            <temperature unit='K'>70</temperature>
+            <wavelength_key>Wavelength</wavelength_key>
+            <emissivity_key>Emissivity</emissivity_key>
+            <efficiency_key>Reflectivity</efficiency_key>
+        </opticalElement>
+    </optical_path>
+</root>

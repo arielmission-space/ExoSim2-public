@@ -1,0 +1,39 @@
+<root>
+    <ConfigPath>/home/lorenzo/git/Exosim2.0/examples
+        <comment>Main directory for the configuration files</comment>
+    </ConfigPath>
+    <fileName>main_example</fileName>
+
+    <random_seed> 1 </random_seed>
+
+    <wl_grid>
+        <wl_min unit="micron">0.7</wl_min>
+        <wl_max unit="micron">4</wl_max>
+        <logbin_resolution unit="">6000</logbin_resolution>
+    </wl_grid>
+    <time_grid>
+        <start_time unit="hour">0.0</start_time>
+        <end_time unit="hour">8.0</end_time>
+        <low_frequencies_resolution unit="hour">8</low_frequencies_resolution>
+    </time_grid>
+
+    <pointing>
+        <ra> 22h03m10.8s </ra>
+        <dec> +18d53m04s </dec>
+    </pointing>
+
+    <jitter>
+        <jitter_task> EstimatePointingJitter </jitter_task>
+        <spatial unit="arcsec"> 0.1 </spatial>
+        <spectral unit="arcsec"> 0.1 </spectral>
+        <frequency_resolution unit="Hz">100</frequency_resolution>
+    </jitter>
+
+    <sky>
+        <config>__ConfigPath__/sky_example.xml</config>
+    </sky>
+
+    <payload>
+        <config>__ConfigPath__/payload_example.xml</config>
+    </payload>
+</root>
