@@ -21,7 +21,7 @@ ExoSim 2.0 is a Python package for simulating an astrophysics observation. It is
   - [How to install ](#how-to-install-)
     - [Install from PyPI ](#install-from-pypi-)
     - [Install from source code ](#install-from-source-code-)
-    - [Test your installation ](#test-your-installation-)
+      - [Test your installation ](#test-your-installation-)
   - [Documentation ](#documentation-)
     - [Build the html documentation ](#build-the-html-documentation-)
     - [Build the pdf documentation  ](#build-the-pdf-documentation--)
@@ -40,17 +40,18 @@ ExoSim 2.0 is available on PyPI and can be installed via pip as
 
 ExoSim 2.0 is compatible (tested) with Python 3.8, 3.9 and 3.10
 
-To install from source, clone the repository and move inside the directory.
+To install from source, clone the [repository](https://github.com/arielmission-space/ExoSim2-public/) and move inside the directory.
 
 Then use `pip` as
 
     pip install .
 
-### Test your installation <a name="test-your-installation"></a>
+#### Test your installation <a name="test-your-installation"></a>
 
 
-If you have installed ExoSim from source-code, to test your ExoSim2 installation simply run
+If you have installed ExoSim from source-code, to test your ExoSim2 installation simply run from the main ExoSim2 folder
 
+    pip install -e ".[docs]"
     python -m unittest discover -s tests
 
 ## Documentation <a name="documentation"></a>
@@ -58,9 +59,9 @@ If you have installed ExoSim from source-code, to test your ExoSim2 installation
 ExoSim2 comes with an extensive documentation, which can be built using Sphinx.
 The documentation includes a tutorial, a user guide and a reference guide.
 
-To build the documentation, install the following packages first:
+To build the documentation, install the needed packages first via:
 
-    pip install `sphinx==4.5` sphinxcontrib-napoleon sphinxcontrib-jsmath nbsphinx pydata-sphinx-theme phinx-panels
+    pip install -e ".[docs]"
 
 
 ### Build the html documentation <a name="build-the-html-documentation"></a>
