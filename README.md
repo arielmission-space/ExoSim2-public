@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/arielmission-space/ExoSim2-public/graph/badge.svg?token=8LDBCU43CK)](https://codecov.io/gh/arielmission-space/ExoSim2-public)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![PyPI version](https://badge.fury.io/py/exosim.svg)](https://badge.fury.io/py/exosim)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/arielmission-space/ExoSim2-public?color=gree&label=GitHub%20release)
+![GitHub tag (with filter)](https://img.shields.io/github/v/tag/arielmission-space/ExoSim2-public?label=GitHub%20version&color=green)
 [![Documentation Status](https://readthedocs.org/projects/exosim2-public/badge/?version=latest)](https://exosim2-public.readthedocs.io/en/latest/?badge=latest)
 <!-- [![Downloads](https://pepy.tech/badge/exosim)](https://pepy.tech/project/exosim) -->
 
