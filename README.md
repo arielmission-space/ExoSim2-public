@@ -10,7 +10,8 @@
 
 ## Introduction <a name="introduction"></a>
 
-ExoSim 2.0 is a Python package for simulating an astrophysics observation. It is based on the ExoSim 1.0 package, which was developed for the ARIEL mission concept study. ExoSim 2.0 is a complete rewrite of the original code, with a focus on modularity and extensibility. It is designed to be used as a library and can be easily integrated into other Python projects.
+ExoSim 2.0 is a Python package for simulating an astrophysics observation. It is based on the [ExoSim package](https://github.com/ExoSim/ExoSimPublic), which was developed for the ARIEL mission concept study. ExoSim 2.0 is a complete rewrite of the original code, with a focus on modularity and extensibility. It is designed to be used as a library and can be easily integrated into other Python projects.1.0
+1.0
 
 ## Table of contents
 
