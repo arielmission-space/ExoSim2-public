@@ -5,8 +5,8 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 ![PyPI - Version](https://img.shields.io/pypi/v/exosim?label=pypi%20version&color=green)
 ![GitHub tag (with filter)](https://img.shields.io/github/v/tag/arielmission-space/ExoSim2-public?label=GitHub%20version&color=green)
+[![Downloads](https://pepy.tech/badge/exosim)](https://pepy.tech/project/exosim)
 [![Documentation Status](https://readthedocs.org/projects/exosim2-public/badge/?version=latest)](https://exosim2-public.readthedocs.io/en/latest/?badge=latest)
-<!-- [![Downloads](https://pepy.tech/badge/exosim)](https://pepy.tech/project/exosim) -->
 
 ## Introduction <a name="introduction"></a>
 
