@@ -8,7 +8,7 @@ The following notes guide you toward the installation of `ExoSim` using a Python
 You have to have Python and `pip`` installed already. Ask your computer administrator in case you need to install these components.
 
 .. note::
-    The current implementation of ExoSim 2 is compatible with Python 3.7, 3.8 and 3.9.
+    The current implementation of ExoSim 2 is compatible with Python 3.8, 3.9 and 3.10.
 
 Create the Virtual Environment
 ====================================
@@ -86,9 +86,6 @@ Instal ExoSim
     .. |PypiLogo| image:: _static/pypi-logo.png
                     :width: 50
                     :class: dark-light
-
-    .. warning::
-        `ExoSim2` is not on PyPi yet. Please proceed with the installation from Git.
 
     The ExoSim package is hosted on Pypi repository. You can install it by
 

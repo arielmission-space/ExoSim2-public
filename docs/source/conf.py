@@ -158,7 +158,7 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 #     # TODO check how to wriite switcher.json from pydata github example
 #     json_url = "_static/switcher.json"
 
-html_theme = "pydata_sphinx_theme"
+html_theme = "sphinx_rtd_theme"
 # panels_add_bootstrap_css = False
 # panels_dev_mode = True
 
