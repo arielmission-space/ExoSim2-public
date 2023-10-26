@@ -3,10 +3,11 @@
 import os
 import sys
 
-# sys.path.insert(0, os.path.abspath('../../'))
 current_dir = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
+
 sys.path.insert(0, target_dir)
+sys.path.insert(0, os.path.abspath('../../'))
 
 # -- Project information -----------------------------------------------------
 from datetime import date
@@ -92,6 +93,7 @@ language = "en"
 # Auto-API
 # -----------------------------------------------------------------------------
 autoapi_dirs = ["../../exosim"]
+# autoapi_ignore = ["*__init__.py", "*exosim.py"]
 autoapi_root = "api"
 autoapi_type = "python"
 autoapi_options = [
