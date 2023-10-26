@@ -164,11 +164,11 @@ html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
     #    "logo_link": "index",
-    "github_url": "https://github.com/arielmission-space/ExoSim2-public",
+#    "github_url": "https://github.com/arielmission-space/ExoSim2-public",
     "collapse_navigation": True,
-    "navbar_start": ["navbar-logo"],
-    "navbar_center": ["navbar-nav"],
-    "navbar_end": ["theme-switcher", "navbar-icon-links"],
+    # "navbar_start": ["navbar-logo"],
+    # "navbar_center": ["navbar-nav"],
+    # "navbar_end": ["theme-switcher", "navbar-icon-links"],
 #     "switcher": {
 #  #       "json_url": json_url,
 #         "version_match": version_match,

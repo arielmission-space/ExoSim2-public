@@ -29,7 +29,7 @@ The guide goal is to train the user to customise the simulator according to the 
     .. link-button:: installation
             :type: ref
             :text: New to ExoSim? Install ExoSim to start.
-            :classes: stretched-link
+            :classes: btn-outline-secondary btn-block stretched-link
     ---
 
     User Guide 
@@ -42,7 +42,7 @@ The guide goal is to train the user to customise the simulator according to the 
     .. link-button:: user/index
         :type: ref
         :text: Learn how to use ExoSim.
-        :classes: stretched-link
+        :classes: btn-outline-secondary btn-block stretched-link
     ---
 
     Developer Guide 
@@ -54,7 +54,7 @@ The guide goal is to train the user to customise the simulator according to the 
     .. link-button:: contributing/index
         :type: ref
         :text: Learn how to improve or customise ExoSim.
-        :classes: stretched-link   
+        :classes: btn-outline-secondary btn-block stretched-link   
     
     ---
     
@@ -68,7 +68,7 @@ The guide goal is to train the user to customise the simulator according to the 
     .. link-button:: api/exosim/index
         :type: ref
         :text: Dig into the complete Api guide.
-        :classes: stretched-link
+        :classes: btn-outline-secondary btn-block stretched-link
 
 
 .. panels::
