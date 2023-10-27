@@ -7,7 +7,7 @@ Welcome to ExoSim2's documentation!
 **Version**: |version|
 
 
-ExoSim is the time domain simulator exoplanet observations firstly presented in `Sarkar et al., 2021 <https://link.springer.com/article/10.1007/s10686-020-09690-9>`__.
+ExoSim is the time domain simulator exoplanet observations first presented in `Sarkar et al., 2021 <https://link.springer.com/article/10.1007/s10686-020-09690-9>`__.
 This refactored version is meant to be easy to use and largely customisable: almost every part of the code can be customised by the user.
 
 This guide will walk you through the simulation steps with examples and descriptions of the simulation strategy.
@@ -138,14 +138,14 @@ The guide goal is to train the user to customise the simulator according to the 
 Cite
 ------
 A dedicated publication has been submitted and the relative information will be published soon. 
-In the meanwhile, please, send an email to the developers.
+In the meantime, please, send an email to the developers.
 
 .. ExoSim2 has been developed from ExoSim (Sarkar et al. 2021).
 
 .. If you use this software please cite:
 .. Sarkar et al., 2021, "`ExoSim: the Exoplanet Observation Simulator <https://link.springer.com/article/10.1007/s10686-020-09690-9>`__", Exp. Astron, 51, 287-317. DOI:10.1007/s10686-020-09690-9
 
-Acknowledgements
+Acknowledgments
 ------------------
 
 ExoSim 2 has been developed under the umbrella of `Ariel Space Mission <https://arielmission.space/>`__,
@@ -160,7 +160,7 @@ with the support of the Ariel Consortium and the members of Simulator Software, 
 
 
 During the development of the first alpha and beta versions of this software,
-L. V. Mugnai was affiliated to `Sapienza University of Rome <https://www.phys.uniroma1.it/fisica/en-welcome>`__
+`L. V. Mugnai <https://www.lorenzomugnai.com/>_` was affiliated to `Sapienza University of Rome <https://www.phys.uniroma1.it/fisica/en-welcome>`__
 and supported by `ASI <https://www.asi.it/en/>`__.
 
 
