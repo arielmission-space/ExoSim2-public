@@ -160,7 +160,7 @@ with the support of the Ariel Consortium and the members of Simulator Software, 
 
 
 During the development of the first alpha and beta versions of this software,
-`L. V. Mugnai <https://www.lorenzomugnai.com/>_` was affiliated to `Sapienza University of Rome <https://www.phys.uniroma1.it/fisica/en-welcome>`__
+`L. V. Mugnai <https://www.lorenzomugnai.com/>`__ was affiliated to `Sapienza University of Rome <https://www.phys.uniroma1.it/fisica/en-welcome>`__
 and supported by `ASI <https://www.asi.it/en/>`__.
 
 
