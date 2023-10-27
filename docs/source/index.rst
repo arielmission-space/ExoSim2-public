@@ -4,7 +4,7 @@
 Welcome to ExoSim2's documentation!
 ===================================
 
-**Date**: |today| **Version**: |version|
+**Version**: |version|
 
 
 ExoSim is the time domain simulator exoplanet observations firstly presented in `Sarkar et al., 2021 <https://link.springer.com/article/10.1007/s10686-020-09690-9>`__.
@@ -148,7 +148,7 @@ In the meanwhile, please, send an email to the developers.
 Acknowledgements
 ------------------
 
-ExoSim 2 has been developed under the umbrella of Ariel `Space Mission <https://arielmission.space/>`__,
+ExoSim 2 has been developed under the umbrella of `Ariel Space Mission <https://arielmission.space/>`__,
 with the support of the Ariel Consortium and the members of Simulator Software, Management and Documentation (S2MD) Working Group.
 
 ..  image:: _static/ariel.png
