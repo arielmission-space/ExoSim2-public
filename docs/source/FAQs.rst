@@ -3,19 +3,6 @@
 FAQs
 =====
 
-.. _noReqPack:
-
-What if ExoSim cannot find the required packages?
----------------------------------------------------
-
-ExoSim should install the required packages automatically. If for some reason it will not, you can do that manually.
-To install required packages in the virtual environment use
-
-.. code-block:: console
-
-    cd /your_path/ExoSim
-    pip install -r requirements.txt
-
 .. _noVirtualEnv:
 
 What if I don't want to create a python virtual environment?

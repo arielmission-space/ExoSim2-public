@@ -45,6 +45,7 @@ extensions = [
     "autoapi.extension",
     # TODO update to sphinx-design and sphinx>5
     "sphinx_panels",
+    "sphinx_design",
 ]
 # ------------------------------------------------------------------------------
 # Matplotlib plot_directive options

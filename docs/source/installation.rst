@@ -17,57 +17,59 @@ You can either create a Python Virtual Environment in your anaconda python or in
 .. tip::
     The Anaconda solution is cross-platform: the following instructions should work for Windows, iOS and Linux.
 
-.. tabbed:: Anaconda |condaLogo|
+.. tab-set::
+
+    .. tab-item:: Anaconda |condaLogo|
 
 
-    .. |condaLogo| image:: _static/conda-logo.png
-                :width: 50
-                :class: dark-light
-
-    Assuming you have `Anaconda <https://www.anaconda.com/>`__ installed in your system, you can simply install ExoSimVE following this procedure.
-    Open the Anaconda command shell, or if you are on a Unix system just open the console.
-
-    You can create a Virtual Environment as
-
-    .. code-block:: console
-
-        conda create --name ExoSimVE python=3.9
-
-    The program will ask you if you want to install some standard packages: accept them.
-
-    You can now activate or deactivate the Virtual Environment as
-
-    .. code-block:: console
-
-        conda activate ExoSimVE
-        conda deactivate
-
-
-.. tabbed:: Python venv |pythonLogo|
-
-
-
-    .. |pythonLogo| image:: _static/python-logo.png
+        .. |condaLogo| image:: _static/conda-logo.png
                     :width: 50
                     :class: dark-light
 
+        Assuming you have `Anaconda <https://www.anaconda.com/>`__ installed in your system, you can simply install ExoSimVE following this procedure.
+        Open the Anaconda command shell, or if you are on a Unix system just open the console.
 
-    If you have a standard Python installation, you still can work with Virtual Environment.
-    You have to have Python `virtualenv`` installed.
-    For Linux you can do that as:
+        You can create a Virtual Environment as
 
-    .. code-block:: console
+        .. code-block:: console
 
-        mkdir ExoSimVE
-        virtualenv -p /usr/bin/python3.9 ExoSimVE
+            conda create --name ExoSimVE python=3.9
 
-    Then activate the virtual environment. If using csh, type
+        The program will ask you if you want to install some standard packages: accept them.
 
-    .. code-block:: console
+        You can now activate or deactivate the Virtual Environment as
 
-        source ExoSimVE/bin/activate.csh
+        .. code-block:: console
 
-    (check virtual environment documentation when using a different shell)
+            conda activate ExoSimVE
+            conda deactivate
+
+
+    .. tab-item:: Python venv |pythonLogo|
+
+
+
+        .. |pythonLogo| image:: _static/python-logo.png
+                        :width: 50
+                        :class: dark-light
+
+
+        If you have a standard Python installation, you still can work with Virtual Environment.
+        You have to have Python `virtualenv`` installed.
+        For Linux you can do that as:
+
+        .. code-block:: console
+
+            mkdir ExoSimVE
+            virtualenv -p /usr/bin/python3.9 ExoSimVE
+
+        Then activate the virtual environment. If using csh, type
+
+        .. code-block:: console
+
+            source ExoSimVE/bin/activate.csh
+
+        (check virtual environment documentation when using a different shell)
 
 If you don't want to use a virtual environment, check :ref:`noVirtualEnv`
 
@@ -79,45 +81,49 @@ ExoSim package installation
 Instal ExoSim
 ----------------
 
-.. tabbed:: Install from PiPy |PypiLogo|
+.. tab-set::
+    
+    .. tab-item:: Install from PiPy |PypiLogo|
+        :sync: pipy
 
-    .. _install pip:
+        .. _install pip:
 
-    .. |PypiLogo| image:: _static/pypi-logo.png
-                    :width: 50
-                    :class: dark-light
+        .. |PypiLogo| image:: _static/pypi-logo.png
+                        :width: 50
+                        :class: dark-light
 
-    The ExoSim package is hosted on Pypi repository. You can install it by
+        The ExoSim package is hosted on Pypi repository. You can install it by
 
-    .. code-block:: console
+        .. code-block:: console
 
-        pip install exosim
+            pip install exosim
 
-.. tabbed:: Install from Git |GitLogo|
+    .. tab-item:: Install from Git |GitLogo|
+        :sync: git
 
-    .. _install git:
+        .. _install git:
 
-    .. |GitLogo| image:: _static/Git-logo.png
-                    :width: 50
-                    :class: dark-light
+        .. |GitLogo| image:: _static/Git-logo.png
+                        :width: 50
+                        :class: dark-light
 
-    You can clone ExoSim from our main git repository
+        You can clone ExoSim from our main git repository
 
-    .. code-block:: console
+        .. code-block:: console
 
-        git clone https://github.com/arielmission-space/ExoSim2-public.git
+            git clone https://github.com/arielmission-space/ExoSim2-public.git
 
-    Move into the ExoSim folder
+        Move into the ExoSim folder
 
-    .. code-block:: console
+        .. code-block:: console
 
-        cd /your_path/ExoSim2.0
+            cd /your_path/ExoSim2.0
 
-    Then, just do
+        Then, just do
 
-    .. code-block:: console
+        .. code-block:: console
 
-        pip install .
+            pip install .
 
 To test for correct setup you can do
 
@@ -147,37 +153,42 @@ you can uninstall it from your Environment as
 Upgrade ExoSim
 ---------------
 
-.. tabbed:: Upgrade from PiPy |PypiLogo|
+.. tab-set::
+
+    .. tab-item:: Upgrade from PiPy |PypiLogo|
+        :sync: pipy
 
 
-    If you have installed ExoSim from PyPi, now you can update the package simply as
 
-    .. code-block:: console
+        If you have installed ExoSim from PyPi, now you can update the package simply as
 
-        pip install exosim --upgrade
+        .. code-block:: console
 
-.. tabbed:: Upgrade from Git |GitLogo|
+            pip install exosim --upgrade
+
+    .. tab-item:: Upgrade from Git |GitLogo|
+        :sync: git
 
 
-    If you have installed ExoSim from Git, you can download or pull a newer version of ExoSim over the old one, replacing all modified data.
+        If you have installed ExoSim from Git, you can download or pull a newer version of ExoSim over the old one, replacing all modified data.
 
-    Then you have to place yourself inside the installation directory with the console
+        Then you have to place yourself inside the installation directory with the console
 
-    .. code-block:: console
+        .. code-block:: console
 
-        cd /your_path/ExoSim2.0
+            cd /your_path/ExoSim2.0
 
-    Now you can update ExoSim simply as
+        Now you can update ExoSim simply as
 
-    .. code-block:: console
+        .. code-block:: console
 
-        pip install . --upgrade
+            pip install . --upgrade
 
-    or simply
+        or simply
 
-    .. code-block:: console
+        .. code-block:: console
 
-        pip install .
+            pip install .
 
 
 Modify ExoSim
