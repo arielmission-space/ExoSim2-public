@@ -41,6 +41,20 @@ In this example, we use the `pnl_map.h5` file which is produced using one of the
         <detector>
     </channel>
 
+Alternatively, the coefficients map can be provided as a numpy array (see `numpy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_),
+and loaded using :class:`~exosim.tasks.detector.loadPixelsNonLinearityMapNumpy.LoadPixelsNonLinearityMapNumpy`:
+
+.. code-block:: xml
+
+    <channel> channel
+        <detector>
+            <pixel_non_linearity> True </pixel_non_linearity>
+            <pnl_task> ApplyPixelsNonLinearity </pnl_task>
+            <pnl_map_task> LoadPixelsNonLinearityMapNumpy </pnl_map_task>
+            <pnl_filename>__ConfigPath__/data/payload/pnl_map.npy</pnl_filename>
+        <detector>
+    </channel>
+
 
 Saturation 
 =====================

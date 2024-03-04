@@ -1,35 +1,3 @@
-"""
-This module provides the core functionalities and command-line interfaces for ExoSim, a simulation tool for exoplanet observations.
-
-The module defines several functions that serve as entry points for different simulation scenarios:
-
-- `help()`: Displays help information.
-- `focalplane()`: Simulates the focal plane and performs related calculations.
-- `radiometric()`: Creates a radiometric model for the simulation.
-- `subexposures()`: Handles the creation of sub-exposures in the simulation.
-- `ndrs()`: Manages the Non-Destructive Reads (NDRs) in the simulation.
-
-It also sets up command-line arguments for these functions and initializes logging and parallel processing settings.
-
-Attributes:
-- `logger`: A logging instance for capturing runtime information.
-- `code_name_and_version`: String representation of the application name and its version.
-- Various command-line argument configurations for each function (e.g., `configuration_flags`, `output_file_flags` etc.)
-
-Functions:
-- `help()`: Display help information.
-- `focalplane()`: Perform focal plane simulations.
-- `radiometric()`: Create a radiometric model.
-- `subexposures()`: Create sub-exposures.
-- `ndrs()`: Manage Non-Destructive Reads (NDRs).
-- `_set_log(args)`: Internal function to set logging level.
-- `_set_threads(args)`: Internal function to set the number of threads for parallel processing.
-- `_set_chunk_size(args)`: Internal function to set the chunk size for h5 file.
-
-Note: For detailed information on each function, see their respective docstrings.
-
-"""
-
 import importlib.metadata as metadata
 import logging
 import os
@@ -40,8 +8,6 @@ from exosim import __version__
 from exosim.log import addLogFile
 from exosim.log import setLogLevel
 from exosim.utils import RunConfig
-
-
 
 logger = logging.getLogger("exosim")
 code_name_and_version = "ExoSim {}".format(__version__)

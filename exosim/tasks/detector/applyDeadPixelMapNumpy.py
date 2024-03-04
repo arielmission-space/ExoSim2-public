@@ -13,32 +13,8 @@ class ApplyDeadPixelMapNumpy(ApplyDeadPixelsMap):
     """
     It masks the dead pixel in the array given a numpy map.
     The input must be a NPY format file (see `numpy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_) containing a boolean map marking with True the dead pixels.
-    The mapu should be indicated under ``dp_map_filename`` keyword.
+    The map should be indicated under ``dp_map_filename`` keyword.
     """
-
-    def __init__(self):
-        """
-        Parameters
-        ----------
-        subexposures: :class:`~exosim.models.signal.Counts`
-            sub-exposures cached signal
-        parameters: dict
-            channel parameters dictionary
-        outputs: :class:`~exosim.output.output.Output` (optional)
-            output file
-        """
-
-        self.add_task_param("subexposures", " ")
-        self.add_task_param("parameters", "channel parameters dictionary")
-        self.add_task_param("output", "output file", None)
-
-    def execute(self):
-        self.info("applying dead pixel map")
-        subexposures = self.get_task_param("subexposures")
-        parameters = self.get_task_param("parameters")
-        output = self.get_task_param("output")
-
-        self.model(subexposures, parameters, output)
 
     def model(self, subexposures, parameters, output):
         dead_pixels_map = np.ones(

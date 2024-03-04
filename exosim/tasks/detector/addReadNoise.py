@@ -17,6 +17,11 @@ class AddNormalReadNoise(Task):
     A different realisation of the same distribution is added to each pixel of each sub-exposure.
     If an output group is provided, it saves all the random seeds used.
 
+    Notes
+    -----
+    This is a default class with standardised inputs and outputs.
+    The user can load this class and overwrite the "model" method
+    to implement a custom Task to replace this.
     """
 
     def __init__(self):

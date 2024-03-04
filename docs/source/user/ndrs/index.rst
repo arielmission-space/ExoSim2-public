@@ -35,6 +35,7 @@ which is described in :ref:`ndrs plotter`
     KTC noise <reset_bias>
     Dead Pixels <dead_pixels>
     Pixels Non-Linearity and saturation <pixel_non_linearity>
+    Gain Drift <gain_drift>
     Read Noise <readnoise>
     Analog to Digital conversion <analogtodigtital>
     Merge NDRs and Results <results>

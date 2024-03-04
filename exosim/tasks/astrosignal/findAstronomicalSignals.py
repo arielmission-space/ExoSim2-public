@@ -73,9 +73,11 @@ class FindAstronomicalSignals(Task):
             )
             signal_dict = {
                 "task": signal_task,
-                "parsed_parameters": self.sky_parameters["source"][source]
-                if source in self.sky_parameters["source"].keys()
-                else self.sky_parameters["source"],
+                "parsed_parameters": (
+                    self.sky_parameters["source"][source]
+                    if source in self.sky_parameters["source"].keys()
+                    else self.sky_parameters["source"]
+                ),
             }
             if source not in self.signals_dict.keys():
                 self.signals_dict.update({source: {effect: signal_dict}})

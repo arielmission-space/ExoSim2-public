@@ -33,6 +33,11 @@ class AddCosmicRays(Task):
     - The probabilities for the interaction shapes are configurable. The task issues a warning if the sum of provided probabilities is not 1.
     - The cosmic ray flux is specified in ct/s/cm^2 and is scaled based on the pixel size and detector dimensions.
 
+    This is a default class with standardised inputs and outputs.
+    The user can load this class and overwrite the "model" method
+    to implement a custom Task to replace this.
+
+
     """
 
     def __init__(self):

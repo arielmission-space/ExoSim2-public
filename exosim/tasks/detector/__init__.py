@@ -2,6 +2,7 @@ from .accumulateSubExposures import AccumulateSubExposures
 from .addConstantDarkCurrent import AddConstantDarkCurrent
 from .addCosmicRays import AddCosmicRays
 from .addDarkCurrentMapNumpy import AddDarkCurrentMapNumpy
+from .addGainDrift import AddGainDrift
 from .addKTC import AddKTC
 from .addReadNoise import AddNormalReadNoise
 from .addReadNoiseMapNumpy import AddReadNoiseMapNumpy
@@ -12,4 +13,5 @@ from .applyDeadPixelMapNumpy import ApplyDeadPixelMapNumpy
 from .applyPixelsNonLinearity import ApplyPixelsNonLinearity
 from .applySimpleSaturation import ApplySimpleSaturation
 from .loadPixelsNonLinearityMap import LoadPixelsNonLinearityMap
+from .loadPixelsNonLinearityMapNumpy import LoadPixelsNonLinearityMapNumpy
 from .mergeGroups import MergeGroups

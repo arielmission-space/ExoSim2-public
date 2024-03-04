@@ -66,7 +66,7 @@ class ForegroundsToFocalPlane(Task):
                         * focal_plane.metadata["oversampling"]
                     )
 
-                    conv = scipy.convolve(
+                    conv = scipy.signal.convolve(
                         path[rad].data[t, 0], np.ones(int(npix)), "same"
                     )
                     focal_plane.data[t, :] += conv

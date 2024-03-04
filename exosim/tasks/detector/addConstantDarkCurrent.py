@@ -15,6 +15,12 @@ class AddConstantDarkCurrent(Task):
     """
     It adds constant dark current to all the pixel in the array.
     The dark current is loaded from the parameters
+
+    Notes
+    -----
+    This is a default class with standardised inputs and outputs.
+    The user can load this class and overwrite the "model" method
+    to implement a custom Task to replace this.
     """
 
     def __init__(self):

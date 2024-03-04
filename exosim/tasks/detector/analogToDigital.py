@@ -86,11 +86,11 @@ class AnalogToDigital(Task):
 
         # dtype_max_val = 2**bits_num - 1
 
-        int_type = np.dtype("int32")
+        int_type = np.dtype("uint32")
         if bits_num <= 16:
-            int_type = np.dtype("int16")
+            int_type = np.dtype("uint16")
         if bits_num <= 8:
-            int_type = np.dtype("int8")
+            int_type = np.dtype("uint8")
 
         gain_factor = parameters["detector"]["ADC_gain"]
 

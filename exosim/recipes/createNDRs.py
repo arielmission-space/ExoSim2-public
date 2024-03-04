@@ -233,6 +233,21 @@ class CreateNDRs(TimedClass, log.Logger):
                         output=sim_grp,
                     )
 
+                # add gain drift
+                if look_for_key(
+                    ch_description["detector"], "gain_drift", True
+                ):
+                    gain_instance = find_and_run_task(
+                        ch_description["detector"],
+                        "gain_drift_task",
+                        detector.addGainDrift,
+                    )
+                    gain_instance(
+                        subexposures=sub_ndrs,
+                        parameters=ch_description,
+                        output=sim_grp,
+                    )
+
                 # converting to digital
                 if look_for_key(ch_description["detector"], "ADC", True):
                     analogToDigital = detector.AnalogToDigital()

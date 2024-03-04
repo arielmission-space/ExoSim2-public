@@ -7,7 +7,7 @@ current_dir = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
 
 sys.path.insert(0, target_dir)
-sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 from datetime import date
@@ -164,15 +164,15 @@ html_theme = "sphinx_rtd_theme"
 
 html_theme_options = {
     #    "logo_link": "index",
-#    "github_url": "https://github.com/arielmission-space/ExoSim2-public",
+    #    "github_url": "https://github.com/arielmission-space/ExoSim2-public",
     "collapse_navigation": True,
     # "navbar_start": ["navbar-logo"],
     # "navbar_center": ["navbar-nav"],
     # "navbar_end": ["theme-switcher", "navbar-icon-links"],
-#     "switcher": {
-#  #       "json_url": json_url,
-#         "version_match": version_match,
-#     },
+    #     "switcher": {
+    #  #       "json_url": json_url,
+    #         "version_match": version_match,
+    #     },
 }
 
 html_logo = "_static/logo.png"
