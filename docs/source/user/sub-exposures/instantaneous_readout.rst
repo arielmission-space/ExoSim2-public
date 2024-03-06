@@ -33,7 +33,7 @@ As mentioned, this number can grow quite fast: for a bright target the saturatio
 Assuming this is the size of the ramp, we have 172800 sub-exposure.
 Given that the sub-exposures are stored using ``float64`` data format (64 bits = 8 Bytes memory size),
 the size of this datacube, for a focal plane of :math:`64 \times 64` pixels
-is :math:`172800 \cdot 64 \cdot 64 \cdot 8 = 5.662.310.400` Bytes. The resulting datacube is around 5.6 GB.
+is :math:`172800 \cdot 64 \cdot 64 / 8 = 88.473.600` Bytes. The resulting datacube is around 84 MB.
 This justifies the use of cached data, which are stored stored and used in chunks.
 The chunk size is set to 2 MB by default, but the user can set its own value as.
 
