@@ -20,8 +20,16 @@ formats:
   - epub
 # Optionally set the version of Python and requirements required to build your docs
 
+# .readthedocs.yml
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
 python:
+  system_packages: true
+  before_install:
+    - pip install poetry
+    - poetry install --with dev
   install:
-    - method: poetry
+    - method: pip
       path: .
-      extras: ["dev"]
+
