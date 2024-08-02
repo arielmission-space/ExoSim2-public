@@ -84,7 +84,7 @@ class AnalogToDigital(Task):
             self.error("max bits number supported is 32.")
             raise ValueError("max bits number supported is 32.")
 
-        # dtype_max_val = 2**bits_num - 1
+        dtype_range = 2**bits_num - 1
 
         int_type = np.dtype("uint32")
         if bits_num <= 16:
@@ -92,7 +92,32 @@ class AnalogToDigital(Task):
         if bits_num <= 8:
             int_type = np.dtype("uint8")
 
-        gain_factor = parameters["detector"]["ADC_gain"]
+        gain_factor = 1.0
+        if "ADC_gain" in parameters["detector"]:
+            if isinstance(parameters["detector"]["ADC_gain"], str):
+                gain_factor = parameters["detector"]["ADC_gain"].lower()
+            else:
+                gain_factor = parameters["detector"]["ADC_gain"]
+
+        offset = "auto"
+        if "ADC_offset" in parameters["detector"]:
+            if isinstance(parameters["detector"]["ADC_offset"], str):
+                offset = parameters["detector"]["ADC_offset"].lower()
+            else:
+                offset = parameters["detector"]["ADC_offset"]
+
+        if offset == "auto":
+            offset = np.min(subexposures.dataset)
+
+        if gain_factor == "auto":
+            max_ = np.max(subexposures.dataset)
+
+            gain_factor = dtype_range / (max_ - offset)
+            gain_factor = float(gain_factor)
+
+        self.info("ADC gain:{}".format(gain_factor))
+        self.info("ADC offset:{}".format(offset))
+        self.info("ADC range: {}".format(dtype_range))
 
         ndrs = Adu(
             spectral=subexposures.spectral,
@@ -111,8 +136,12 @@ class AnalogToDigital(Task):
         for chunk in iterate_over_chunks(
             subexposures.dataset, desc="converting to digital"
         ):
-            data = deepcopy(subexposures.dataset[chunk]) * gain_factor
+            data = (
+                deepcopy(subexposures.dataset[chunk]) - offset
+            ) * gain_factor
             ndrs.dataset[chunk] = rounder(data).astype(int_type)
             ndrs.output.flush()
+
+        ndrs.metadata["ADC"] = {"gain": gain_factor, "offset": offset}
 
         self.set_output(ndrs)

@@ -53,6 +53,11 @@ class InstantaneousReadOut(Task):
         self.add_task_param("pointing_jitter", "")
         self.add_task_param("output_file", "output file")
         self.add_task_param("dataset_name", "dataset name", "SubExposures")
+        self.add_task_param(
+            "slicing",
+            "jittering by slice, avoid to create a large cube in memory",
+            False,
+        )
         self.store_dict = {}
 
     def execute(self):
@@ -75,7 +80,8 @@ class InstantaneousReadOut(Task):
         end_index = readout_parameters["ndr_end_cumulative_sequence"].astype(
             int
         )
-
+        saveMemory = self.get_task_param("slicing")
+        # saveMemory=True
         out = Counts(
             spectral=focal_plane.spectral[int(base_osf // 2) :: base_osf]
             * focal_plane.spectral_units,
@@ -109,41 +115,137 @@ class InstantaneousReadOut(Task):
             y_jit = y_jit.astype(int)
             x_jit = x_jit.astype(int)
 
-            # apply jitter magnification
-            if mag != 1:
+            if saveMemory:
+                """
+                debug=False
+                if debug:
+                    new_focal = [self.oversample(fp, mag) for fp in focal]
+                """
+
+                if mag != 1:
+                    xin, yin, xout, yout = self.getOversampleFactors(
+                        focal[0, ...], mag
+                    )
+
+                    yshape = int(yout.shape[0] // osf)
+                    xshape = int(xout.shape[0] // osf)
+
+                    # time_line = np.zeros((start_index.shape[0], int(yout.shape[0]  // osf),
+                    # int( xout.shape[0]// osf)),dtype=np.float64,)
+
+                else:
+                    yshape = int(focal.shape[1] // osf)
+                    xshape = int(focal.shape[2] // osf)
+
                 self.info(
-                    "resampling the focal plane: magnification factor {}".format(
-                        mag
+                    "jittering {} for {}".format(
+                        dataset_name, parameters["value"]
                     )
                 )
-                # resampling the focal plane and replace it with a new array
-                new_focal = [self.oversample(fp, mag) for fp in focal]
-                # focal = np.array(new_focal)
-                focal = copy.deepcopy(np.array(new_focal))
 
-                self.debug(
-                    "focal plane resampled: new shape {}".format(focal.shape)
+                for chunk in iterate_over_chunks(
+                    out.dataset,
+                    desc="jittering {}".format(parameters["value"]),
+                ):
+                    time_line = np.zeros(
+                        (start_index[chunk[0]].shape[0], yshape, xshape),
+                        dtype=np.float64,
+                    )
+                    # focal:       (3420, 192, 1068)
+                    # chunk          274,  64,  356
+                    # time_line     (7856, 64,  356 )
+                    # iterate over the timeline sub-exposureA
+                    t_cache = -1
+                    fp_cache = None
+                    time_line_slice = None
+                    """
+                    ndrs=prange(start_index[chunk[0]].shape[0])
+                    message="chunk iteration: ndr %i-%i , t= %i -%i "%(ndrs.start,ndrs.stop-1,fp_time[chunk[0]][ndrs.start], fp_time[chunk[0]][ndrs.stop-1] )      
+                    self.info(message)
+                    """
+
+                    for ndr in prange(start_index[chunk[0]].shape[0]):
+                        # select the focal plane at the right time
+                        t = fp_time[chunk[0]][ndr]
+
+                        # print (" ndr=",ndr, "t=",t, end='\r')
+                        fp_slice = focal[t, ...]
+
+                        if t == t_cache:
+                            fp = fp_cache
+                        else:
+                            if mag != 1:
+                                fp = self.oversample(fp_slice, mag)
+                            else:
+                                fp = fp_slice
+                            t_cache = t
+                            fp_cache = fp
+                        """    
+                        if debug:
+                           fp_slice_test= new_focal[t]
+                          
+                           message="Total difference sliced focal plane ndr=%i t=%i difference =%g"%(ndr,t,np.nansum(fp-fp_slice_test))
+                           self.info(message)    
+                           print (" fp.shape=", fp.shape)
+                        """
+                        time_line_slice = self.jittering_the_focalplane_by_slice(
+                            fp,
+                            osf,
+                            start_index[chunk[0]],
+                            end_index[chunk[0]],
+                            x_jit,  # TODO: check if this is correct: is it correct to use chunks?
+                            y_jit,
+                            fp_time[chunk[0]],
+                            time_line[ndr, ...],
+                            ndr,
+                        )
+                        time_line[ndr, ...] = time_line_slice
+                    # dset=   time_line[chunk[0]]
+
+                    out.dataset[chunk] = time_line
+
+                    out.output.flush()
+            else:
+                # apply jitter magnification
+                if mag != 1:
+                    self.info(
+                        "resampling the focal plane: magnification factor {}".format(
+                            mag
+                        )
+                    )
+
+                    # resampling the focal plane and replace it with a new array
+                    new_focal = [self.oversample(fp, mag) for fp in focal]
+                    # focal = np.array(new_focal)
+                    focal = copy.deepcopy(np.array(new_focal))
+
+                    self.debug(
+                        "focal plane resampled: new shape {}".format(
+                            focal.shape
+                        )
+                    )
+                self.info(
+                    "jittering {} for {}".format(
+                        dataset_name, parameters["value"]
+                    )
                 )
 
-            self.info(
-                "jittering {} for {}".format(dataset_name, parameters["value"])
-            )
-            for chunk in iterate_over_chunks(
-                out.dataset, desc="jittering {}".format(parameters["value"])
-            ):
-                dset = self.jittering_the_focalplane(
-                    focal,
-                    osf,
-                    start_index[chunk[0]],
-                    end_index[chunk[0]],
-                    x_jit,  # TODO: check if this is correct: is it correct to use chunks?
-                    y_jit,
-                    fp_time[chunk[0]],
-                )
+                for chunk in iterate_over_chunks(
+                    out.dataset,
+                    desc="jittering {}".format(parameters["value"]),
+                ):
+                    dset = self.jittering_the_focalplane(
+                        focal,
+                        osf,
+                        start_index[chunk[0]],
+                        end_index[chunk[0]],
+                        x_jit,  # TODO: check if this is correct: is it correct to use chunks?
+                        y_jit,
+                        fp_time[chunk[0]],
+                    )
+                    out.dataset[chunk] = dset
 
-                out.dataset[chunk] = dset
-
-                out.output.flush()
+                    out.output.flush()
 
             # Here we force the power conservation, if the user enabled the option
             if "force_power_conservation" in parameters.keys():
@@ -241,7 +343,46 @@ class InstantaneousReadOut(Task):
         )
 
     @staticmethod
-    def oversample(fp, ad_osf):
+    def getOversampleFactors(fp, ad_osf):
+        """
+        Used in oversample method to determine the shape of the arrays .
+        Parameters
+        ----------
+        fp: :class:`~numpy.ndarray`
+            2D focal plane
+        ad_osf: int
+            magnification factor
+
+        Returns
+        -------
+        :class:`~numpy.ndarray`
+            the x and y grids used in the input and output of the oversampling
+
+        """
+        xin = np.linspace(0, fp.shape[1] - 1, fp.shape[1])
+        yin = np.linspace(0, fp.shape[0] - 1, fp.shape[0])
+        x_step = abs(xin[1]) - abs(xin[0])
+        y_step = abs(yin[1]) - abs(yin[0])
+
+        # calculates the new step sizes for new grid
+        x_step_new = np.float64(x_step / ad_osf)
+        y_step_new = np.float64(y_step / ad_osf)
+
+        # new grid must start with an exact offset to produce correct number of new points
+        x_start = -x_step_new * np.float64((ad_osf - 1) / 2)
+        y_start = -y_step_new * np.float64((ad_osf - 1) / 2)
+
+        # new grid points- with correct start, end and spacing
+        xout = np.arange(
+            x_start, x_start + x_step_new * fp.shape[1] * ad_osf, x_step_new
+        )
+        yout = np.arange(
+            y_start, y_start + y_step_new * fp.shape[0] * ad_osf, y_step_new
+        )
+        return xin, yin, xout, yout
+
+    @staticmethod
+    def oversample(fp: np.array, ad_osf: int) -> np.array:
         """
         It increases the oversampling factor of the focal plane.
 
@@ -257,25 +398,8 @@ class InstantaneousReadOut(Task):
         :class:`~numpy.ndarray`
             2D focal plane sampled with the new oversampling factor
         """
-        xin = np.linspace(0, fp.shape[1] - 1, fp.shape[1])
-        yin = np.linspace(0, fp.shape[0] - 1, fp.shape[0])
-        x_step = abs(xin[1]) - abs(xin[0])
-        y_step = abs(yin[1]) - abs(yin[0])
-
-        # calculates the new step sizes for new grid
-        x_step_new = float(x_step / ad_osf)
-        y_step_new = float(y_step / ad_osf)
-
-        # new grid must start with an exact offset to produce correct number of new points
-        x_start = -x_step_new * float((ad_osf - 1) / 2)
-        y_start = -y_step_new * float((ad_osf - 1) / 2)
-
-        # new grid points- with correct start, end and spacing
-        xout = np.arange(
-            x_start, x_start + x_step_new * fp.shape[1] * ad_osf, x_step_new
-        )
-        yout = np.arange(
-            y_start, y_start + y_step_new * fp.shape[0] * ad_osf, y_step_new
+        xin, yin, xout, yout = InstantaneousReadOut.getOversampleFactors(
+            fp, ad_osf
         )
 
         # interpolate fp onto new grid
@@ -283,6 +407,59 @@ class InstantaneousReadOut(Task):
         new_fp = fn(yout, xout)
 
         return new_fp
+
+    @staticmethod
+    @jit(nopython=True, parallel=True)
+    def jittering_the_focalplane_by_slice(
+        fp: np.array,
+        osf: int,
+        start_index: np.array,
+        end_index: np.array,
+        x_jit: np.array,
+        y_jit: np.array,
+        fp_time: np.array,
+        time_line_slice: np.array,
+        ndr: int,
+    ) -> np.array:
+        """
+        Same as jittering_the_focalplane but to operate only on a single slice fp
+        """
+        # iterate over the timeline sub-exposures
+        j = int(osf // 2)  # starting index for spatial direction
+        # iterate over the spatial direction
+        for y in range(time_line_slice.shape[0]):
+            i = int(osf // 2)  # starting index for spectral direction
+            # iterate over the spectral direction
+            for x in range(time_line_slice.shape[1]):
+                # iterate over the jitter indices
+                for idx in range(start_index[ndr], end_index[ndr]):
+                    # selecting the jitter offset indices
+                    j_jit = y_jit[idx] + j
+                    i_jit = x_jit[idx] + i
+
+                    # if negative index, then roll the array
+                    if i_jit < 0:
+                        i_jit = i_jit + fp.shape[1]
+                    elif i_jit >= fp.shape[1]:
+                        i_jit = i_jit - fp.shape[1]
+
+                    if j_jit < 0:
+                        j_jit = j_jit + fp.shape[0]
+                    elif j_jit >= fp.shape[0]:
+                        j_jit = j_jit - fp.shape[0]
+
+                    # if negative index, then roll the array
+                    time_line_slice[y, x] = (
+                        time_line_slice[y, x] + fp[j_jit, i_jit]
+                    )
+                # move to the next pixel in the spectral direction
+                i = i + osf
+            # move to the next pixel in the spatial direction
+            j = j + osf
+        # divide by the number of jitter positions added
+        time_line_slice = time_line_slice / (end_index[ndr] - start_index[ndr])
+
+        return time_line_slice
 
     @staticmethod
     @jit(nopython=True, parallel=True)

@@ -236,8 +236,11 @@ def populate(
             j1 = out.shape[1]
 
         for t in prange(out.shape[0]):
+            psf_index_t = psf_index[t]
+            if psf_index.shape[0] == 1:
+                psf_index_t = 0
             out[t, j0[k] : j1] += (
-                psf[psf_index[t], k, j_start:j_stop] * model[k, t]
+                psf[psf_index_t, k, j_start:j_stop] * model[k, t]
             )
             norm[t, j0[k] : j1] += psf[psf_index[t], k, j_start:j_stop]
 

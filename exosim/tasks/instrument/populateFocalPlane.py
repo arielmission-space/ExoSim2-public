@@ -1,9 +1,7 @@
-import gc
 from copy import deepcopy
 
 import numpy as np
-from numba import jit
-from numba import prange
+from tqdm.auto import tqdm
 
 import exosim.tasks.instrument as instrument
 from exosim.tasks.task import Task
@@ -174,7 +172,6 @@ class PopulateFocalPlane(Task):
         return psf
 
 
-@jit(nopython=True, parallel=True)
 def populate(
     i0: np.array,
     j0: np.array,
@@ -183,7 +180,7 @@ def populate(
     source: np.array,
 ) -> np.array:
     """it populates the focal plane adding the pfs"""
-    for k in prange(len(i0)):
+    for k in tqdm(range(len(i0)), desc="populating"):
         # this section is to avoid the psf to be out of the focal plane
         # i and j are the indexes of the psf on the focal plane
         # i_start and j_start are the indexes of the start cropped psf on the psf array
@@ -215,7 +212,10 @@ def populate(
             j1 = focal_plane.shape[2]
 
         for i in range(focal_plane.shape[0]):
+            psfi = i
+            if psf.shape[0] == 1:
+                psfi = 0
             focal_plane[i, i0[k] : i1, j0[k] : j1] += (
-                psf[i, k, i_start:i_stop, j_start:j_stop] * source[i, 0, k]
+                psf[psfi, k, i_start:i_stop, j_start:j_stop] * source[i, 0, k]
             )
     return focal_plane

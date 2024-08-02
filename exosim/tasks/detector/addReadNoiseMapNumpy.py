@@ -59,12 +59,11 @@ class AddReadNoiseMapNumpy(Task):
             subexposures.dataset, desc="adding read noise"
         ):
             data = deepcopy(subexposures.dataset[chunk])
-            subexposures.dataset[
-                chunk
-            ] = data + RunConfig.random_generator.normal(
-                0, read_noise_sigma, data.shape
-            ).astype(
-                np.float64
+            subexposures.dataset[chunk] = (
+                data
+                + RunConfig.random_generator.normal(
+                    0, read_noise_sigma, data.shape
+                ).astype(np.float64)
             )
             subexposures.output.flush()
             random_seeds.append(RunConfig.random_seed)

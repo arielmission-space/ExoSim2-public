@@ -1,5 +1,5 @@
 <root>
-    <ConfigPath>/home/lorenzo/git/Exosim2.0/examples
+    <ConfigPath>.
         <comment>Main directory for the configuration files</comment>
     </ConfigPath>
     <fileName>main_example</fileName>

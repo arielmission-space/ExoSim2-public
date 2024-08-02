@@ -33,6 +33,7 @@ class AddShotNoise(Task):
         output = self.get_task_param("output")
 
         random_seeds = []
+        warning_raised = False
         for chunk in iterate_over_chunks(
             subexposures.dataset, desc="adding shot noise"
         ):
@@ -40,9 +41,11 @@ class AddShotNoise(Task):
             idx = np.where(data <= 0)
             if len(idx[0]) > 0:
                 data[idx] = 1e-10
-                self.warning(
-                    "Negative and zero pixels found: values replaced with 1e-10"
-                )
+                if not warning_raised:
+                    self.warning(
+                        "Negative and zero pixels found: values replaced with 1e-10"
+                    )
+                    warning_raised = True
 
             subexposures.dataset[chunk] = RunConfig.random_generator.poisson(
                 data

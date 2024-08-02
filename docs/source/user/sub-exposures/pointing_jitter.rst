@@ -56,6 +56,19 @@ Using this configuration the resulting jittered positions will result as:
 
 where `main_parameters` is the parameter dictionary from the main configuration file.
 
+.. note::
+   
+    For long observations with a small low frequiencies variation and high oversampling factor the total
+    RAM memory needed to compute the jitter variation could be very high. It is possible to make this computation,
+    without a large amount of RAM memory, at cost of a larger computation time, switching the `slicing` parameter  
+    in the `jitter` section, e.g:
+    
+    .. code-block:: xml
+
+        <jitter>
+            <slicing> True </slicing>
+        </jitter>          
+
 .. image:: _static/random_jitter.png
     :width: 600
     :align: center

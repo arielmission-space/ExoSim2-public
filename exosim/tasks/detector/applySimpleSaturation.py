@@ -54,6 +54,7 @@ class ApplySimpleSaturation(Task):
         sat = check_units(sat, "ct", force=True).value
 
         self.info("saturation: {}".format(sat))
+        self.info("max counts: {}".format(np.max(subexposures.dataset)))
 
         for chunk in iterate_over_chunks(
             subexposures.dataset, desc="applying pixel saturation"

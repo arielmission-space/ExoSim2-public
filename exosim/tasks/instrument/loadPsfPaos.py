@@ -7,7 +7,7 @@ import astropy.units as u
 import h5py
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.interpolate import interp2d
+from scipy.interpolate import RectBivariateSpline
 
 import exosim.tasks.instrument.loadPsf as loadPsf
 from exosim.utils.aperture import find_rectangular_aperture
@@ -34,6 +34,13 @@ class LoadPsfPaos(loadPsf.LoadPsf):
     def model(self, filename, parameters, wavelength, time):
         self.debug("loading PAOS psf")
 
+        if (
+            "psf" in parameters
+            and "time_dependence" in parameters["psf"].keys()
+        ):
+            timeDependence = parameters["psf"]["time_dependence"]
+        else:
+            timeDependence = True
         if "oversampling" in parameters["detector"].keys():
             oversampling = parameters["detector"]["oversampling"]
         else:
@@ -74,7 +81,9 @@ class LoadPsfPaos(loadPsf.LoadPsf):
         psf_cube_out = psf_out[np.newaxis, ...]
         del psf_out
         gc.collect()
-        psf_cube_out = np.repeat(psf_cube_out, time.size, axis=0)
+
+        if timeDependence:
+            psf_cube_out = np.repeat(psf_cube_out, time.size, axis=0)
         return psf_cube_out
 
     @staticmethod
@@ -159,7 +168,7 @@ class LoadPsfPaos(loadPsf.LoadPsf):
             exosim_y[int(spectral_size // 2)] - paos_y[ima.shape[1] // 2]
         )
 
-        f = interp2d(paos_x.value, paos_y.value, ima, kind="linear")
+        f = RectBivariateSpline(paos_x, paos_y, ima, kx=1, ky=1)
         imac = f(exosim_x.value, exosim_y.value)
 
         imac -= imac.min()

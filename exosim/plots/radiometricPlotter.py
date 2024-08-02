@@ -44,6 +44,8 @@ from astropy.io.misc.hdf5 import read_table_hdf5
 from astropy.table import Table
 
 import exosim.log as log
+from .utils import _create_ordered_cmap
+from .utils import prepare_channels_list
 from exosim.output.hdf5.utils import load_signal
 from exosim.utils.ascii_arts import observatory
 
@@ -141,12 +143,8 @@ class RadiometricPlotter(log.Logger):
             axes with channel bands added
 
         """
-        channels = set(self.input_table["ch_name"])
-        channels = list(channels)
-        channels.sort()
-
-        cmap = matplotlib.cm.get_cmap("Pastel1")
-        norm = matplotlib.colors.Normalize(vmin=0.0, vmax=len(channels))
+        channels, norm = prepare_channels_list(self.input)
+        cmap = _create_ordered_cmap("Pastel1", roll=-2, delete=-3)
 
         tick_list, patches = [], []
         for k, channel_name in enumerate(channels):

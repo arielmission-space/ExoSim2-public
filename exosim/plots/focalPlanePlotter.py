@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from typing import List
 from typing import Tuple
 
@@ -12,10 +13,15 @@ import numpy as np
 from matplotlib.gridspec import GridSpec
 
 import exosim.log as log
+from .utils import _create_ordered_cmap
+from .utils import prepare_channels_list
 from exosim.output.hdf5.utils import load_signal
 from exosim.utils.ascii_arts import observatory
 
 plt.rcParams.update({"font.size": 22})
+
+cmap_band = _create_ordered_cmap("Pastel1", roll=-2, delete=-3)
+cmap = _create_ordered_cmap("Set1", roll=-3, delete=2)
 
 
 class FocalPlanePlotter(log.Logger):
@@ -244,12 +250,7 @@ class FocalPlanePlotter(log.Logger):
             axes with channel bands added
 
         """
-        with h5py.File(self.input, "r") as f:
-            channels = list(f["channels"].keys())
-            channels.sort()
-
-        cmap = matplotlib.cm.get_cmap("Pastel1")
-        norm = matplotlib.colors.Normalize(vmin=0.0, vmax=len(channels))
+        channels, norm = prepare_channels_list(self.input)
 
         tick_list, patches = [], []
         for k, channel_name in enumerate(channels):
@@ -264,7 +265,7 @@ class FocalPlanePlotter(log.Logger):
                     wl_max,
                     alpha=0.3,
                     zorder=0,
-                    color=cmap(
+                    color=cmap_band(
                         norm(k),
                     ),
                 )
@@ -273,7 +274,7 @@ class FocalPlanePlotter(log.Logger):
                     wl_max,
                     alpha=0.3,
                     zorder=0,
-                    color=cmap(
+                    color=cmap_band(
                         norm(k),
                     ),
                 )
@@ -282,7 +283,7 @@ class FocalPlanePlotter(log.Logger):
                 tick_list.append(wl_max)
                 patches += [
                     mpatches.Patch(
-                        color=cmap(norm(k)), alpha=0.3, label=channel_name
+                        color=cmap_band(norm(k)), alpha=0.1, label=channel_name
                     )
                 ]
             #       tick_list.append(max(wl_maxs))
@@ -329,35 +330,64 @@ class FocalPlanePlotter(log.Logger):
 
         """
         self.info("plotting efficiency")
-        # fig.suptitle(self.input_table.meta['name'])
+
+        channels, norm = prepare_channels_list(self.input)
+
+        def bands(axs):
+            try:
+                for ax in axs.flatten():
+                    self.plot_bands(
+                        ax, scale, channel_edges, add_legend=ch_lengend
+                    )
+            except:
+                try:
+                    axs = self.plot_bands(
+                        axs, scale, channel_edges, add_legend=ch_lengend
+                    )
+                except KeyError:
+                    pass
+
         with h5py.File(self.input, "r") as f:
-            channels = list(f["channels"].keys())
-            channels.sort()
-
-            fig, axs = plt.subplots(1, 1, figsize=(10, 8))
-
             if efficiency == "optical efficiency":
-                for ch in channels:
+                fig, axs = plt.subplots(1, 1, figsize=(10, 8))
+                bands(axs)
+                for k, ch in enumerate(channels):
                     eff_path = "channels/{}/efficiency".format(ch)
                     eff = load_signal(f[eff_path])
-                    axs.plot(eff.spectral, eff.data[0, 0], label=ch)
+                    axs.plot(
+                        eff.spectral,
+                        eff.data[0, 0],
+                        label=ch,
+                        color=cmap(norm(k)),
+                        zorder=0,
+                    )
                 axs.set_title("Efficiency")
                 axs.set_ylabel("Efficiency")
                 axs.set_xlabel(r"Wavelength [$\mu m$]")
                 axs.grid()
 
             elif efficiency == "responsivity":
-                for ch in channels:
+                fig, axs = plt.subplots(1, 1, figsize=(10, 8))
+                bands(axs)
+                for k, ch in enumerate(channels):
                     resp_path = "channels/{}/responsivity".format(ch)
                     resp = load_signal(f[resp_path])
-                    axs.plot(resp.spectral, resp.data[0, 0], label=ch)
+                    axs.plot(
+                        resp.spectral,
+                        resp.data[0, 0],
+                        label=ch,
+                        color=cmap(norm(k)),
+                        zorder=0,
+                    )
                 axs.set_title("Responsivity")
                 axs.set_ylabel(r"${}$".format(resp.data_units))
                 axs.set_xlabel(r"Wavelength [$\mu m$]")
                 axs.grid()
 
             elif efficiency == "quantum efficiency":
-                for ch in channels:
+                fig, axs = plt.subplots(1, 1, figsize=(10, 8))
+                bands(axs)
+                for k, ch in enumerate(channels):
                     resp_path = "channels/{}/responsivity".format(ch)
                     resp = load_signal(f[resp_path])
                     wl = resp.spectral * u.Unit(resp.spectral_units)
@@ -369,14 +399,22 @@ class FocalPlanePlotter(log.Logger):
                         / u.count
                         * resp.data_units
                     )
-                    axs.plot(resp.spectral, qe, label=ch)
+                    axs.plot(
+                        resp.spectral,
+                        qe,
+                        label=ch,
+                        color=cmap(norm(k)),
+                        zorder=0,
+                    )
                 axs.set_title("Quantum efficiency")
                 axs.set_ylabel("Efficiency")
                 axs.set_xlabel(r"Wavelength [$\mu m$]")
                 axs.grid()
 
             elif efficiency == "photon conversion efficiency":
-                for ch in channels:
+                fig, axs = plt.subplots(1, 1, figsize=(10, 8))
+                bands(axs)
+                for k, ch in enumerate(channels):
                     eff_path = "channels/{}/efficiency".format(ch)
                     eff = load_signal(f[eff_path])
                     resp_path = "channels/{}/responsivity".format(ch)
@@ -390,7 +428,13 @@ class FocalPlanePlotter(log.Logger):
                         / u.count
                         * resp.data_units
                     )
-                    axs.plot(resp.spectral, qe * eff.data[0, 0], label=ch)
+                    axs.plot(
+                        resp.spectral,
+                        qe * eff.data[0, 0],
+                        label=ch,
+                        color=cmap(norm(k)),
+                        zorder=0,
+                    )
                 axs.set_title("photon conversion efficiency")
                 axs.set_ylabel("Efficiency")
                 axs.set_xlabel(r"Wavelength [$\mu m$]")
@@ -398,16 +442,30 @@ class FocalPlanePlotter(log.Logger):
 
             elif efficiency == "all":
                 fig, axs = plt.subplots(2, 2, figsize=(20, 15))
+                bands(axs)
+
                 ax1, ax2, ax3, ax4 = axs.flatten()
                 with h5py.File(self.input, "r") as f:
-                    for ch in channels:
+                    for k, ch in enumerate(channels):
                         eff_path = "channels/{}/efficiency".format(ch)
                         eff = load_signal(f[eff_path])
-                        ax1.plot(eff.spectral, eff.data[0, 0], label=ch)
+                        ax1.plot(
+                            eff.spectral,
+                            eff.data[0, 0],
+                            label=ch,
+                            color=cmap(norm(k)),
+                            zorder=0,
+                        )
 
                         resp_path = "channels/{}/responsivity".format(ch)
                         resp = load_signal(f[resp_path])
-                        ax2.plot(resp.spectral, resp.data[0, 0], label=ch)
+                        ax2.plot(
+                            resp.spectral,
+                            resp.data[0, 0],
+                            label=ch,
+                            color=cmap(norm(k)),
+                            zorder=0,
+                        )
 
                         wl = resp.spectral * u.Unit(resp.spectral_units)
                         qe = (
@@ -418,9 +476,21 @@ class FocalPlanePlotter(log.Logger):
                             / u.count
                             * resp.data_units
                         )
-                        ax3.plot(resp.spectral, qe, label=ch)
+                        ax3.plot(
+                            resp.spectral,
+                            qe,
+                            label=ch,
+                            color=cmap(norm(k)),
+                            zorder=0,
+                        )
 
-                        ax4.plot(resp.spectral, qe * eff.data[0, 0], label=ch)
+                        ax4.plot(
+                            resp.spectral,
+                            qe * eff.data[0, 0],
+                            label=ch,
+                            color=cmap(norm(k)),
+                            zorder=0,
+                        )
 
                 # locmaj = matplotlib.ticker.LogLocator(base=10, numticks=12)
                 # ax.yaxis.set_major_locator(locmaj)
@@ -452,19 +522,6 @@ class FocalPlanePlotter(log.Logger):
                 ax4.set_xlabel(r"Wavelength [$\mu m$]")
                 ax4.set_ylabel("Efficiency")
                 ax4.grid()
-
-            try:
-                for ax in axs.flatten():
-                    self.plot_bands(
-                        ax, scale, channel_edges, add_legend=ch_lengend
-                    )
-            except:
-                try:
-                    axs = self.plot_bands(
-                        axs, scale, channel_edges, add_legend=ch_lengend
-                    )
-                except KeyError:
-                    pass
 
             try:
                 ax3.legend(

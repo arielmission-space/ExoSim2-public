@@ -93,6 +93,7 @@ class CreateSubExposures(TimedClass, log.Logger):
 
         with output.use(append=True, cache=True) as out:
             # if jitter is requested, run the jitter task
+            use_slicing = False
             if "jitter" in self.mainConfig.keys():
                 jitter_instance = find_and_run_task(
                     self.mainConfig["jitter"],
@@ -106,6 +107,9 @@ class CreateSubExposures(TimedClass, log.Logger):
                 ) = jitter_instance(
                     parameters=self.mainConfig, output_file=out
                 )
+
+                if "slicing" in self.mainConfig["jitter"].keys():
+                    use_slicing = self.mainConfig["jitter"]["slicing"]
 
             output_grp = out.create_group("channels")
             instantaneousReadOut = InstantaneousReadOut()
@@ -155,6 +159,7 @@ class CreateSubExposures(TimedClass, log.Logger):
                         self.jitter_spe,
                         self.jitter_time,
                     ),
+                    slicing=use_slicing,
                     output_file=ch_grp,
                 )
 

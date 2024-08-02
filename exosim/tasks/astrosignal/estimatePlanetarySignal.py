@@ -162,9 +162,6 @@ class EstimatePlanetarySignal(EstimateAstronomicalSignal):
         period = period.to(u.s)
         impact_parameter = np.cos(inc.to(u.rad)) * sma
         t14 = (
-            period
-            / np.pi
-            / sma
-            * np.sqrt((1 + rp) ** 2 - impact_parameter**2)
+            period / np.pi / sma * np.sqrt((1 + rp) ** 2 - impact_parameter**2)
         )
         return t14

@@ -190,6 +190,24 @@ This would fasten up the successive `ExoSim` steps.
 The default :class:`~exosim.tasks.instrument.loadPsfPaos.LoadPsfPaos` task does not include a temporal dependency,
 and therefore the PSF cube is repeated on the temporal axis.
 
+.. note::
+   
+    For long observations with a small "low frequiencies variation" 
+    memory needed to keep the repeated PAOS Psf could be very high. 
+    It is possible to memorize and store only one PSF, switching 
+    to False the `time_dependence` parameter  in the `psf` section,
+    e.g.:
+    
+    .. code-block:: xml
+
+        <channel> channel_name
+            <psf>
+                <psf_task>LoadPsfPaos</psf_task>
+                <filename>__ConfigPath__/paos_file.h5</filename>
+                 <time_dependence>False</time_dependence>
+            </psf>
+        </channel>
+
 The user can define a temporal dependence by using a custom :class:`~exosim.tasks.instrument.loadPsf.LoadPsf` task.
 An example using PAOS PSF is reported in :class:`~exosim.tasks.instrument.loadPsfPaosTimeInterp.LoadPsfPaosTimeInterp`.
 

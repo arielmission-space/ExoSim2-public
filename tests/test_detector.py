@@ -19,6 +19,7 @@ from exosim.tasks.detector import AccumulateSubExposures
 from exosim.tasks.detector import AddConstantDarkCurrent
 from exosim.tasks.detector import AddCosmicRays
 from exosim.tasks.detector import AddDarkCurrentMapNumpy
+from exosim.tasks.detector import AddGainDrift
 from exosim.tasks.detector import AddKTC
 from exosim.tasks.detector import AddNormalReadNoise
 from exosim.tasks.detector import AddReadNoiseMapNumpy
@@ -406,6 +407,53 @@ class DeadPixelTest(unittest.TestCase):
 
         os.remove(fname)
         os.remove(map_fname)
+
+
+class GainDriftTest(unittest.TestCase):
+    def test_value(self):
+        fname = os.path.join(test_dir, "output_test_gain.h5")
+        output = SetOutput(fname)
+
+        data = np.ones((100, 100, 100)) * 100
+        time = np.arange(0, 100)
+
+        parameters = {
+            "detector": {
+                "gain_drift": True,
+                "gain_drift_task": AddGainDrift,
+                "gain_drift_amplitude": 1e-2,
+                "gain_coeff_order_t": 1,
+                "gain_coeff_t_min": 1.0,
+                "gain_coeff_t_max": 1.01,
+                "gain_coeff_order_w": 1,
+                "gain_coeff_w_min": 1.0,
+                "gain_coeff_w_max": 1.01,
+            }
+        }
+        with output.use(cache=True) as out:
+            input = Counts(
+                spectral=np.arange(0, 100),
+                data=data,
+                time=time,
+                shape=data.shape,
+                cached=True,
+                output=out,
+                dataset_name="SubExposures",
+                output_path=None,
+                dtype=np.float64,
+                metadata={"integration_times": np.ones(100) * 1},
+            )
+
+            addGainDrift = AddGainDrift()
+            addGainDrift(subexposures=input, parameters=parameters)
+
+            # testing the range
+            range = (np.max(input.dataset) - np.min(input.dataset)) / np.min(
+                input.dataset
+            )
+            np.testing.assert_almost_equal(range, 1e-2, decimal=4)
+
+        os.remove(fname)
 
 
 class DeadPixelNumpyTest(unittest.TestCase):

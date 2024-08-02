@@ -134,7 +134,24 @@ class AddGainDrift(Task):
         for i, y in enumerate(y_t):
             z[i] = y * y_w
 
-        amplitude = parameters["detector"]["gain_drift_amplitude"]
+        if "gain_drift_amplitude" in parameters["detector"].keys():
+            amplitude = parameters["detector"]["gain_drift_amplitude"]
+        elif "gain_drift_amplitude_range_min" in parameters["detector"].keys():
+            amplitude_min = parameters["detector"][
+                "gain_drift_amplitude_range_min"
+            ]
+            amplitude_max = parameters["detector"][
+                "gain_drift_amplitude_range_max"
+            ]
+            amplitude = RunConfig.random_generator.uniform(
+                amplitude_min, amplitude_max
+            )
+            if out_grp is not None:
+                out_grp.write_list(
+                    "gain amplitude random_seed", RunConfig.random_seed
+                )
+        else:
+            self.error("missing amplitude definition for gain")
 
         dinamic_range = z.max() - z.min()
         z *= amplitude / dinamic_range
@@ -150,9 +167,7 @@ class AddGainDrift(Task):
         for chunk in iterate_over_chunks(
             subexposures.dataset, desc="applying gain noise"
         ):
-            print(chunk[0].start, chunk[0].stop)
             chunk_data = deepcopy(subexposures.dataset[chunk])
-            print(z[chunk[0].start : chunk[0].stop, np.newaxis, :])
             subexposures.dataset[chunk] = (
                 chunk_data * z[chunk[0].start : chunk[0].stop, np.newaxis, :]
             )

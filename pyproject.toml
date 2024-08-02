@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools", "wheel", "poetry-core>=1.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "exosim"
+version = "2.0.0-rc2"
+description = "ExoSim 2 is the next generation of the Exoplanet Observation Simulator (ExoSim) tailored for spectro-photometric observations of transiting exoplanets from space, ground, and sub-orbital platforms. This software is a complete rewrite implemented in Python 3, embracing object-oriented design principles."
+authors = ["L. V. Mugnai <lorenzo.mugnai@uniroma1.it>", "E. Pascale", "A. Bocchieri", "A. Lorenzani", "A. Papageorgiou"]
+license = "BSD-3-Clause"
+homepage = "https://github.com/arielmission-space/ExoSim2.0"
+repository = "https://github.com/arielmission-space/ExoSim2.0"
+documentation = "https://github.com/arielmission-space/ExoSim2.0"
+readme = "README.md"
+keywords = ["exoplanets", "simulation", "astronomy"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development :: Libraries"
+]
+
+[tool.poetry.dependencies]
+python = "^3.8.1"
+astropy = "^5.2.2"
+matplotlib = "^3.7.5"
+mpmath = "*"
+numpy = "^1.24.4"
+scipy = "^1.9.3"
+decorator = "*"
+h5py = "^3.11"
+joblib = "^1.4.2"
+numba = "^0.58.1"
+photutils = "^1.8.0"
+requests = "*"
+pyyaml = "^6.0.1"
+tqdm = "*"
+batman-package = "^2.4.9"
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "*"
+sphinxcontrib-napoleon = "*"
+sphinxcontrib-jsmath = "*"
+nbsphinx = "*"
+sphinx_rtd_theme = "*"
+sphinx-panels = "*"
+sphinx-autoapi = "*"
+sphinx-autobuild = "*"
+sphinx-design = "*"
+sphinxcontrib_serializinghtml = "*"
+docutils = "*"
+astroid = "==2.15.5"
+codecov = "*"
+coverage = "^7.5.3"
+flake8 = "^7.1.0"
+flake8-bugbear = "^24.4.26"
+
+[tool.poetry.scripts]
+exosim = "exosim.exosim:help"
+exosim-focalplane = "exosim.exosim:focalplane"
+exosim-radiometric = "exosim.exosim:radiometric"
+exosim-sub-exposures = "exosim.exosim:subexposures"
+exosim-ndrs = "exosim.exosim:ndrs"
+exosim-plot = "exosim.plots.plotter:main"

@@ -98,13 +98,9 @@ class EstimateZodi(Task):
             a = 0
         units = u.W / (u.m**2 * u.um * u.sr)
         bb_1 = BlackBody(5500.0 * u.K)
-        bb_1 = bb_1(wl).to(
-            u.W / u.m**2 / u.sr / u.um, u.spectral_density(wl)
-        )
+        bb_1 = bb_1(wl).to(u.W / u.m**2 / u.sr / u.um, u.spectral_density(wl))
         bb_2 = BlackBody(270.0 * u.K)
-        bb_2 = bb_2(wl).to(
-            u.W / u.m**2 / u.sr / u.um, u.spectral_density(wl)
-        )
+        bb_2 = bb_2(wl).to(u.W / u.m**2 / u.sr / u.um, u.spectral_density(wl))
 
         zodi_emission = a * (3.5e-14 * bb_1 + 3.58e-8 * bb_2).to(units)
         return signal.Radiance(wl, zodi_emission)

@@ -12,7 +12,7 @@ The polynomial coefficients are randomly generated within specified ranges. Fina
 Usage and Parameters
 --------------------
 
-To apply gain drift using the `AddGainDrift` task, the following parameters should be specified in the configuration file. 
+To apply gain drift using the :class:`~exosim.tasks.detector.addGainDrift.AddGainDrift` task, the following parameters should be specified in the configuration file. 
 Here we include also some example values.
 - ``gain_coeff_order_t``: Order of the polynomial used for the time-dependent trend.
 - ``gain_coeff_t_min`` and ``gain_coeff_t_max``: Minimum and maximum values for the randomly generated coefficients of the time-dependent polynomial trend.
@@ -41,10 +41,25 @@ These parameters control the characteristics of the gain noise, allowing for det
         </detector>
     </channel>
 
+
+Alternatively, the :class:`~exosim.tasks.detector.addGainDrift.AddGainDrift` task can also randomly estimate the amplitude of the gain drift by using the range defined with the keywords: ``gain_drift_amplitude_range_min``, ``gain_drift_amplitude_range_max``:
+
+.. code-block:: xml
+
+    <channel>
+        <detector>
+            <gain_drift> True </gain_drift>
+            <gain_drift_task> AddGainDrift </gain_drift_task>
+
+            <gain_drift_amplitude_range_min> 1e-2 </gain_drift_amplitude_range_min>
+            <gain_drift_amplitude_range_max> 5e-2 </gain_drift_amplitude_range_max>
+        </detector>
+    </channel>
+
 Customization
 -------------
 
-The `AddGainDrift` task is designed for flexibility and can be customized or replaced by a user-defined implementation as needed.
+The :class:`~exosim.tasks.detector.addGainDrift.AddGainDrift` task is designed for flexibility and can be customized or replaced by a user-defined implementation as needed.
 
 .. note::
     Users are encouraged to develop their own custom realizations of this task to fit specific simulation requirements (see :ref:`Custom Tasks`).
