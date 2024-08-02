@@ -25,7 +25,6 @@ formats:
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
 python:
-  system_packages: true
   before_install:
     - pip install poetry
     - poetry install --with dev
