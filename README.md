@@ -47,22 +47,24 @@ Then use `pip` as
 
     pip install .
 
+
 #### Test your installation <a name="test-your-installation"></a>
 
 
 If you have installed ExoSim from source-code, to test your ExoSim2 installation simply run from the main ExoSim2 folder
 
-    pip install -e ".[test]"
-    python -m unittest discover -s tests
+    pip install poetry
+    poetry run python -m unittest discover -s tests -t tests
 
 ## Documentation <a name="documentation"></a>
 
 ExoSim2 comes with an extensive documentation, which can be built using Sphinx.
 The documentation includes a tutorial, a user guide and a reference guide.
 
-To build the documentation, install the needed packages first via:
+To build the documentation, install the needed packages first via `poetry`:
 
-    pip install -e ".[docs]"
+    pip install poetry
+    poetry install --with dev
 
 
 ### Build the html documentation <a name="build-the-html-documentation"></a>
