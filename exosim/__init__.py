@@ -9,7 +9,6 @@ __pkg_name__ = metadata.metadata("exosim")["Name"]
 __title__ = "ExoSim2"
 __url__ = metadata.metadata("exosim")["Home-page"]
 __author__ = metadata.metadata("exosim")["Author"]
-__email__ = metadata.metadata("exosim")["Author_email"]
 __license__ = metadata.metadata("exosim")["license"]
 __copyright__ = "2020-{:d}, {}".format(date.today().year, __author__)
 __citation__ = None
