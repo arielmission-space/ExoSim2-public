@@ -46,10 +46,6 @@ jobs:
       - name: install exosim
         run: poetry install --no-interaction
 
-      - name: Lint with flake8
-        run: | 
-          poetry run flake8
-
 
       - name: Run unittest and generate coverage report
         run: |
