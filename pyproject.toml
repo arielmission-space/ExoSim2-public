@@ -8,9 +8,10 @@ version = "2.0.0-rc2"
 description = "ExoSim 2 is the next generation of the Exoplanet Observation Simulator (ExoSim) tailored for spectro-photometric observations of transiting exoplanets from space, ground, and sub-orbital platforms. This software is a complete rewrite implemented in Python 3, embracing object-oriented design principles."
 authors = ["L. V. Mugnai <lorenzo.mugnai@uniroma1.it>", "E. Pascale", "A. Bocchieri", "A. Lorenzani", "A. Papageorgiou"]
 license = "BSD-3-Clause"
-homepage = "https://github.com/arielmission-space/ExoSim2.0"
-repository = "https://github.com/arielmission-space/ExoSim2.0"
-documentation = "https://github.com/arielmission-space/ExoSim2.0"
+homepage = "https://github.com/arielmission-space/ExoSim2-public"
+repository = "https://github.com/arielmission-space/ExoSim2-public"
+documentation = "https://exosim2-public.readthedocs.io/en/latest/"
+citation = { file = "CITATION.cff" }
 readme = "README.md"
 keywords = ["exoplanets", "simulation", "astronomy"]
 classifiers = [

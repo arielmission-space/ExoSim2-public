@@ -7,12 +7,11 @@ __version__ = metadata.version("exosim")
 # load package info
 __pkg_name__ = metadata.metadata("exosim")["Name"]
 __title__ = "ExoSim2"
-__url__ = metadata.metadata("exosim")["Home-page"]
-__author__ = metadata.metadata("exosim")["Author"]
+__url__ = metadata.metadata("exosim")["homepage"]
+__author__ = metadata.metadata("exosim")["authors"]
 __license__ = metadata.metadata("exosim")["license"]
 __copyright__ = "2020-{:d}, {}".format(date.today().year, __author__)
-__citation__ = None
-__summary__ = metadata.metadata("exosim")["Summary"]
+__citation__ = metadata.metadata("exosim")["citation"]
 
 # load package commit number
 try:

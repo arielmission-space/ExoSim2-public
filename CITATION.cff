@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+
+authors:
+  - family-names: Mugnai
+    given-names: Lorenzo V.
+    orcid: https://orcid.org/0000-0002-9007-9802
+  - family-names: Bocchieri
+    given-names: Andrea
+    orcid: http://orcid.org/0000-0002-8846-7961
+  - family-names: Pascale
+    given-names: Enzo
+    orcid: http://orcid.org/0000-0002-3242-8154
+  - family-names: Lorenzani
+    given-names: Andrea
+  - family-names: Papageorgiou
+    given-names: Andreas
+
+title: "ExoSim 2: the new exoplanet observation simulator applied to the Ariel space mission"
+doi: 10.1007/s10686-024-09976-2
+date-released: 2025-01-24
