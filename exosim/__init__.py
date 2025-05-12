@@ -12,6 +12,21 @@ __url__ = meta.get("Home-page", "https://github.com/arielmission-space/ExoSim2-p
 __author__ = meta.get("Author", "L. V. Mugnai")
 __license__ = meta.get("License", "BSD-3-Clause")
 __copyright__ = f"2020-{date.today().year}, {__author__}"
+__citation__ = """@article{Mugnai2025,
+    author  = {Mugnai, Lorenzo V. and Bocchieri, Andrea and Pascale, Enzo and Lorenzani, Andrea and Papageorgiou, Andreas},
+    title   = {ExoSim 2: the new exoplanet observation simulator applied to the Ariel space mission},
+    journal = {Experimental Astronomy},
+    year    = {2025},
+    volume  = {59},
+    number  = {1},
+    pages   = {9},
+    doi     = {10.1007/s10686-024-09976-2},
+    url     = {https://doi.org/10.1007/s10686-024-09976-2},
+    eprint        = {2501.12809},
+    archivePrefix = {arXiv},
+    primaryClass  = {astro-ph.IM},
+    ascl_id       = {ascl:2503.031},
+    }"""
 
 # load package commit number
 try:
