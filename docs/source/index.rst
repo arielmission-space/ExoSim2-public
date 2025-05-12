@@ -137,13 +137,11 @@ The guide goal is to train the user to customise the simulator according to the 
 
 Cite
 ------
-A dedicated publication has been submitted and the relative information will be published soon. 
-In the meantime, please, send an email to the developers.
 
-.. ExoSim2 has been developed from ExoSim (Sarkar et al. 2021).
+If you use this software please cite:
 
-.. If you use this software please cite:
-.. Sarkar et al., 2021, "`ExoSim: the Exoplanet Observation Simulator <https://link.springer.com/article/10.1007/s10686-020-09690-9>`__", Exp. Astron, 51, 287-317. DOI:10.1007/s10686-020-09690-9
+Mugnai et al., 2025, "`ExoSim 2: the new exoplanet observation simulator applied to the Ariel space mission <https://link.springer.com/article/10.1007/s10686-024-09976-2>`__", Exp. Astron, 59, 9. DOI:10.1007/s10686-024-09976-2.
+
 
 Acknowledgments
 ------------------
