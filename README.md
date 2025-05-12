@@ -8,8 +8,8 @@
 [![Downloads](https://pepy.tech/badge/exosim)](https://pepy.tech/project/exosim)
 [![Documentation Status](https://readthedocs.org/projects/exosim2-public/badge/?version=latest)](https://exosim2-public.readthedocs.io/en/latest/?badge=latest)
 [![ascl.net](https://img.shields.io/badge/ascl-2503.031-blue.svg?colorB=262255)](https://ascl.net/2503.031)
-![DOI](https://img.shields.io/badge/doi-10.1007%2Fs10686--024--09976--2-blue?link=https%3A%2F%2Fdoi.org%2F10.1007%2Fs10686-024-09976-2)
-![arXiv](https://img.shields.io/badge/arXiv-2501.12809-red?link=https%3A%2F%2Farxiv.org%2Fabs%2F2501.12809)
+[![DOI](https://img.shields.io/badge/doi-10.1007%2Fs10686--024--09976--2-blue?link=https%3A%2F%2Fdoi.org%2F10.1007%2Fs10686-024-09976-2)](https://doi.org/10.1007/s10686-024-09976-2)
+[![arXiv](https://img.shields.io/badge/arXiv-2501.12809-red?link=https%3A%2F%2Farxiv.org%2Fabs%2F2501.12809)](https://arxiv.org/abs/2501.12809)
 [![EMAC](https://img.shields.io/badge/EMAC-2504--003-blue)](https://emac.gsfc.nasa.gov?cid=2504-003)
 
 ## Introduction <a name="introduction"></a>
