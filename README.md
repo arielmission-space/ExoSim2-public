@@ -7,6 +7,9 @@
 ![GitHub tag (with filter)](https://img.shields.io/github/v/tag/arielmission-space/ExoSim2-public?label=GitHub%20version&color=green)
 [![Downloads](https://pepy.tech/badge/exosim)](https://pepy.tech/project/exosim)
 [![Documentation Status](https://readthedocs.org/projects/exosim2-public/badge/?version=latest)](https://exosim2-public.readthedocs.io/en/latest/?badge=latest)
+[![ascl.net](https://img.shields.io/badge/ascl-2503.031-blue.svg?colorB=262255)](https://ascl.net/2503.031)
+![DOI](https://img.shields.io/badge/doi-10.1007%2Fs10686--024--09976--2-blue?link=https%3A%2F%2Fdoi.org%2F10.1007%2Fs10686-024-09976-2)
+![arXiv](https://img.shields.io/badge/arXiv-2501.12809-red?link=https%3A%2F%2Farxiv.org%2Fabs%2F2501.12809)
 
 ## Introduction <a name="introduction"></a>
 
@@ -92,4 +95,7 @@ Here is reported the use of `pdflatex`, if have another compiler for LaTex, plea
 You can contribute to ExoSim 2.0 by reporting bugs, suggesting new features, or contributing to the code itself. If you want to contribute to the code, please follow the steps described in the documentation under `Developer guide/Contributing guidelines`.
 
 ## How to cite
-A dedicated publication has been submitted and the relative information will be published soon. In the meanwhile, please, send an email to the developers.  
+
+If you use ExoSim 2.0 in your research, please cite the following paper:
+
+[Mugnai, L.V., Bocchieri, A., Pascale, E. et al. ExoSim 2: the new exoplanet observation simulator applied to the Ariel space mission. Exp Astron 59, 9 (2025).](https://link.springer.com/article/10.1007/s10686-024-09976-2)
