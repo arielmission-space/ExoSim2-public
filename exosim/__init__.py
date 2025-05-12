@@ -2,15 +2,16 @@ import importlib.metadata as metadata
 import os.path
 from datetime import date
 
+
 __version__ = metadata.version("exosim")
 
-# load package info
-__pkg_name__ = metadata.metadata("exosim")["Name"]
+meta = metadata.metadata("exosim")
+__pkg_name__ = meta.get("Name", "exosim")
 __title__ = "ExoSim2"
-__url__ = metadata.metadata("exosim")["homepage"]
-__author__ = metadata.metadata("exosim")["authors"]
-__license__ = metadata.metadata("exosim")["license"]
-__copyright__ = "2020-{:d}, {}".format(date.today().year, __author__)
+__url__ = meta.get("Home-page", "https://github.com/arielmission-space/ExoSim2-public")
+__author__ = meta.get("Author", "L. V. Mugnai")
+__license__ = meta.get("License", "BSD-3-Clause")
+__copyright__ = f"2020-{date.today().year}, {__author__}"
 
 # load package commit number
 try:
