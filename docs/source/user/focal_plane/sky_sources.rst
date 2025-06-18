@@ -93,7 +93,7 @@ Here we report and example:
 Phoenix star
 ^^^^^^^^^^^^^^
 
-If `phoenix` is indicated, then `ExoSim` uses the Phoenic spectra to simulate the source.
+If `phoenix` is indicated, then `ExoSim` uses the Phoenix spectral irradiances to simulate the source.
 In this case we can either point to a specific Phoenix file using the `filename` keyword:
 
 .. code-block:: xml
@@ -121,7 +121,8 @@ or we can point `ExoSim` to a path containing all the Phoenix spectra and provid
             <z unit=""> 0.0 </z>
         </source>
 
-The Phoenix star sed is created by :class:`~exosim.tasks.sed.loadPhoenix.LoadPhoenix`:
+The Phoenix star sed is created by :class:`~exosim.tasks.sed.loadPhoenix.LoadPhoenix`: the Phoenix sed has units of :math:`W/m^2/\mu m` and is scaled by :math:`\left( \frac{R}{D} \right)^2`.
+
 
 .. _custom:
 
@@ -142,11 +143,24 @@ The default :class:`~exosim.tasks.sed.loadCustom.LoadCustom` needs a filename co
             <D unit="pc"> 47 </D>
         </source>
 
-The custom sed file must be a `.ecsv` file with two columns: `Wavelength` and `Sed`.
+The custom sed file must be a `.ecsv` file with two columns: `Wavelength` and `Sed`, where the sed has units of :math:`W/m^2/sr/\mu m`.
+
 
 
 .. note::
     Depending on the computing power available, the user can decide to use a different number of wavelength and temporal points to simulate the source, incrementing the simulation accuracy.
+
+
+.. _sed_units_note:
+
+.. note:: **Spectral Irradiance vs. Spectral Radiance**  
+   
+    The distinction between **Phoenix SEDs** and the **Planck/Custom SEDs** lies in their physical definition:  
+
+    - **Phoenix SEDs** represent **spectral irradiance**, with units of :math:`W/m^2/\mu m`. They describe the flux received per unit area at a given distance.  
+    - **Planck and Custom SEDs** represent **spectral radiance**, with units of :math:`W/m^2/sr/\mu m`. These include the angular distribution of emitted radiation.  
+
+    To ensure consistency, ExoSim applies a scaling factor of :math:`\left( \frac{R}{D} \right)^2` to all SEDs. However, only Planck and Custom SEDs include an additional factor of :math:`\pi`, accounting for the assumption of isotropic emission over a hemisphere.
 
 
 Load star parameters from online databases

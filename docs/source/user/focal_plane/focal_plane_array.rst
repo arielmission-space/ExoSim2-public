@@ -30,18 +30,19 @@ The first step is the detector geometry that needs to be specified in the channe
             <delta_pix unit="micron"> 18.0 </delta_pix>
             <spatial_pix>64</spatial_pix>
             <spectral_pix>364</spectral_pix>
-            <oversampling>4</oversampling>
+            <oversampling>9</oversampling>
         </detector>
 
     </channel>
 
 In this case we are building a detector with 64 pixels in the spatial direction and 364 pixel in the dispersion direction, with pixel 18 micron wide.
-The `oversampling` key allows us to use sub-pixels. In this case we are splitting each pixel in 4 in each direction, hence having 16 sub-pixels.
+The `oversampling` key allows us to use sub-pixels. In this case we are splitting each pixel in 3 in each direction, hence having 9 sub-pixels.
 
 .. note::
     The main reason to have an oversampling factor is the jitter effect (see :ref:`Instantaneous readout`).
-    The oversampling factor is only needed to assure that the PSF is Nyquist sampled (at least 2 per FWHM).
-    The oversampling factor can be any number, but for efficiency reasons it should be a power of 2.
+    The oversampling factor is needed to assure that the PSF is Nyquist sampled (at least 2 per FWHM) and to correctly represent intra-pixel response.
+    The oversampling factor can be any number, but for efficiency reasons it should be a power of an odd value.
+
 
 Wavelength solution
 ^^^^^^^^^^^^^^^^^^^^

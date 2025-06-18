@@ -36,6 +36,14 @@ Run it with the `help` flag to read the available options:
 
       exosim-focalplane --help
 
+.. tip::
+      The user can access the specific command also from the general `exosim` command by adding the specific command after it:
+
+      .. code-block:: console
+
+            exosim focalplane --help
+
+
 Here are listed the command line main flags.
 
 ============================  =======================================================================

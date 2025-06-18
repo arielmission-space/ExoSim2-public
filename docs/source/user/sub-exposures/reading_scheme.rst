@@ -9,20 +9,34 @@ Once the jitter time lines are ready, we need to define the reading scheme for t
 .. note:: In this model we are only considering *instantaneous read out* of the detector.
 
 Assuming we want to reproduce the following reading scheme, which is the same of :ref:`sub-exposures creation`,
-where a :math:`60 \,s` exposure time is sampled by 6 NDRs divided in 3 groups.
+where a :math:`60.3 \,s` exposure time is sampled by 6 NDRs divided in 3 groups.
 
 .. image:: ../tools/_static/reading_ramp_nclock.png
     :width: 600
     :align: center
 
 
-The ramp is sampled at `readout_frequency` cadence, defined in :ref:`sub-exposures creation`.
-In this example we want to spend :math:`0.2 \, s` in ground (GND) state and
-:math:`0.2 \, s` before the reset state (RST).
-The NDRs are read at a constant cadence of :math:`0.1 \, s`.
-Then we want to have 3 groups which divide the residual ramp into equal parts.
-Each group consists of 2 NDRs separated by 1 simulation steps, which is the time needed to read a NDR.
-We can translate all of this as in the following description in the channel configuration file:
+The ramp is sampled at the readout_frequency cadence, defined in :ref:sub-exposures creation.
+In this example, we assume:
+
++ Ground (GND) state lasts :math:`0.2\,s`, i.e. 2 simulation clocks at :math:`10\,Hz`;
++ The first NDR is read after 1 clock (:math:`0.1\,s`);
++ NDRs within a group are spaced by 1 clock;
++ Groups are spaced by 296 simulation clocks;
++ Reset (RST) state lasts 2 clocks (:math:`0.2\,s`).
+
+Given these parameters, the NDRs occur at the following clock indices:
+
++ First NDR: starts at clock 2 (after GND), ends at 3
++ Second NDR: starts at 4, ends at 5
++ Third NDR: starts at 300 (= 4 + 296), ends at 301
++ Fourth NDR: starts at 302, ends at 303
++ Fifth NDR: starts at 598 (= 302 + 296), ends at 599
++ Sixth NDR: starts at 600, ends at 601
+
+Then the RST state completes the ramp at clocks 602–603
+
+This amounts to a total of 603 simulation clocks at :math:`0.1\,s` resolution, i.e. exactly :math:`60.3\,s.`
 
 .. code-block:: xml
 
@@ -34,7 +48,7 @@ We can translate all of this as in the following description in the channel conf
             <n_sim_clocks_Ground> 2 </n_sim_clocks_Ground>
             <n_sim_clocks_first_NDR> 1 </n_sim_clocks_first_NDR>
             <n_sim_clocks_Reset> 2 </n_sim_clocks_Reset>
-            <n_sim_clocks_groups> 2996 </n_sim_clocks_groups>
+            <n_sim_clocks_groups> 296 </n_sim_clocks_groups>
         </readout>
     </channel>
 
@@ -64,6 +78,22 @@ In the following we discuss each of them.
 + ``number_of_exposures``: this is the number of exposures needed to sample the full observation using ramps of the exposure time size.
   To estimate this quantity, the :class:`~exosim.tasks.task.Task` compute the integration time using :class:`~exosim.tasks.instrument.computeSaturation.ComputeSaturation`,
   which is why it need the focal planes.
+
+
+The exposure time is computed from the configuration using a logic equivalent to hardware implementations (e.g. FPGA), counting clocks for each operation:
+
+.. code-block:: python
+
+    # define exposure time in seconds
+    exposure_time = (
+        n_clk_GND                          # Ground state
+        + n_clk_NDR0                       # First NDR
+        + n_clk_NDR * (n_NRDs_per_group - 1)                    # Remaining NDRs in first group
+        + (n_clk_GRP + n_clk_NDR * (n_NRDs_per_group - 1)) * (n_GRPs - 1)  # Other groups
+        + n_clk_RST                        # Reset state
+    ) * clock                              # Convert to seconds
+
+This structure mirrors how readout operations would be sequenced in a detector control system or programmable logic, giving full transparency on timing and event spacing.
 
 For testing reasons, because sampling the full observation can be long and produce a lot of sub-exposure, the user can force the number of exposure to use by
 

@@ -39,7 +39,8 @@ If this gain is not known, an estimate is provided by the :ref:`adc_gain` tool.
 
     S_{out} = [ ADC_{gain} \cdot( S_{meas} - ADC_{offset}) ]_{int}
 
-The user can input any integer number of bits up to 32.
+Note that the offset is subtracted from the NDRs. All the resulting negative values are set to zero.
+The user can input any integer number of bits up to 32. 
 The :class:`~exosim.tasks.detector.analogToDigital.AnalogToDigital` chooses the minimum Python 
 data type to store the desired output to minimize the size of the output product and to be more representative of the expected result.
 

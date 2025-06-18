@@ -40,6 +40,7 @@ These parameters should be specified in the configuration XML file as shown belo
             <cosmic_rays_task> AddCosmicRays </cosmic_rays_task>
             <cosmic_rays_rate unit="ct/cm^2/s"> 5 </cosmic_rays_rate>
             <saturation_rate> 0.03 </saturation_rate>
+            <cosmic_rays_randomise>True</cosmic_rays_randomise>
         </detector>
     </channel>
 
@@ -65,8 +66,7 @@ Then we can estimate how many of these events can saturate our pixel using the p
 where :math:`rate_{saturation}` is the `saturation_rate`.
 
 Then for each of these events, at least one pixel is saturated.
-If this value is smaller than unity, a random number is generated to estimate the odd of the event to saturate the pixel.
-
+If the `cosmic_rays_randomise` is set to `True`, the task randomise the number of hits following a Poisson distribution.
 
 Interaction Shapes
 ------------------

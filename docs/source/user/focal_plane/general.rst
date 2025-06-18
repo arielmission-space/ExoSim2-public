@@ -31,6 +31,17 @@ The first thing to set is the configuration path:
 This is the path that contains all the data you will need for the simulation.
 The `ConfigPath` content will be replaced by the parser (:class:`~exosim.tasks.load.loadOptions.LoadOptions`) in your string everytime you write ``__ConfigPath__`` in your `.xml`.
 
+Similarly, the user can set a specific keyword to easily replace in the configuration file as
+
+.. code-block:: xml
+
+    <root>
+        <__CustomKeyword> your_value </__CustomKeyword>
+        <another_keyword> __CustomKeyword__ </another_keyword>
+    </root>
+
+and the code will replace `__CustomKeyword__` with `your_value`.
+
 .. _wavelength grid:
 
 Wavelength grid

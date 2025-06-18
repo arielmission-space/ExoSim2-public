@@ -142,7 +142,6 @@ If you use this software please cite:
 
 Mugnai et al., 2025, "`ExoSim 2: the new exoplanet observation simulator applied to the Ariel space mission <https://link.springer.com/article/10.1007/s10686-024-09976-2>`__", Exp. Astron, 59, 9. DOI:10.1007/s10686-024-09976-2.
 
-
 Acknowledgments
 ------------------
 

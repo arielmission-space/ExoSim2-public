@@ -185,6 +185,30 @@ Custom solid angles can be indicated with steradians units:
                 <efficiency_key>transmission</efficiency_key>
                 <solid_angle unit='sr'> 3.14 </solid_angle>
             </opticalElement>
+        </optical_path>
+    </channel>
+
+
+Load fro HDF5 file
+^^^^^^^^^^^^^^^^^^^^
+
+The user can also load the optical element from an HDF5 file, thanks to :class:`~exosim.tasks.load.loadOpticalElement.LoadOpticalElementHDF5`
+
+.. code-block:: xml
+
+    <channel> channel_name
+        <optical_path>
+            <opticalElement> mirror
+                <type>surface</type>
+                <task_model>LoadOpticalElement</task_model>
+                <temperature unit='K'>60</temperature>
+                <hdf5_file>__ConfigPath__/optics.hdf5</hdf5_file>
+                <group_key>mirros</group_key>
+                <wavelength_key>wavelength</wavelength_key>
+                <emissivity_key>emissivity</emissivity_key>
+                <efficiency_key>reflectivity</efficiency_key>
+            </opticalElement>
+        </optical_path>
     </channel>
 
 Parsing the path

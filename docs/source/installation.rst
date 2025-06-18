@@ -119,11 +119,15 @@ Instal ExoSim
 
             cd /your_path/ExoSim2.0
 
-        Then, just do
+        ExoSim uses **Poetry** for dependency management and package installation. If you haven't installed Poetry yet, you can do so by running the following command::
 
-        .. code-block:: console
+            pip install poetry
 
-            pip install .
+        For more details, refer to the [official Poetry documentation](https://python-poetry.org/docs/#installation).
+
+        Once Poetry is installed, you can proceed with installing ExoSim::
+
+            poetry install
 
 To test for correct setup you can do
 

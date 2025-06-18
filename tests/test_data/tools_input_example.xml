@@ -1,5 +1,5 @@
 <root>
-    <ConfigPath> /home/lorenzo/Dropbox/git/Exosim2.0/examples
+    <ConfigPath> /home/lorenzo/Dropbox/git/ExoSim2-public/examples
         <comment>Main directory for the configuration files</comment>
     </ConfigPath>
 

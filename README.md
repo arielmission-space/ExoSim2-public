@@ -1,4 +1,6 @@
 # ExoSim 2.0
+
+![Version](https://img.shields.io/static/v1?label=Version&message=2.0.1&color=blue&logo=github)
 [![release-build](https://github.com/arielmission-space/ExoSim2-public/workflows/release-build/badge.svg)](https://github.com/arielmission-space/ExoSim2.0/actions/workflows/build.yml)
 [![develop-build](https://github.com/arielmission-space/ExoSim2-public/workflows/develop-build/badge.svg)](https://github.com/arielmission-space/ExoSim2.0/actions/workflows/ci_linux.yml)
 [![codecov](https://codecov.io/gh/arielmission-space/ExoSim2-public/graph/badge.svg?token=8LDBCU43CK)](https://codecov.io/gh/arielmission-space/ExoSim2-public)
@@ -11,6 +13,7 @@
 [![DOI](https://img.shields.io/badge/doi-10.1007%2Fs10686--024--09976--2-blue?link=https%3A%2F%2Fdoi.org%2F10.1007%2Fs10686-024-09976-2)](https://doi.org/10.1007/s10686-024-09976-2)
 [![arXiv](https://img.shields.io/badge/arXiv-2501.12809-red?link=https%3A%2F%2Farxiv.org%2Fabs%2F2501.12809)](https://arxiv.org/abs/2501.12809)
 [![EMAC](https://img.shields.io/badge/EMAC-2504--003-blue)](https://emac.gsfc.nasa.gov?cid=2504-003)
+
 
 ## Introduction <a name="introduction"></a>
 

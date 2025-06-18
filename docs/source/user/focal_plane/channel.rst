@@ -71,8 +71,9 @@ To learn more about :class:`~exosim.models.signal.Signal` class, refer to :ref:`
 
 Estimate responsivity
 ------------------------
-The channel responsivity refers to the detector quantum efficiency.
-Is to be described in the `.xml` configuration file, under the channel section as
+
+The channel responsivity is derived from the detector quantum efficiency (QE).
+It is defined in the `.xml` configuration file under the relevant channel section as:
 
 .. code-block:: xml
 
@@ -85,24 +86,38 @@ Is to be described in the `.xml` configuration file, under the channel section a
 
     </channel>
 
-As already seen in :ref:`user foreground` and discussed in :ref:`optical element`, the `responsivity_task` key identify a customizable task to load the detector quantum efficiency.
-To learn more about customizing tasks, please refer to :ref:`Custom Tasks`.
-The default task is :class:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity`. This task loads the `datafile`, that is `.csv` file containing a table of multiple columns.
-The first column is`Wavelength` and the other are named after the payload channels and contains their qe vs the wavelength.
-The default :class:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity` simply loads the right qe for each channel and convert it into :math:`counts/Joule`.
-The resulting responsivity is a datacube of the size of :ref:`wavelength grid` and :ref:`temporal grid`, encapsulated in a :class:`~exosim.models.signal.Signal` class.
-To learn more about :class:`~exosim.models.signal.Signal` class, refer to :ref:`signal`. This format allow for the use of wavelength and time dependent responsivities.
+As described in :ref:`user foreground` and discussed in :ref:`optical element`, the `responsivity_task` key defines a customisable task that estimates the detector responsivity.
+This task typically loads the quantum efficiency and converts it to responsivity.
+To learn how to customise this behaviour, see :ref:`Custom Tasks`.
 
-To run this action, the user shall call the :func:`~exosim.models.channel.Channel.estimate_responsivity` method:
+The default task is :class:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity`.  
+This task loads a `.csv` or `.ecsv` file specified by `datafile`, which must contain:
+
+- a first column named `Wavelength` (in units convertible to metres),
+- one or more columns named after the payload channels, containing QE values (dimensionless) as a function of wavelength.
+
+The default implementation simply selects the column corresponding to the channel, rebins the QE over the simulation grids, and converts it to responsivity using the formula:
+
+.. math::
+
+   R(\lambda) = \frac{QE(\lambda) \cdot \lambda}{h \cdot c}
+
+The result is expressed in :math:`\text{counts/Joule}`, and returned as a datacube over the :ref:`wavelength grid` and :ref:`temporal grid`, encapsulated in a :class:`~exosim.models.signal.Signal`.
+
+For more details on the `Signal` format, see :ref:`signal`. This allows responsivity to vary with both wavelength and time, if needed.
+
+To trigger this action in code, the user should call:
 
 .. code-block:: python
 
-        channel.estimate_responsivity()
+    channel.estimate_responsivity()
 
 .. caution::
-    If the user doesn't include the `responsivity_task` keyword in the description,
-    the :func:`~exosim.models.channel.Channel.estimate_responsivity` method
-    automatically uses the default :class:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity` task.
+
+    If the `responsivity_task` keyword is omitted from the channel description,
+    the method :func:`~exosim.models.channel.Channel.estimate_responsivity`
+    will automatically use the default task: :class:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity`.
+
 
 Propagate foreground
 ---------------------

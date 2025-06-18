@@ -1,5 +1,5 @@
 <root>
-    <ConfigPath> /home/lorenzo/Dropbox/git/Exosim2.0/tests/regression_data
+    <ConfigPath> /home/lorenzo/Dropbox/git/ExoSim2-public/tests/regression_data
         <comment>Main directory for the configuration files</comment>
     </ConfigPath>
     <fileName>main_example</fileName>

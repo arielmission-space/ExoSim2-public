@@ -83,6 +83,6 @@ Also, the user can set a custom exposure time to use instead of the saturation t
 
     <channel> channel name
         <readout>
-            <exposure_time unit="s"> 60 </exposure_time>
+            <exposure_time unit="s"> 60.3 </exposure_time>
         </readout>
     </channel>
