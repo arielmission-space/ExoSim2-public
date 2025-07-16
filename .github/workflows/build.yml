@@ -6,6 +6,17 @@ on:
       - main
   release:
     types: [published]
+  workflow_dispatch:  # Add manual trigger
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'testpypi'
+        type: choice
+        options:
+        - testpypi
+        - pypi
+        - both
 
 jobs:
   build:
@@ -80,7 +91,7 @@ jobs:
           ls -l dist/
 
       - name: Publish to TestPyPI
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.environment == 'testpypi' || inputs.environment == 'both'))
         env:
           POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
@@ -99,7 +110,7 @@ jobs:
           python -c "import exosim; print(f'Installed version: {exosim.__version__}')"
         
       - name: Publish to PyPI
-        if: github.event_name == 'release' && success()
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.environment == 'pypi' || inputs.environment == 'both'))
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
         run: |
