@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -77,22 +79,8 @@ jobs:
           echo "Build artifacts:"
           ls -l dist/
 
-      - name: Verify sync source
-        run: |
-          if [[ $(git log -1 --pretty=%B) != *"Publish snapshot from dev"* ]]; then
-            echo "Warning: Build triggered by non-sync commit"
-          fi
-          echo "Last commit message: $(git log -1 --pretty=%B)"
-
-      - name: Check version change
-        id: version_check
-        run: |
-          if [[ $(git log -1 --pretty=%B) == *"Bump version to"* ]]; then
-            echo "VERSION_CHANGED=true" >> $GITHUB_ENV
-          fi
-
       - name: Publish to TestPyPI
-        if: env.VERSION_CHANGED == 'true'
+        if: github.event_name == 'release'
         env:
           POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
@@ -102,14 +90,14 @@ jobs:
           echo "Package published to TestPyPI successfully!"
 
       - name: Wait and verify TestPyPI package
-        if: env.VERSION_CHANGED == 'true'
+        if: github.event_name == 'release'
         run: |
           echo "Waiting for TestPyPI package to be available..."
           sleep 60
           pip install --index-url https://test.pypi.org/simple/ exosim2
 
       - name: Publish to PyPI
-        if: env.VERSION_CHANGED == 'true' && success()
+        if: github.event_name == 'release' && success()
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
         run: |
