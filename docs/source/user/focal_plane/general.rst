@@ -128,7 +128,8 @@ This data will be fed into the :func:`~exosim.utils.grids.time_grid` to produce 
                                            mainConfig['time_grid']['end_time'],
                                            mainConfig['time_grid']['low_frequencies_resolution'])
 
-If no time details are provided a single time step is assumed.
+If no `<low_frequencies_resolution>` is provided (or its value is `None`),
+the function will return a single‐element array containing only the `start_time`.
 
 .. _configuration file:
 

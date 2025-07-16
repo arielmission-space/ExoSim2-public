@@ -8,7 +8,7 @@ The following notes guide you toward the installation of `ExoSim` using a Python
 You have to have Python and `pip`` installed already. Ask your computer administrator in case you need to install these components.
 
 .. note::
-    The current implementation of ExoSim 2 is compatible with Python 3.8, 3.9 and 3.10.
+    The current implementation of ExoSim 2 is compatible with Python >3.12.
 
 Create the Virtual Environment
 ====================================
@@ -33,7 +33,7 @@ You can either create a Python Virtual Environment in your anaconda python or in
 
         .. code-block:: console
 
-            conda create --name ExoSimVE python=3.9
+            conda create --name ExoSimVE python=3.12
 
         The program will ask you if you want to install some standard packages: accept them.
 
@@ -61,7 +61,7 @@ You can either create a Python Virtual Environment in your anaconda python or in
         .. code-block:: console
 
             mkdir ExoSimVE
-            virtualenv -p /usr/bin/python3.9 ExoSimVE
+            virtualenv -p /usr/bin/python3.12 ExoSimVE
 
         Then activate the virtual environment. If using csh, type
 
@@ -82,7 +82,7 @@ Instal ExoSim
 ----------------
 
 .. tab-set::
-    
+
     .. tab-item:: Install from PiPy |PypiLogo|
         :sync: pipy
 

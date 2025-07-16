@@ -28,5 +28,5 @@ This :class:`~exosim.tasks.task.Task` replace the values of each pixel with rand
 Where :math:`S_{meas}` is the new value, which represents the measured value, and :math:`S_{true}` is the true pixel count value, which also is the original one.
 
 .. note::
-    For reproducibility, the seed for the random generator can be set as described in :ref:`random_seed`. 
+    For reproducibility, the seed for the random generator can be set as described in :ref:`random_seed`.
     Remember that in the case of multiple chunks used, the random seed used in any chunk is stored in the output file for reproducibility.

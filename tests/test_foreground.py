@@ -1,20 +1,19 @@
 import logging
 import os
-import unittest
 
 import astropy.units as u
 import numpy as np
-from inputs import main_path
-from test_sources import exolib_bb_model
+import pytest
 
 from exosim.log import setLogLevel
 from exosim.tasks.foregrounds import EstimateZodi
 from exosim.tasks.parse import ParseZodi
+from tests.test_sources import exolib_bb_model
 
 setLogLevel(logging.DEBUG)
 
 
-class ZodiacalTest(unittest.TestCase):
+class TestZodiacal:
     estimateZodi = EstimateZodi()
 
     def test_zodi_model(self):
@@ -52,7 +51,7 @@ class ZodiacalTest(unittest.TestCase):
         )
 
 
-class ZodiacalParseTest(unittest.TestCase):
+class TestZodiacalParse:
     parseZodi = ParseZodi()
     wl = np.logspace(np.log10(0.45), np.log10(2.2), 100) * u.um
     tt = np.linspace(1, 10, 5) * u.hr
@@ -71,7 +70,7 @@ class ZodiacalParseTest(unittest.TestCase):
         }
         self.parseZodi(parameters=parameters, wavelength=self.wl, time=self.tt)
 
-    def test_zodi_map(self):
+    def test_zodi_map(self, main_path):
         file_map = os.path.join(main_path, "data/Zodi_map.hdf5")
         parameters = {
             "coordinates": (
@@ -83,7 +82,7 @@ class ZodiacalParseTest(unittest.TestCase):
         }
         self.parseZodi(parameters=parameters, wavelength=self.wl, time=self.tt)
 
-        with self.assertRaises(OSError):
+        with pytest.raises(OSError):
             parameters = {
                 "coordinates": (
                     90.03841366076144 * u.deg,

@@ -1,13 +1,12 @@
 import logging
 import os
 import platform
-import unittest
 from copy import deepcopy
 from pathlib import Path
 
 import h5py
 import numpy as np
-from inputs import test_dir
+import pytest
 
 from exosim.log import setLogLevel
 from exosim.models.utils.cachedData import CachedData
@@ -16,17 +15,15 @@ from exosim.output import SetOutput
 setLogLevel(logging.DEBUG)
 
 
-class CachedDataSizeTest(unittest.TestCase):
-    @unittest.skipIf(platform.system(), "Windows")
+class TestCachedDataSize:
+    @pytest.mark.skipif(platform.system() == "Windows", reason="Windows delete issue")
     def test_create_delete_tmp_file(self):
         # TODO to solve the file delete issue for windows
-        from pathlib import Path
-
         cachedData = CachedData(10, 1, 10)
         path = Path(deepcopy(cachedData.fname.name))
-        self.assertEqual(path.is_file(), True)
+        assert path.is_file() is True
         del cachedData
-        self.assertEqual(path.is_file(), False)
+        assert path.is_file() is False
 
     def test_data_assign_value(self):
         cachedData = CachedData(10, 1, 10)
@@ -35,7 +32,7 @@ class CachedDataSizeTest(unittest.TestCase):
         np.testing.assert_array_equal(cachedData.chunked_dataset[()], data)
 
 
-# class CachedDataOperationsTest(unittest.TestCase):
+# class TestCachedDataOperations:
 #
 #     def test_sum(self):
 #         cachedData1 = CachedData(10, 1, 10)
@@ -165,9 +162,9 @@ class CachedDataSizeTest(unittest.TestCase):
 #         np.testing.assert_array_equal(cachedData5.dataset[()], data // 2)
 
 
-class CachedDataNamedTest(unittest.TestCase):
-    def test_create_data(self):
-        fname = os.path.join(test_dir, "test_0.h5")
+class TestCachedDataNamed:
+    def test_create_data(self, test_data_dir):
+        fname = os.path.join(test_data_dir, "test_0.h5")
         try:
             os.remove(fname)
         except FileNotFoundError:
@@ -176,20 +173,20 @@ class CachedDataNamedTest(unittest.TestCase):
         cachedData = CachedData(10, 1, 10, output=fname, dataset_name="test")
         path = Path(cachedData.fname)
         f = h5py.File(fname, "r")
-        self.assertEqual(list(f.keys())[0], "test")
+        assert list(f.keys())[0] == "test"
         f.close()
-        self.assertEqual(path.is_file(), True)
+        assert path.is_file() is True
 
         # TODO deleter remove it when it close the tasks.
         # del cachedData
-        # self.assertEquals(path.is_file(), False)
+        # assert path.is_file() is False
         try:
             os.remove(fname)
         except:
             pass
 
-    def test_rename_dataset(self):
-        fname = os.path.join(test_dir, "test_1.h5")
+    def test_rename_dataset(self, test_data_dir):
+        fname = os.path.join(test_data_dir, "test_1.h5")
         try:
             os.remove(fname)
         except FileNotFoundError:
@@ -199,15 +196,15 @@ class CachedDataNamedTest(unittest.TestCase):
         new_name = "test_new"
         cachedData.rename_dataset(new_name)
         f = h5py.File(fname, "r")
-        self.assertEqual(list(f.keys())[0], new_name)
+        assert list(f.keys())[0] == new_name
         f.close()
         try:
             os.remove(fname)
         except:
             pass
 
-    def test_create_moredataset(self):
-        fname = os.path.join(test_dir, "test_2.h5")
+    def test_create_moredataset(self, test_data_dir):
+        fname = os.path.join(test_data_dir, "test_2.h5")
         try:
             os.remove(fname)
         except FileNotFoundError:
@@ -218,15 +215,15 @@ class CachedDataNamedTest(unittest.TestCase):
         cachedData2 = CachedData(10, 1, 10, output=fname, dataset_name="test2")
 
         f = h5py.File(fname, "r")
-        self.assertListEqual(list(f.keys()), ["test", "test1", "test2"])
+        assert list(f.keys()) == ["test", "test1", "test2"]
         f.close()
         try:
             os.remove(fname)
         except:
             pass
 
-    def test_set_value(self):
-        fname = os.path.join(test_dir, "test_3.h5")
+    def test_set_value(self, test_data_dir):
+        fname = os.path.join(test_data_dir, "test_3.h5")
         try:
             os.remove(fname)
         except FileNotFoundError:
@@ -246,11 +243,11 @@ class CachedDataNamedTest(unittest.TestCase):
         except:
             pass
 
-    @unittest.skipIf(
-        "Windows" in os.environ.get("OS", ""), "skipped on windows machine"
+    @pytest.mark.skipif(
+        "Windows" in os.environ.get("OS", ""), reason="skipped on windows machine"
     )
-    def test_use_Output(self):
-        fname = os.path.join(test_dir, "test_4.h5")
+    def test_use_Output(self, test_data_dir):
+        fname = os.path.join(test_data_dir, "test_4.h5")
         try:
             os.remove(fname)
         except FileNotFoundError:
@@ -261,13 +258,13 @@ class CachedDataNamedTest(unittest.TestCase):
             cachedData = CachedData(10, 1, 10, output=out, dataset_name="test")
         path = Path(cachedData.fname)
         f = h5py.File(fname, "r")
-        self.assertTrue("test" in list(f.keys()))
+        assert "test" in list(f.keys())
         f.close()
-        self.assertEqual(path.is_file(), True)
+        assert path.is_file() is True
 
         # TODO deleter remove it when it close the tasks.
         #        del cachedData
-        #        self.assertEquals(path.is_file(), False)
+        #        assert path.is_file() is False
 
         try:
             os.remove(fname)
@@ -275,7 +272,7 @@ class CachedDataNamedTest(unittest.TestCase):
             pass
 
         # test not cachable file
-        with self.assertRaises(IOError):
+        with pytest.raises(IOError):
             output = SetOutput(fname)
             cachedData = CachedData(
                 10,
@@ -286,7 +283,7 @@ class CachedDataNamedTest(unittest.TestCase):
             )
 
         # test wrong class outut file
-        with self.assertRaises(IOError):
+        with pytest.raises(IOError):
             output = SetOutput(fname)
             cachedData = CachedData(
                 10, 1, 10, output=output, dataset_name="test"
@@ -297,22 +294,22 @@ class CachedDataNamedTest(unittest.TestCase):
             cachedData = CachedData(10, 1, 10, output=out, dataset_name="test")
             path = Path(cachedData.fname)
             f = h5py.File(fname, "r")
-            self.assertTrue("test" in list(f.keys()))
+            assert "test" in list(f.keys())
             f.close()
-            self.assertEqual(path.is_file(), True)
+            assert path.is_file() is True
 
             # TODO deleter remove it when it close the tasks.
         #            del cachedData
-        #            self.assertEquals(path.is_file(), False)
+        #            assert path.is_file() is False
         # TODO to solve the file delete issue for windows
 
         output.delete()
 
-    @unittest.skipIf(
-        "Windows" in os.environ.get("OS", ""), "skipped on windows machine"
+    @pytest.mark.skipif(
+        "Windows" in os.environ.get("OS", ""), reason="skipped on windows machine"
     )
-    def test_create_data_path(self):
-        fname = os.path.join(test_dir, "test_5.h5")
+    def test_create_data_path(self, test_data_dir):
+        fname = os.path.join(test_data_dir, "test_5.h5")
         try:
             os.remove(fname)
         except FileNotFoundError:
@@ -336,9 +333,9 @@ class CachedDataNamedTest(unittest.TestCase):
                 check = True
             if "test" in list(f["path"]["to"]["data"].keys()):
                 check = True
-            self.assertTrue(check)
+            assert check
             f.close()
-            self.assertEqual(path.is_file(), True)
+            assert path.is_file() is True
 
         try:
             os.remove(fname)

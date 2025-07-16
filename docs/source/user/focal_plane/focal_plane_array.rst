@@ -192,13 +192,13 @@ The default :class:`~exosim.tasks.instrument.loadPsfPaos.LoadPsfPaos` task does 
 and therefore the PSF cube is repeated on the temporal axis.
 
 .. note::
-   
-    For long observations with a small "low frequiencies variation" 
-    memory needed to keep the repeated PAOS Psf could be very high. 
-    It is possible to memorize and store only one PSF, switching 
+
+    For long observations with a small "low frequiencies variation"
+    memory needed to keep the repeated PAOS Psf could be very high.
+    It is possible to memorize and store only one PSF, switching
     to False the `time_dependence` parameter  in the `psf` section,
     e.g.:
-    
+
     .. code-block:: xml
 
         <channel> channel_name
@@ -306,10 +306,10 @@ If no convolution_method is specified, the default is `fftconvolve`.
 
     The `fast_convolution` method is the same implemented in `Sarkar et al., 2021 <https://link.springer.com/article/10.1007/s10686-020-09690-9>`__`.
     It is very accurate but it is slower than the other methods and requires a lot of memory.
-    It is therefore recommended to use it only for small oversampling factor. 
+    It is therefore recommended to use it only for small oversampling factor.
 
 The :class:`~exosim.tasks.instrument.createIntrapixelResponseFunction.CreateIntrapixelResponseFunction`  task creates a kernel compatible with both `fftconvolve` (:func:`scipy.signal.fftconvolve`), `convolve` (:func:`scipy.signal.convolve`) and `ndimage.convolve` (:func:`scipy.ndimage.convolve`).
-The tasks :class:`~exosim.tasks.instrument.createOversampledIntrapixelResponseFunction.CreateOversampledIntrapixelResponseFunction` is instead compatible with `fast_convolution` (:func:`exosim.utils.convolution.fast_convolution`), which is a method developed specifically for ExoSim. 
+The tasks :class:`~exosim.tasks.instrument.createOversampledIntrapixelResponseFunction.CreateOversampledIntrapixelResponseFunction` is instead compatible with `fast_convolution` (:func:`exosim.utils.convolution.fast_convolution`), which is a method developed specifically for ExoSim.
 
 Populate foreground focal plane
 --------------------------------

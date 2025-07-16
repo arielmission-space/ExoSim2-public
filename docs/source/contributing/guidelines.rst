@@ -38,9 +38,9 @@ The live server can be accessed at http://127.0.0.1:8000/
 
 .. note::
     To run a ``nox`` session, you need to install it first. You can do it by running:
-    
+
     .. code-block:: bash
-    
+
         $ pip install nox
 
 Testing
@@ -135,9 +135,9 @@ The user can update the version number by running
 
 .. note::
     To run ``bump2version``, you need to install it first. You can do it by running:
-    
+
     .. code-block:: bash
-    
+
         $ pip install bump2version
 
 The same can be done for `minor` and `major` changes.
@@ -149,7 +149,7 @@ However, the **best practice** is to use the routine included in the `nox <https
     nox -s release -- Major.minor.patch -- "short description of the changes"
 
 which will update the version number, commit the changes and tag the commit with the new version number.
-The short description of the changes will be added to the Changelog file as the new version title. 
+The short description of the changes will be added to the Changelog file as the new version title.
 It should be a couple of words describing the changes.
 The ``nox`` command will also update the Changelog files.
 
@@ -159,23 +159,23 @@ The ``nox`` command will also update the Changelog files.
 
 .. note::
     To run a ``nox`` session, you need to install it first. You can do it by running:
-    
+
     .. code-block:: bash
-    
+
         $ pip install nox
 
 Before running the ``nox`` command to update the version number, the user should run the linters included in the pre-commit routine to avoid errors.
 It can be run with
 
     .. code-block:: bash
-    
+
         $ pre-commit run --all-files
 
 if ``pre-commit`` is installed, or
 
 .. code-block:: console
 
-    nox -s lint 
+    nox -s lint
 
 Source Control
 ------------------
@@ -304,7 +304,7 @@ Every time a commit is ``pushed`` into the `develop` or into the `main` branch, 
 The available action are stored into the `.github/workflows` directory in this repository.
 The basic actions are three:
 
-    - Linux OS (ci_linux.yml): this action run all the tests implemented in the repository for a Ubuntu virtual machine with Python 3.8 and 3.9.
+    - Linux OS (ci_linux.yml): this action run all the tests implemented in the repository for a Ubuntu virtual machine with Python 3.11 to 3.14.
 
 If all the tests for each action are passed, a green badge will be added to the repository readme.
 

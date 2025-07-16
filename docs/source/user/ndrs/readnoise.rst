@@ -35,10 +35,10 @@ Alternatively, a map of read noise measured for each pixel can be used. A defaul
             <read_noise_filename> read_noise_map.npy </read_noise_filename>
         <detector>
     </channel>
-    
+
 .. note::
     Other custom realizations of this Task can be developed by the user (see :ref:`Custom Tasks`).
 
 .. note::
-    For reproducibility, the seed for the random generator can be set as described in :ref:`random_seed`. 
+    For reproducibility, the seed for the random generator can be set as described in :ref:`random_seed`.
     Remember that in the case of multiple chunks used, the random seed used in any chunk is stored in the output file for reproducibility.

@@ -114,7 +114,7 @@
             <line_h> 0.05 </line_h>
             <square> 0.01 </square>
         </interaction_shapes>
-        
+
         <ktc_offset> True </ktc_offset>
         <ktc_offset_task> AddKTC </ktc_offset_task>
         <ktc_sigma unit="ct"> 10 </ktc_sigma>
@@ -130,7 +130,7 @@
 
         <saturation> True </saturation>
         <sat_task> ApplySimpleSaturation </sat_task>
-        
+
         <read_noise> True </read_noise>
         <read_noise_task> AddNormalReadNoise </read_noise_task>
         <read_noise_mean unit="ct"> 0 </read_noise_mean>

@@ -90,7 +90,7 @@ As described in :ref:`user foreground` and discussed in :ref:`optical element`, 
 This task typically loads the quantum efficiency and converts it to responsivity.
 To learn how to customise this behaviour, see :ref:`Custom Tasks`.
 
-The default task is :class:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity`.  
+The default task is :class:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity`.
 This task loads a `.csv` or `.ecsv` file specified by `datafile`, which must contain:
 
 - a first column named `Wavelength` (in units convertible to metres),

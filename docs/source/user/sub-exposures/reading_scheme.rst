@@ -109,5 +109,5 @@ For testing reasons, because sampling the full observation can be long and produ
 .. note::
     To help the user in defining the detector reading scheme, `ExoSim` include a dedicated tool: :ref:`readout_scheme_calculator`.
 
-The readout scheme along with all the information needed for the instantaneous readout 
+The readout scheme along with all the information needed for the instantaneous readout
 is computed by :class:`~exosim.tasks.subexposures.PrepareInstantaneousReadOut.PrepareInstantaneousReadOut`.

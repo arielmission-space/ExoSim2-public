@@ -36,10 +36,10 @@ Estimate the signal
 
 The astronomical signals are intriduced in the `sky configuration file`, along with the source description.
 The :class:`~exosim.tasks.task.Task` describing the astronomical signal is called :class:`~exosim.tasks.astrosignal.estimateAstronomicalSignal.EstimateAstronomicalSignal`.
-This is an abstract tasks with no model implemented. 
+This is an abstract tasks with no model implemented.
 A complete example is reported in :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`.
 
-Here we report as example a signal that is the primary transit light curve of an exoplanet modelled using :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`. 
+Here we report as example a signal that is the primary transit light curve of an exoplanet modelled using :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`.
 
 .. code-block:: xml
 
@@ -63,10 +63,10 @@ Here we report as example a signal that is the primary transit light curve of an
          </planet>
       </source>
 
-In this example we point to :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal` 
-task to model the primary transit light curve of an exoplanet thanks to the ``signal_task``. 
-Everything else under the ``planet`` tree is a parameter needed by the indicated Task. 
-Note that ``planet`` is the keyword needed for :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`, 
+In this example we point to :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`
+task to model the primary transit light curve of an exoplanet thanks to the ``signal_task``.
+Everything else under the ``planet`` tree is a parameter needed by the indicated Task.
+Note that ``planet`` is the keyword needed for :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`,
 but it can be any other keyword, as long as the corresponding Task is able to parse it.
 
 The user can define multiple astronomical signals for the same star.
@@ -77,16 +77,16 @@ All of them are loaded and applied one at a time by ExoSim2.
       Please make sure to define the astronomical signal for the target star only.
       If astronomical signals are needed for multiple stars, multiple simulations
       can be defined, and the results can be combined later.
-      
 
-The astronomical signals are parsed by :class:`~exosim.tasks.astrosignal.findAstronomicalSignals.FindAstronomicalSignals`, 
+
+The astronomical signals are parsed by :class:`~exosim.tasks.astrosignal.findAstronomicalSignals.FindAstronomicalSignals`,
 which looks for the ``signal_task`` keyword and instantiates the corresponding Task.
 The signal name is the parent tree keyword, in this case ``planet``.
 
-:class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal` is based on 
-the `batman package <http://lkreidberg.github.io/batman/docs/html/index.html>`__  
-presented in `Kreidberg 2015 <https://ui.adsabs.harvard.edu/abs/2015PASP..127.1161K/abstract>`__. 
-As usual, the User can replace the default Taks withg a custom one. 
+:class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal` is based on
+the `batman package <http://lkreidberg.github.io/batman/docs/html/index.html>`__
+presented in `Kreidberg 2015 <https://ui.adsabs.harvard.edu/abs/2015PASP..127.1161K/abstract>`__.
+As usual, the User can replace the default Taks withg a custom one.
 The results of an :class:`~exosim.tasks.astrosignal.estimateAstronomicalSignal.EstimateAstronomicalSignal` task
 shall be a 2D array with the first dimension being the wavelength and the second the time.
 
@@ -95,7 +95,7 @@ shall be a 2D array with the first dimension being the wavelength and the second
       the  `batman package <http://lkreidberg.github.io/batman/docs/html/installation.html>`__ installed.
       Because the ``batman`` package is not a core dependency of ExoSim, it is not installed by default.
 
-In this example the planetary radius is constantly 0.12 times the stellar radius, as indicated under the ``rp`` keyword. 
+In this example the planetary radius is constantly 0.12 times the stellar radius, as indicated under the ``rp`` keyword.
 For a single wavelength, the transit light curve is the following:
 
 .. image:: _static/transit_model.png
@@ -113,7 +113,7 @@ If we want to simulate a transit with a varying radius, we can use the ``rp`` ke
       </source>
 
 where the ``radius_data.csv`` file is a csv file with two columns, the first being the wavelength and the second the radius in stellar radii, entitled as ``rp/rs``.
-In this case, the input data are binned by the Task. 
+In this case, the input data are binned by the Task.
 To give an example, we use a simulated forward model for HD 209458 b produced with TauREx3 and the resulting spectrum is the following:
 
 .. image:: _static/transit_radii.png

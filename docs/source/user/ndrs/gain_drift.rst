@@ -4,15 +4,15 @@
 Gain Drift
 ====================================
 
-The :class:`~exosim.tasks.detector.addGainDrift.AddGainDrift` task, part of the ExoSim simulation package, is designed to model and apply gain drift to a detector simulator. 
+The :class:`~exosim.tasks.detector.addGainDrift.AddGainDrift` task, part of the ExoSim simulation package, is designed to model and apply gain drift to a detector simulator.
 The gain drift is constructed as a polynomial trend dependent on time and wavelength.
 
-The polynomial coefficients are randomly generated within specified ranges. Finally, the resulting amplitude is rescaled according to the input parameters. 
+The polynomial coefficients are randomly generated within specified ranges. Finally, the resulting amplitude is rescaled according to the input parameters.
 
 Usage and Parameters
 --------------------
 
-To apply gain drift using the :class:`~exosim.tasks.detector.addGainDrift.AddGainDrift` task, the following parameters should be specified in the configuration file. 
+To apply gain drift using the :class:`~exosim.tasks.detector.addGainDrift.AddGainDrift` task, the following parameters should be specified in the configuration file.
 Here we include also some example values.
 - ``gain_coeff_order_t``: Order of the polynomial used for the time-dependent trend.
 - ``gain_coeff_t_min`` and ``gain_coeff_t_max``: Minimum and maximum values for the randomly generated coefficients of the time-dependent polynomial trend.

@@ -5,7 +5,7 @@ Pixels Non-Linearity and saturation
 ====================================
 
 
-Pixels Non-Linearity 
+Pixels Non-Linearity
 =====================
 
 The detector's response to incoming light is not inherently linear. This non-linearity can be modeled as a function of the pixel value.
@@ -23,8 +23,8 @@ where :math:`Q_{det}` is the charge read by the detector, and :math:`Q` is the i
 as :math:`Q = \phi_t`, with :math:`\phi` being the number of electrons generated and :math:`t` being the elapsed time.
 
 To implement this non-linearity, the :class:`~exosim.tasks.detector.applyPixelsNonLinearity.ApplyPixelsNonLinearity` task is used.
-This Task needs as input a map of the coefficients of the polynomial for each pixel. 
-The task requires a map of polynomial coefficients for each pixel. 
+This Task needs as input a map of the coefficients of the polynomial for each pixel.
+The task requires a map of polynomial coefficients for each pixel.
 You can load this map using the :class:`~exosim.tasks.detector.loadPixelsNonLinearityMap.LoadPixelsNonLinearityMap` task and specify the file in your configuration..
 
 As usual, the user can replace the default Task with a custom one.
@@ -56,11 +56,11 @@ and loaded using :class:`~exosim.tasks.detector.loadPixelsNonLinearityMapNumpy.L
     </channel>
 
 
-Saturation 
+Saturation
 =====================
 
 After undergoing non-linear adjustments, a pixel may reach its saturation point, or "full well capacity."
-The :class:`~exosim.tasks.detector.applySimpleSaturation.ApplySimpleSaturation` handles pixel saturation. 
+The :class:`~exosim.tasks.detector.applySimpleSaturation.ApplySimpleSaturation` handles pixel saturation.
 It sets the value of each pixel exceeding the full well capacity to the maximum allowable counts.
 
 It needs to know the full well capacity and it can be set and used as

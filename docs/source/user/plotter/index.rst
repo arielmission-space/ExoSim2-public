@@ -35,7 +35,7 @@ the user can run from console
     exosim-plot -i test_file.h5 -o plots/ -f -t 0 --plot-scale linear
 
 where ``-o`` is the output directory, ``-f`` is to run the focal plane plotter (:class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter`)
-and ``-t`` is to select the time step, ``--plot-scale`` indicate the image scale to use. 
+and ``-t`` is to select the time step, ``--plot-scale`` indicate the image scale to use.
 By default the plot scale is `linear`, but another possible option is `dB`, and the image is plotted as :math:`10 \cdot log_{10} \left( ima/ max(ima) \right)`.
 
 The result will be similar to

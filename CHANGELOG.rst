@@ -7,12 +7,25 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog (keepachangelog_), and this project adheres
 to Semantic Versioning (semver_).
 
+[2.1.0_] - Hello Python 3.12
+=======================================================
+Added
+-----
+- added unit normalization in Signal
+
+Changed
+-------
+- dropped support for Python 3.9 and 3.10. Now supports only Python >3.12
+- test framework changed into pytest
+- added default value for low frequency time grid
+
+
 
 [2.0.1_] - stable release
 =======================================================
 Added
 -----
-- improved exosim CLI with new click commands   
+- improved exosim CLI with new click commands
 - option to load optical elements from .hdf5 files (LoadOpticalElementHDF5)
 - option to parse options file replacing a custom keyword with a value (LoadOptions)
 - added codemeta.json file for better metadata management
@@ -68,6 +81,7 @@ Cleaned repository
 .. _2.0.0-rc2: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.0.0-rc2
 .. _2.0.1: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.0.1
 
+.. _2.1.0: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.1.0
 
 .. _keepachangelog: https://keepachangelog.com/en/1.0.0/
 .. _semver: https://semver.org/spec/v2.0.0.html

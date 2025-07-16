@@ -150,8 +150,8 @@ The results will be like:
 
 .. _HD209458: http://simbad.u-strasbg.fr/simbad/sim-id?Ident=HD%20209458
 
-For the following, it is important to separate the target source, 
-which is the source that we expect to have an astronomical signal associated (see :ref:`Astronomical signals`), 
+For the following, it is important to separate the target source,
+which is the source that we expect to have an astronomical signal associated (see :ref:`Astronomical signals`),
 from the others.
 This can be done by adding the `source_target` attribute to the source description:
 

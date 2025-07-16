@@ -1,31 +1,29 @@
 import logging
 import os.path
 import random
-import unittest
 from re import search
 
 import astropy.units as u
 import numpy as np
-from inputs import test_dir
+import pytest
 
-from exosim.log import Logger
-from exosim.log import setLogLevel
+from exosim.log import Logger, setLogLevel
 from exosim.utils import RunConfig
 from exosim.utils.binning import rebin
-from exosim.utils.checks import check_units
-from exosim.utils.checks import find_key
-from exosim.utils.checks import look_for_key
-from exosim.utils.klass_factory import find_and_run_task
-from exosim.utils.klass_factory import find_klass_in_file
-from exosim.utils.klass_factory import find_task
-from exosim.utils.klass_factory import load_klass
+from exosim.utils.checks import check_units, find_key, look_for_key
+from exosim.utils.grids import time_grid, wl_grid
+from exosim.utils.klass_factory import (
+    find_and_run_task,
+    find_klass_in_file,
+    find_task,
+    load_klass,
+)
 from exosim.utils.operations import operate_over_axis
 from exosim.utils.timed_class import TimedClass
 
 setLogLevel(logging.DEBUG)
 
-
-class RandomTest(unittest.TestCase):
+class TestRandom:
     def test_seed(self):
         a = np.random.uniform(0, 1)
         b = random.uniform(0, 1)
@@ -37,22 +35,22 @@ class RandomTest(unittest.TestCase):
         a = np.random.uniform(0, 1)
         b = random.uniform(0, 1)
 
-        self.assertEqual(a, 0.417022004702574)
-        self.assertEqual(b, 0.13436424411240122)
+        assert a == 0.417022004702574
+        assert b == 0.13436424411240122
 
         a = np.random.uniform(0, 1)
         b = random.uniform(0, 1)
 
-        self.assertEqual(a, 0.7203244934421581)
-        self.assertEqual(b, 0.8474337369372327)
+        assert a == 0.7203244934421581
+        assert b == 0.8474337369372327
 
 
-class SystemInfoTest(unittest.TestCase):
+class TestRunConfig:
     def test_info(self):
         RunConfig.stats()
 
 
-class BinningTest(unittest.TestCase):
+class TestBinning:
     def test_duplicates(self):
         xp = [0, 0, 1, 2, 3, 4]
         f = [0, 0, 1, 2, 3, 4]
@@ -78,42 +76,41 @@ class BinningTest(unittest.TestCase):
         np.testing.assert_equal(new_f_1, new_f)
 
 
-class KeyValTest(unittest.TestCase):
+class TestChecks:
     def test_lookfor_key(self):
         dict_ = {"key1": 0, "key2": 2}
-        self.assertTrue(look_for_key(dict_, "key2", 2))
-        self.assertFalse(look_for_key(dict_, "key2", 0))
+        assert look_for_key(dict_, "key2", 2) is True
+        assert look_for_key(dict_, "key2", 0) is False
 
     def test_lookfor_key_nested(self):
         dict_ = {"key1": {"key2": 2}}
-        self.assertTrue(look_for_key(dict_, "key2", 2))
-        self.assertFalse(look_for_key(dict_, "key2", 0))
+        assert look_for_key(dict_, "key2", 2) is True
+        assert look_for_key(dict_, "key2", 0) is False
 
     def test_find_key(self):
         dict_ = {"key1": 1, "key2": 2}
         found = find_key(list(dict_.keys()), ["key1", "key2"])
-        self.assertEqual(found, "key1")
+        assert found == "key1"
 
     def test_find_key_error(self):
         dict_ = {"key1": 1, "key2": 2}
-
-        with self.assertRaises(KeyError):
+        with pytest.raises(KeyError):
             find_key(list(dict_.keys()), "key3")
 
 
-class KlassTest(unittest.TestCase):
-    def test_find_klass(self):
+class TestKlassFactory:
+    def test_find_klass(self, test_data_dir):
         from exosim.tasks.load import LoadOpticalElement
 
-        file_name = os.path.join(test_dir, "loadKlass.py")
+        file_name = os.path.join(test_data_dir, "loadKlass.py")
         klass = find_klass_in_file(file_name, LoadOpticalElement)
-        self.assertEqual(klass.__name__, "LoadOpticalElementDefault")
+        assert klass.__name__ == "LoadOpticalElementDefault"
 
-    def test_find_klass_error(self):
-        with self.assertRaises(Exception):
-            from exosim.tasks.load.loadOptions import LoadOptions
+    def test_find_klass_error(self, test_data_dir):
+        from exosim.tasks.load.loadOptions import LoadOptions
 
-            file_name = os.path.join(test_dir, "loadKlass.py")
+        file_name = os.path.join(test_data_dir, "loadKlass.py")
+        with pytest.raises(Exception):
             find_klass_in_file(file_name, LoadOptions)
 
     def test_extract_klass(self):
@@ -121,74 +118,78 @@ class KlassTest(unittest.TestCase):
         from exosim.tasks.task import Task
 
         klass = find_task(LoadOptions, Task)
-        self.assertEqual(klass.__name__, "LoadOptions")
+        assert klass.__name__ == "LoadOptions"
 
     def test_extract_klass_error(self):
         from exosim.log import Logger
         from exosim.tasks.task import Task
 
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             find_task(Logger, Task)
 
     def test_load_klass_error(self):
         from exosim.log import Logger
         from exosim.tasks.task import Task
 
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             load_klass(Logger, Task)
 
         from exosim.tasks.load import LoadOptions
 
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             load_klass(LoadOptions, Task)
 
     def test_find_and_run_task_error(self):
         from exosim.tasks.load import LoadOpticalElement
 
         param = {"test": "custom"}
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             find_and_run_task(param, "test", LoadOpticalElement)
 
 
-class CheckUnitsTest(unittest.TestCase):
+class TestUnits:
     def test_no_unit(self):
         res = check_units(3, "", force=True)
         np.testing.assert_equal(res.value, 3)
         np.testing.assert_equal(res.unit, u.Unit(""))
 
 
-class TestTimed(TimedClass, Logger):
-    def __init__(self):
-        super().__init__()
+class TestTimedClass:
+    class TestTimed(TimedClass):
+        def __init__(self):
+            super().__init__()
+
+    def test_logger(self, caplog):
+        import logging
+
+        from exosim.log.logger import root_logger
+
+        original_propagate = root_logger.propagate
+        root_logger.propagate = True
+
+        try:
+            with caplog.at_level(logging.DEBUG):
+                test_timed = self.TestTimed()
+                test_timed.log_runtime_complete("", "info")
+                assert len(caplog.records) == 1
+                assert caplog.records[0].levelname == "INFO"
+                assert "exosim.TestTimed" in caplog.records[0].name
+                assert ": 00h00m00s" in caplog.records[0].message
+
+                caplog.clear()
+
+                test_timed.log_runtime("", "debug")
+                assert len(caplog.records) == 1
+                assert caplog.records[0].levelname == "DEBUG"
+                assert "exosim.TestTimed" in caplog.records[0].name
+                assert ": 00h00m00s" in caplog.records[0].message
+        finally:
+            root_logger.propagate = original_propagate
 
 
-class TestTimedFalse(TimedClass):
-    def __init__(self):
-        super().__init__()
 
 
-class TimedClassTest(unittest.TestCase):
-    def test_logger(self):
-        with self.assertLogs("exosim", level="DEBUG") as cm:
-            test_timed = TestTimed()
-            test_timed.log_runtime_complete("", "info")
-            self.assertTrue(search("INFO:exosim.TestTimed", cm.output[0]))
-
-            test_timed.log_runtime("", "debug")
-            self.assertTrue(search("DEBUG:exosim.TestTimed", cm.output[1]))
-
-    def test_no_logger(self):
-        with self.assertLogs("exosim", level="DEBUG") as cm:
-            test_timed = TestTimedFalse()
-            test_timed.log_runtime_complete("", "info")
-            self.assertTrue(
-                search(
-                    "WARNING:exosim.utils.timed_class.TimedClass", cm.output[0]
-                )
-            )
-
-
-class OperationTest(unittest.TestCase):
+class TestOperations:
     def test_sum(self):
         a = np.array([[1, 2, 3], [4, 5, 6]])
         b = np.array([1, 0])
@@ -212,12 +213,61 @@ class OperationTest(unittest.TestCase):
         np.testing.assert_equal(c, np.array([[1, 0, 3], [4, 0, 6]]))
 
     def test_wrong_axis(self):
-        with self.assertRaises(IndexError):
+        with pytest.raises(IndexError):
             a = np.array([[1, 2, 3], [4, 5, 6]])
             b = np.array([1, 0])
-            c = operate_over_axis(a, b, 2, "+")
+            operate_over_axis(a, b, 2, "+")
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             a = np.array([[1, 2, 3], [4, 5, 6]])
             b = np.array([1, 0])
-            c = operate_over_axis(a, b, 1, "+")
+            operate_over_axis(a, b, 1, "+")
+
+
+
+
+class TestGrids:
+    def test_time_grid_with_resolution(self):
+        grid = time_grid(0 * u.hr, 2 * u.hr, 0.5 * u.hr)
+        expected = np.array([0, 0.5, 1.0, 1.5]) * u.hr
+        np.testing.assert_allclose(grid.value, expected.value)
+        assert grid.unit == u.hr
+
+    def test_time_grid_without_resolution(self):
+        grid = time_grid(1 * u.hr, 3 * u.hr, None)
+        expected = np.array([1]) * u.hr
+        np.testing.assert_allclose(grid.value, expected.value)
+        assert grid.unit == u.hr
+
+    def test_time_grid_accepts_float(self):
+        grid = time_grid(0, 1, 0.25)
+        expected = np.array([0, 0.25, 0.5, 0.75]) * u.hr
+        np.testing.assert_allclose(grid.value, expected.value)
+        assert grid.unit == u.hr
+
+    def test_wl_grid_no_bin_width(self):
+        wl_min = 1.0 * u.um
+        wl_max = 2.0 * u.um
+        R = 100
+        grid = wl_grid(wl_min, wl_max, R)
+        assert isinstance(grid, u.Quantity)
+        assert grid.unit == u.um
+        assert np.all(grid.value > 0)
+        assert np.all(np.diff(grid.value) > 0)  # must be increasing
+
+    def test_wl_grid_with_bin_width(self):
+        wl_min = 1.0 * u.um
+        wl_max = 2.0 * u.um
+        R = 100
+        grid, bin_width = wl_grid(wl_min, wl_max, R, return_bin_width=True)
+        assert isinstance(grid, u.Quantity)
+        assert isinstance(bin_width, u.Quantity)
+        assert grid.unit == u.um
+        assert bin_width.unit == u.um
+        assert len(grid) == len(bin_width)
+
+    def test_wl_grid_accepts_float(self):
+        grid = wl_grid(1.0, 2.0, 50)
+        assert isinstance(grid, u.Quantity)
+        assert grid.unit == u.um
+        assert np.all(np.diff(grid.value) > 0)

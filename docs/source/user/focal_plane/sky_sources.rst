@@ -153,12 +153,12 @@ The custom sed file must be a `.ecsv` file with two columns: `Wavelength` and `S
 
 .. _sed_units_note:
 
-.. note:: **Spectral Irradiance vs. Spectral Radiance**  
-   
-    The distinction between **Phoenix SEDs** and the **Planck/Custom SEDs** lies in their physical definition:  
+.. note:: **Spectral Irradiance vs. Spectral Radiance**
 
-    - **Phoenix SEDs** represent **spectral irradiance**, with units of :math:`W/m^2/\mu m`. They describe the flux received per unit area at a given distance.  
-    - **Planck and Custom SEDs** represent **spectral radiance**, with units of :math:`W/m^2/sr/\mu m`. These include the angular distribution of emitted radiation.  
+    The distinction between **Phoenix SEDs** and the **Planck/Custom SEDs** lies in their physical definition:
+
+    - **Phoenix SEDs** represent **spectral irradiance**, with units of :math:`W/m^2/\mu m`. They describe the flux received per unit area at a given distance.
+    - **Planck and Custom SEDs** represent **spectral radiance**, with units of :math:`W/m^2/sr/\mu m`. These include the angular distribution of emitted radiation.
 
     To ensure consistency, ExoSim applies a scaling factor of :math:`\left( \frac{R}{D} \right)^2` to all SEDs. However, only Planck and Custom SEDs include an additional factor of :math:`\pi`, accounting for the assumption of isotropic emission over a hemisphere.
 

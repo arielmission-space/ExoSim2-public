@@ -98,7 +98,7 @@ Finally, ``output_file`` is an output file, as described in :ref:`cached`.
 
 .. note::
     Because of the phisycs of the problem, the total power collected on the focal plane is not always conserved.
-    However, for debugging reasons, the user can force the conservation of the total power by setting the following parameter in the channel configuration file: 
+    However, for debugging reasons, the user can force the conservation of the total power by setting the following parameter in the channel configuration file:
     :xml:`<force_power_conservation> True </force_power_conservation>`
 
 
@@ -107,7 +107,7 @@ Focal plane oversampling factor for small jitter effects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It may happens that the jitter effect is too small to be captured by the defined oversampling factor.
 In this case, the focal plane is resampled in order to capture the jitter rms in at least 3 sub-pixels.
-The user can specify the number of sub-pixels to caputure the jitter rms by setting 
+The user can specify the number of sub-pixels to caputure the jitter rms by setting
 
 .. code-block:: xml
 
@@ -117,11 +117,11 @@ The user can specify the number of sub-pixels to caputure the jitter rms by sett
         </detector>
     </channel>
 
-In this case 10 subpixels are used. By default this quantity is set to 3. 
+In this case 10 subpixels are used. By default this quantity is set to 3.
 Small numbers of sub-pixels are suggested to sample random jitter effects (to sample a Normal distributed noise effect, 3 sub-pixel are more than enough), while larger numbers might be needed to sampled pointing drift.
-The use of an incorrect number of sub-pixel may results in a digitalisation effect on the photometry.  
+The use of an incorrect number of sub-pixel may results in a digitalisation effect on the photometry.
 
-The magnification is computed by :class:`~exosim.tasks.subexposures.prepareInstantaneousReadOut.PrepareInstantaneousReadOut`, 
+The magnification is computed by :class:`~exosim.tasks.subexposures.prepareInstantaneousReadOut.PrepareInstantaneousReadOut`,
 but the resampling operation is performed by the :func:`~exosim.tasks.subexposures.instantaneousReadOut.InstantaneousReadOut.oversample`,
 method of :class:`~exosim.tasks.subexposures.instantaneousReadOut.InstantaneousReadOut`, which is using the :class:`scipy.interpolate.RectBivariateSpline` class.
 If the focal plane is Nyquist sampled in the original oversampled focal plane, the signal information is conserved.
@@ -143,4 +143,4 @@ the code computes and apply the right factor.
 
 .. note::
 
-    The magnificattion and the rms minimum resolution are two face of the same coin. 
+    The magnificattion and the rms minimum resolution are two face of the same coin.

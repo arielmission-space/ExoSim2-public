@@ -4,16 +4,16 @@
 Cosmic Rays
 ===================================
 
-The :class:`~exosim.tasks.detector.addCosmicRays.AddCosmicRays` task is part of the Exosim simulation package. 
-It models the impact of cosmic rays on a detector during its exposure time. 
-Cosmic rays are high-energy particles originating from space, which can introduce noise into the captured data. 
+The :class:`~exosim.tasks.detector.addCosmicRays.AddCosmicRays` task is part of the Exosim simulation package.
+It models the impact of cosmic rays on a detector during its exposure time.
+Cosmic rays are high-energy particles originating from space, which can introduce noise into the captured data.
 This class provides a simulation of this effect by adding cosmic ray events to the detector's sub-exposures.
 
 Phenomenon Overview
 -------------------
 
-Cosmic rays can interact with the detector pixels in various predefined shapes such as crosses, rectangles, or isolated pixels. 
-These interactions can saturate the affected pixels, setting their value to the detector's full well depth. 
+Cosmic rays can interact with the detector pixels in various predefined shapes such as crosses, rectangles, or isolated pixels.
+These interactions can saturate the affected pixels, setting their value to the detector's full well depth.
 The class provides flexibility in specifying these interaction shapes and their associated probabilities.
 
 The number of cosmic ray events is calculated based on several parameters:
@@ -44,13 +44,13 @@ These parameters should be specified in the configuration XML file as shown belo
         </detector>
     </channel>
 
-So the number of pixels hit by a cosmic ray during a sub-exposures is 
+So the number of pixels hit by a cosmic ray during a sub-exposures is
 
 .. math::
 
     hits = rate_{cosmic \, rays} * delta_{pix}^2 * N_{pix\, spatial} * N_{pix\, spectral} * t_{int}
 
-Where 
+Where
 
 - :math:`rate_{cosmic \, rays}` is the `cosmic_rays_rate`;
 - :math:`delta_{pix}` is the `delta_pix`;
@@ -109,7 +109,7 @@ Output
 .. image:: _static/Spectrometer_cosmic_rays.png
     :align: center
 
-If an output group is provided, the default task will save all the pixels saturated by cosmic rays in a table, for reproducibility. 
+If an output group is provided, the default task will save all the pixels saturated by cosmic rays in a table, for reproducibility.
 
 
 .. note::

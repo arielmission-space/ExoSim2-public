@@ -34,40 +34,40 @@ Considering the detector as a capacitor, the charge :math:`Q_{det}` is given by
     Q_{det} = \phi \tau \cdot \left(1 - e^{-Q/\phi \tau}\right)
 
 where :math:`\phi` is the charge generated in the detector pixel, and :math:`\tau` is the capacitor time constant.
-In fact the product :math:`\phi \tau` is constant   
+In fact the product :math:`\phi \tau` is constant
 :math:`Q` is the response of a linear detectror is given by :math:`Q = \phi t`
 
-The detector is considered saturated when the charge :math:`Q_{det}` at the well depth :math:`Q_{det, \, wd}` 
+The detector is considered saturated when the charge :math:`Q_{det}` at the well depth :math:`Q_{det, \, wd}`
 differs from the ideal well depth :math:`Q_{wd}` by 5%.
 
 .. math::
     Q_{det} = (1-5\%)Q_{wd}
 
-Then 
+Then
 
 .. math::
     \phi \tau \cdot \left(1 - e^{-Q_{wd}/\phi \tau}\right) = (1-5\%)Q_{wd}
-    
-This equation can be solved numerically and gives 
+
+This equation can be solved numerically and gives
 
 .. math::
     \frac{Q_{wd}}{\phi \tau} \sim 0.103479
-    
+
 Therefore the detector collected charge is given by
 
 .. math::
         Q_{det} = \frac{Q_{wd}}{0.103479} \cdot \left(1 - e^\frac{- 0.103479 \, Q}{Q_{wd}}\right)
-        
+
 Which can be approximated by a polynomial of order 4 as
 
 .. math::
 
         Q_{det} = Q\left[ 1- \frac{1}{2!}\frac{0.103479}{Q_{wd}} Q
-        
-        + \frac{1}{3!}\left(\frac{0.103479}{Q_{wd}}\right)^2 Q^2 
-        
-        - \frac{1}{4!}\left(\frac{0.103479}{Q_{wd}}\right)^3 Q^3 
-        
+
+        + \frac{1}{3!}\left(\frac{0.103479}{Q_{wd}}\right)^2 Q^2
+
+        - \frac{1}{4!}\left(\frac{0.103479}{Q_{wd}}\right)^3 Q^3
+
         + \frac{1}{5!}\left(\frac{0.103479}{Q_{wd}}\right)^4 Q^4 \right]
 
 
@@ -103,7 +103,7 @@ With the given example, we obtain the following expected non-linearity shape:
     :align: center
     :width: 80%
 
-However, each pixel is different, and therefore, this class also produces a map of the coefficient for each pixel. 
+However, each pixel is different, and therefore, this class also produces a map of the coefficient for each pixel.
 Each coefficient is normally distributed around the mean value, with a standard deviation indicated in the configuration.
 If no standard deviation is indicated, the coefficients are assumed to be constant.
 
@@ -117,7 +117,7 @@ If no standard deviation is indicated, the coefficients are assumed to be consta
         </detector>
     </channel>
 
-To obtain the map we added to the configuration the detector sizes and the standard deviation of the coefficients. 
+To obtain the map we added to the configuration the detector sizes and the standard deviation of the coefficients.
 
 .. image:: _static/detector_linearity_map.png
     :align: center
@@ -187,7 +187,7 @@ With the given example, we obtain the following expected non-linearity shape:
     :align: center
     :width: 80%
 
-However, each pixel is different, and therefore, this class also produces a map of the coefficient for each pixel as before. 
+However, each pixel is different, and therefore, this class also produces a map of the coefficient for each pixel as before.
 
 .. image:: _static/detector_linearity_map_wfc3.png
     :align: center

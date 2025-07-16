@@ -19,7 +19,7 @@
         <ra> 22h03m10.8s </ra>
         <dec> +18d53m04s </dec>
 
-            <planet> b 
+            <planet> b
                 <signal_task>EstimatePlanetarySignal</signal_task>
                 <t0 unit='hour'>4</t0>
                 <period unit='day'>3.525</period>
@@ -28,8 +28,8 @@
                 <w unit='deg'>0.0</w>
                 <ecc>0.0</ecc>
                 <rp>0.12</rp>
-                <limb_darkening>linear</limb_darkening>
-                <limb_darkening_coefficients>[0]</limb_darkening_coefficients>
+                <limb_darkening>nonlinear</limb_darkening>
+                <limb_darkening_coefficients>__ConfigPath__/data/ldc_example.csv</limb_darkening_coefficients>
             </planet>
 
     </source>

@@ -11,7 +11,7 @@ Add background sub-exposures
 ===========================================
 
 Because more sources can be in the field of view (see :ref:`multiple_sources`), ExoSim allows to include the background in the sub-exposures.
-The background stars are read using the same procedure described in :ref:`Instantaneous readout`, 
+The background stars are read using the same procedure described in :ref:`Instantaneous readout`,
 with the same readout parameters used for the target star.
 
 The resulting sub-exposures are added to the focal plane sub-exposures, and stored back in the output.

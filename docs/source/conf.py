@@ -3,11 +3,10 @@
 import os
 import sys
 
+# sys.path.insert(0, os.path.abspath('../../'))
 current_dir = os.path.dirname(__file__)
 target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
-
 sys.path.insert(0, target_dir)
-sys.path.insert(0, os.path.abspath("../../"))
 
 # -- Project information -----------------------------------------------------
 from datetime import date
@@ -94,7 +93,6 @@ language = "en"
 # Auto-API
 # -----------------------------------------------------------------------------
 autoapi_dirs = ["../../exosim"]
-# autoapi_ignore = ["*__init__.py", "*exosim.py"]
 autoapi_root = "api"
 autoapi_type = "python"
 autoapi_options = [
@@ -142,38 +140,38 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 # json_url = "https://pydata-sphinx-theme.readthedocs.io/en/latest/_static/switcher.json"
 
 # Define the version we use for matching in the version switcher.
-# version_match = os.environ.get("READTHEDOCS_VERSION")
-# # If READTHEDOCS_VERSION doesn't exist, we're not on RTD
-# # If it is an integer, we're in a PR build and the version isn't correct.
-# if not version_match or version_match.isdigit():
-#     # For local development, infer the version to match from the package.
-#     release = __version__
-#     # TODO change this to ExoSim if different production and development versions are used
-#     # if "dev" in release or "rc" in release:
-#     #     version_match = "latest"
-#     #     # We want to keep the relative reference if we are in dev mode
-#     #     # but we want the whole url if we are effectively in a released version
-#     #     json_url = "_static/switcher.json"
-#     # else:
-#     version_match = "v" + release
-#     # TODO check how to wriite switcher.json from pydata github example
-#     json_url = "_static/switcher.json"
+version_match = os.environ.get("READTHEDOCS_VERSION")
+# If READTHEDOCS_VERSION doesn't exist, we're not on RTD
+# If it is an integer, we're in a PR build and the version isn't correct.
+if not version_match or version_match.isdigit():
+    # For local development, infer the version to match from the package.
+    release = __version__
+    # TODO change this to ExoSim if different production and development versions are used
+    # if "dev" in release or "rc" in release:
+    #     version_match = "latest"
+    #     # We want to keep the relative reference if we are in dev mode
+    #     # but we want the whole url if we are effectively in a released version
+    #     json_url = "_static/switcher.json"
+    # else:
+    version_match = "v" + release
+    # TODO check how to wriite switcher.json from pydata github example
+    json_url = "_static/switcher.json"
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "pydata_sphinx_theme"
 # panels_add_bootstrap_css = False
 # panels_dev_mode = True
 
 html_theme_options = {
     #    "logo_link": "index",
-    #    "github_url": "https://github.com/arielmission-space/ExoSim2-public",
+    "github_url": "https://github.com/arielmission-space/ExoSim2-public",
     "collapse_navigation": True,
-    # "navbar_start": ["navbar-logo"],
-    # "navbar_center": ["navbar-nav"],
-    # "navbar_end": ["theme-switcher", "navbar-icon-links"],
-    #     "switcher": {
-    #  #       "json_url": json_url,
-    #         "version_match": version_match,
-    #     },
+    "navbar_start": ["navbar-logo"],
+    "navbar_center": ["navbar-nav"],
+    "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
+    "switcher": {
+        "json_url": json_url,
+        "version_match": version_match,
+    },
 }
 
 html_logo = "_static/logo.png"

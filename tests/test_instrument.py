@@ -1,21 +1,16 @@
 import itertools
 import logging
-import os
-import unittest
 
 import astropy.constants as const
 import astropy.units as u
 import numpy as np
+import pytest
 from astropy.table import QTable
-from inputs import payload_file
 from scipy.signal import fftconvolve
-from test_sources import exolib_bb_model
 
 import exosim.utils as utils
 from exosim.log import setLogLevel
-from exosim.models.signal import CountsPerSecond
-from exosim.models.signal import Dimensionless
-from exosim.models.signal import Signal
+from exosim.models.signal import CountsPerSecond, Dimensionless, Signal
 from exosim.tasks.instrument.applyIntraPixelResponseFunction import (
     ApplyIntraPixelResponseFunction,
 )
@@ -46,9 +41,14 @@ from exosim.tasks.load.loadOptions import LoadOptions
 from exosim.tasks.parse import ParsePath
 from exosim.tasks.sed import CreatePlanckStar
 from exosim.utils.psf import create_psf
+from tests.test_sources import exolib_bb_model
 
 setLogLevel(logging.DEBUG)
 
+
+@pytest.fixture(autouse=True)
+def inject_payload_file(request, payload_file):
+    request.cls.payload_file = payload_file
 
 class FalseLoadResponsivity(LoadResponsivity):
     def model(self, parameters, wavelength, time):
@@ -60,22 +60,26 @@ class FalseLoadResponsivity2(LoadResponsivity):
         return Signal(spectral=wavelength, data=np.ones_like(wavelength))
 
 
-class ResponsivityTest(unittest.TestCase):
-    loadOption = LoadOptions()
-    mainConfig = loadOption(filename=payload_file)
+@pytest.mark.usefixtures("inject_payload_file")
+class TestResponsivity:
 
-    wl = utils.grids.wl_grid(
-        mainConfig["wl_grid"]["wl_min"],
-        9 * u.um,
-        mainConfig["wl_grid"]["logbin_resolution"],
-    )
+    def setup_method(self):
 
-    tt = utils.grids.time_grid(
-        mainConfig["time_grid"]["start_time"],
-        mainConfig["time_grid"]["end_time"],
-        mainConfig["time_grid"]["low_frequencies_resolution"],
-    )
-    paylaod = mainConfig["payload"]
+        loadOption = LoadOptions()
+        mainConfig = loadOption(filename=self.payload_file)
+
+        self.wl = utils.grids.wl_grid(
+            mainConfig["wl_grid"]["wl_min"],
+            9 * u.um,
+            mainConfig["wl_grid"]["logbin_resolution"],
+        )
+
+        self.tt = utils.grids.time_grid(
+            mainConfig["time_grid"]["start_time"],
+            mainConfig["time_grid"]["end_time"],
+            mainConfig["time_grid"]["low_frequencies_resolution"],
+        )
+        self.paylaod = mainConfig["payload"]
 
     def test_responsivity(self):
         loadResponsivity = LoadResponsivity()
@@ -92,7 +96,7 @@ class ResponsivityTest(unittest.TestCase):
         np.testing.assert_array_equal(resp.data[0, 0], rest_test.value)
 
     def test_responsivity_error(self):
-        with self.assertRaises(TypeError) as contex:
+        with pytest.raises(TypeError):
             falseLoadResponsivity = FalseLoadResponsivity()
             resp = falseLoadResponsivity(
                 parameters=self.paylaod["channel"]["Photometer"],
@@ -100,7 +104,7 @@ class ResponsivityTest(unittest.TestCase):
                 time=self.tt,
             )
 
-        with self.assertRaises(u.UnitConversionError) as contex:
+        with pytest.raises(u.UnitConversionError):
             falseLoadResponsivity = FalseLoadResponsivity2()
             resp = falseLoadResponsivity(
                 parameters=self.paylaod["channel"]["Photometer"],
@@ -109,7 +113,7 @@ class ResponsivityTest(unittest.TestCase):
             )
 
 
-class SolidAngleTest(unittest.TestCase):
+class TestSolidAngle:
     def test_omegapix(self):
         channel = {"Fnum_x": 15, "detector": {"delta_pix": 18 * u.um}}
 
@@ -117,8 +121,8 @@ class SolidAngleTest(unittest.TestCase):
         solid_angle = computeSolidAngle(parameters=channel)
 
         solid_angle_test = computeSolidAngle._omega_pix(15) * (18 * u.um) ** 2
-        self.assertAlmostEqual(
-            solid_angle.value, solid_angle_test.to(u.sr * u.m**2).value
+        assert solid_angle.value == pytest.approx(
+            solid_angle_test.to(u.sr * u.m**2).value
         )
 
     def test_omegapix_diff_fnum(self):
@@ -132,15 +136,15 @@ class SolidAngleTest(unittest.TestCase):
         solid_angle = computeSolidAngle(parameters=channel)
 
         solid_angle_test = computeSolidAngle._omega_pix(15) * (18 * u.um) ** 2
-        self.assertAlmostEqual(
-            solid_angle.value, solid_angle_test.to(u.sr * u.m**2).value
+        assert solid_angle.value == pytest.approx(
+            solid_angle_test.to(u.sr * u.m**2).value
         )
 
         solid_angle_test = (
             computeSolidAngle._omega_pix(15, 15) * (18 * u.um) ** 2
         )
-        self.assertAlmostEqual(
-            solid_angle.value, solid_angle_test.to(u.sr * u.m**2).value
+        assert solid_angle.value == pytest.approx(
+            solid_angle_test.to(u.sr * u.m**2).value
         )
 
         channel = {
@@ -155,8 +159,8 @@ class SolidAngleTest(unittest.TestCase):
         solid_angle_test = (
             computeSolidAngle._omega_pix(15, 10) * (18 * u.um) ** 2
         )
-        self.assertAlmostEqual(
-            solid_angle.value, solid_angle_test.to(u.sr * u.m**2).value
+        assert solid_angle.value == pytest.approx(
+            solid_angle_test.to(u.sr * u.m**2).value
         )
 
     def test_pi(self):
@@ -169,8 +173,8 @@ class SolidAngleTest(unittest.TestCase):
         )
 
         solid_angle_test = np.pi * u.sr * (18 * u.um) ** 2
-        self.assertAlmostEqual(
-            solid_angle.value, solid_angle_test.to(u.sr * u.m**2).value
+        assert solid_angle.value == pytest.approx(
+            solid_angle_test.to(u.sr * u.m**2).value
         )
 
     def test_pi_omega(self):
@@ -185,8 +189,8 @@ class SolidAngleTest(unittest.TestCase):
         solid_angle_test = (
             np.pi * u.sr - computeSolidAngle._omega_pix(15)
         ) * (18 * u.um) ** 2
-        self.assertAlmostEqual(
-            solid_angle.value, solid_angle_test.to(u.sr * u.m**2).value
+        assert solid_angle.value == pytest.approx(
+            solid_angle_test.to(u.sr * u.m**2).value
         )
 
     def test_custom(self):
@@ -199,16 +203,18 @@ class SolidAngleTest(unittest.TestCase):
         )
 
         solid_angle_test = 10 * u.sr * (18 * u.um) ** 2
-        self.assertAlmostEqual(
-            solid_angle.value, solid_angle_test.to(u.sr * u.m**2).value
+        assert solid_angle.value == pytest.approx(
+            solid_angle_test.to(u.sr * u.m**2).value
         )
 
+@pytest.mark.usefixtures("inject_payload_file")
+class TestPropagateSource:
 
-class PropagateSourceTest(unittest.TestCase):
-    loadOption = LoadOptions()
-    mainConfig = loadOption(filename=payload_file)
+    def setup_method(self):
+        loadOption = LoadOptions()
+        self.mainConfig = loadOption(filename=self.payload_file)
 
-    wl = utils.grids.wl_grid(0.5 * u.um, 9 * u.um, 1000)
+        self.wl = utils.grids.wl_grid(0.5 * u.um, 9 * u.um, 1000)
 
     def test_propagation(self):
         createPlanckStar = CreatePlanckStar()
@@ -243,7 +249,7 @@ class PropagateSourceTest(unittest.TestCase):
             responsivity=res,
         )
 
-        self.assertEqual(sources["test star"].data_units, u.ct / u.s / u.um)
+        assert sources["test star"].data_units == u.ct / u.s / u.um
 
         np.testing.assert_array_almost_equal(
             sources["test star"].data / sig.data,
@@ -265,13 +271,13 @@ class LoadWavelengthSolutionWorking(LoadWavelengthSolution):
         return tab
 
 
-class LoadWLTest(unittest.TestCase):
+class TestLoadWL:
     class LoadWavelengthSolutionFloat(LoadWavelengthSolution):
         def model(self, parameters):
             return 0.0
 
     def test_wrong_format(self):
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             loadWavelengthSolutionFloat = self.LoadWavelengthSolutionFloat()
             testval = loadWavelengthSolutionFloat(parameters={})
 
@@ -283,7 +289,7 @@ class LoadWLTest(unittest.TestCase):
             return tab
 
     def test_missing_k(self):
-        with self.assertRaises(KeyError):
+        with pytest.raises(KeyError):
             loadWavelengthSolutionNoKey = self.LoadWavelengthSolutionNoKey()
             testval = loadWavelengthSolutionNoKey(parameters={})
 
@@ -296,7 +302,7 @@ class LoadWLTest(unittest.TestCase):
             return tab
 
     def test_wrong_unit(self):
-        with self.assertRaises(u.UnitsError):
+        with pytest.raises(u.UnitsError):
             loadWavelengthSolutionUnit = self.LoadWavelengthSolutionUnit()
             testval = loadWavelengthSolutionUnit(parameters={})
 
@@ -314,7 +320,7 @@ class LoadWLTest(unittest.TestCase):
         wl_sol = loadWavelengthSolution(parameters=parameters)
 
 
-class CreateFocalPlaneTest(unittest.TestCase):
+class TestCreateFocalPlane:
     parameters_spec = {
         "detector": {
             "spatial_pix": 10,
@@ -422,46 +428,57 @@ class CreateFocalPlaneTest(unittest.TestCase):
         np.testing.assert_array_equal(focal.data, np.zeros((10, 10, 10)))
 
 
-class ForegroundToFocalPlaneTest(unittest.TestCase):
-    parameters_spec = {
-        "detector": {
-            "spatial_pix": 10,
-            "spectral_pix": 100,
-            "oversampling": 1,
-            "delta_pix": 15 * u.um,
-        },
-        "type": "spectrometer",
-        "Fnum_x": 5,
-        "wl_solution": {"wl_solution_task": LoadWavelengthSolutionWorking},
-    }
+@pytest.mark.usefixtures("inject_payload_file")
+class TestForegroundToFocalPlane:
 
-    wl = np.linspace(1, 100, 100) * u.um
-    tt = np.linspace(1, 10, 10) * u.hr
 
-    createFocalPlane = CreateFocalPlane()
-    focal = createFocalPlane(
-        parameters=parameters_spec, efficiency=0, time=tt, output=None
-    )
+    def setup_method(self):
+        parameters_spec = {
+            "detector": {
+                "spatial_pix": 10,
+                "spectral_pix": 100,
+                "oversampling": 1,
+                "delta_pix": 15 * u.um,
+            },
+            "type": "spectrometer",
+            "Fnum_x": 5,
+            "wl_solution": {"wl_solution_task": LoadWavelengthSolutionWorking},
+        }
 
-    loadOption = LoadOptions()
-    mainConfig = loadOption(filename=payload_file)
+        wl = np.linspace(1, 100, 100) * u.um
+        tt = np.linspace(1, 10, 10) * u.hr
 
-    parsePath = ParsePath()
-    path_ch1 = parsePath(
-        parameters=mainConfig["payload"]["channel"]["Photometer"][
-            "optical_path"
-        ],
-        wavelength=wl,
-        time=tt,
-    )
+        createFocalPlane = CreateFocalPlane()
+        focal = createFocalPlane(
+            parameters=parameters_spec, efficiency=0, time=tt, output=None
+        )
 
-    path_ch2 = parsePath(
-        parameters=mainConfig["payload"]["channel"]["Spectrometer"][
-            "optical_path"
-        ],
-        wavelength=wl,
-        time=tt,
-    )
+        loadOption = LoadOptions()
+        mainConfig = loadOption(filename=self.payload_file)
+
+        parsePath = ParsePath()
+        path_ch1 = parsePath(
+            parameters=mainConfig["payload"]["channel"]["Photometer"][
+                "optical_path"
+            ],
+            wavelength=wl,
+            time=tt,
+        )
+
+        path_ch2 = parsePath(
+            parameters=mainConfig["payload"]["channel"]["Spectrometer"][
+                "optical_path"
+            ],
+            wavelength=wl,
+            time=tt,
+        )
+
+        self.parameters_spec = parameters_spec
+        self.wl = wl
+        self.tt = tt
+        self.focal = focal
+        self.path_ch1 = path_ch1
+        self.path_ch2 = path_ch2
 
     def test_no_slit(self):
         foregroundsToFocalPlane = ForegroundsToFocalPlane()
@@ -470,7 +487,7 @@ class ForegroundToFocalPlaneTest(unittest.TestCase):
             focal_plane=self.focal,
             path=self.path_ch1,
         )
-        self.assertEqual(fore_1.data.shape, (10, 10, 100))
+        assert fore_1.data.shape == (10, 10, 100)
         np.testing.assert_array_equal(
             fore_1.data, np.ones(fore_1.data.shape) * fore_1.data[0, 0, 0]
         )
@@ -482,7 +499,7 @@ class ForegroundToFocalPlaneTest(unittest.TestCase):
             focal_plane=self.focal,
             path=self.path_ch2,
         )
-        self.assertEqual(fore_2.data.shape, (10, 10, 100))
+        assert fore_2.data.shape == (10, 10, 100)
         #
         # plt.plot(fore_2.data[0].sum(axis=0))
         # plt.show()
@@ -499,7 +516,7 @@ class ForegroundToFocalPlaneTest(unittest.TestCase):
         )
 
 
-class IntrapixelResponseFunctionTest(unittest.TestCase):
+class TestIntrapixelResponseFunction:
     parameters = {
         "detector": {
             "delta_pix": 18 * u.um,
@@ -672,7 +689,7 @@ class IntrapixelResponseFunctionTest(unittest.TestCase):
             )
             power.append(p)
         power = np.array(power)
-        self.assertTrue(np.std(power) < 1e-10)
+        assert np.std(power) < 1e-10
 
         # small image
         power = []
@@ -685,7 +702,7 @@ class IntrapixelResponseFunctionTest(unittest.TestCase):
             )
             power.append(p)
         power = np.array(power)
-        self.assertTrue(np.std(power) < 1e-10)
+        assert np.std(power) < 1e-10
 
         #### AIRY PSF
         im_large_airy, im_small_airy = self.create_focal_planes(
@@ -714,7 +731,7 @@ class IntrapixelResponseFunctionTest(unittest.TestCase):
             )
             power.append(p)
         power = np.array(power)
-        self.assertTrue(np.std(power) < 1e-6)
+        assert np.std(power) < 1e-6
 
         # small image
         power = []
@@ -727,7 +744,7 @@ class IntrapixelResponseFunctionTest(unittest.TestCase):
             )
             power.append(p)
         power = np.array(power)
-        self.assertTrue(np.std(power) < 1e-5)
+        assert np.std(power) < 1e-5
 
     def test_gauss_power(self):
         """This test assures that in case of an Gauss function the power is conserved
@@ -778,7 +795,7 @@ class IntrapixelResponseFunctionTest(unittest.TestCase):
             power.append(p)
         power = np.array(power)
         sts = np.std(power)
-        self.assertTrue(np.std(power) < 1e-8)
+        assert np.std(power) < 1e-8
 
         # small image
         power = []
@@ -792,7 +809,7 @@ class IntrapixelResponseFunctionTest(unittest.TestCase):
             power.append(p)
         power = np.array(power)
         sts = np.std(power)
-        self.assertTrue(np.std(power) < 1e-8)
+        assert np.std(power) < 1e-8
 
     def test_airy_power(self):
         """This test assures that in case of an Airy function the power is conserved
@@ -844,7 +861,7 @@ class IntrapixelResponseFunctionTest(unittest.TestCase):
             power.append(p)
         power = np.array(power)
 
-        self.assertTrue(np.std(power) < 1e-4)
+        assert np.std(power) < 1e-4
 
         # small image
         power = []
@@ -857,10 +874,10 @@ class IntrapixelResponseFunctionTest(unittest.TestCase):
             )
             power.append(p)
         power = np.array(power)
-        self.assertTrue(np.std(power) < 1e-3)
+        assert np.std(power) < 1e-3
 
 
-class IntrapixelResponseFunctionOversampledTest(unittest.TestCase):
+class TestIntrapixelResponseFunctionOversampled:
     def pixelResponseFunction(
         self, psf_shape, osf, delta, lx=0.0 * u.um, ipd=0.0 * u.um
     ):
@@ -947,7 +964,7 @@ class IntrapixelResponseFunctionOversampledTest(unittest.TestCase):
         )
 
 
-class ApplyIntrapixelResponseFunctionTest(unittest.TestCase):
+class TestApplyIntrapixelResponseFunction:
     parameters = {
         "detector": {
             "delta_pix": 18 * u.um,
@@ -982,9 +999,7 @@ class ApplyIntrapixelResponseFunctionTest(unittest.TestCase):
             irf_kernel=irf_kernel,
             irf_kernel_delta=irf_kernel_delta,
         )
-        self.assertEqual(
-            default_focal_plane_irf.data.shape, self.focal_plane.data.shape
-        )
+        assert default_focal_plane_irf.data.shape == self.focal_plane.data.shape
         np.testing.assert_array_equal(
             default_focal_plane_irf.data, focal_plane_irf.data
         )
@@ -1002,9 +1017,7 @@ class ApplyIntrapixelResponseFunctionTest(unittest.TestCase):
             irf_kernel_delta=irf_kernel_delta,
             convolution_method="fftconvolve",
         )
-        self.assertEqual(
-            focal_plane_irf.data.shape, self.focal_plane.data.shape
-        )
+        assert focal_plane_irf.data.shape == self.focal_plane.data.shape
 
     def test_apply_convolve(self):
         createIntrapixelResponseFunction = CreateIntrapixelResponseFunction()
@@ -1019,9 +1032,7 @@ class ApplyIntrapixelResponseFunctionTest(unittest.TestCase):
             irf_kernel_delta=irf_kernel_delta,
             convolution_method="convolve",
         )
-        self.assertEqual(
-            focal_plane_irf.data.shape, self.focal_plane.data.shape
-        )
+        assert focal_plane_irf.data.shape == self.focal_plane.data.shape
 
     def test_apply_ndimage_convolve(self):
         createIntrapixelResponseFunction = CreateIntrapixelResponseFunction()
@@ -1036,9 +1047,7 @@ class ApplyIntrapixelResponseFunctionTest(unittest.TestCase):
             irf_kernel_delta=irf_kernel_delta,
             convolution_method="ndimage.convolve",
         )
-        self.assertEqual(
-            focal_plane_irf.data.shape, self.focal_plane.data.shape
-        )
+        assert focal_plane_irf.data.shape == self.focal_plane.data.shape
 
     def test_apply_oversampled_iprf(self):
         createIntrapixelResponseFunction = (
@@ -1055,12 +1064,10 @@ class ApplyIntrapixelResponseFunctionTest(unittest.TestCase):
             irf_kernel_delta=irf_kernel_delta,
             convolution_method="fast_convolution",
         )
-        self.assertEqual(
-            focal_plane_irf.data.shape, self.focal_plane.data.shape
-        )
+        assert focal_plane_irf.data.shape == self.focal_plane.data.shape
 
 
-class PopulateFocalPlaneTest(unittest.TestCase):
+class TestPopulateFocalPlane:
     parameters = {
         "psf": {"shape": "Airy"},
         "Fnum_x": 5,
@@ -1146,7 +1153,7 @@ class PopulateFocalPlaneTest(unittest.TestCase):
     # TODO test loaded PSF
 
 
-class SaturationTimeTest(unittest.TestCase):
+class TestSaturationTime:
     spectral = np.arange(0, 9) * u.pix
     spatial = np.arange(0, 9) * u.pix
     time = np.arange(0, 4) * u.hr
@@ -1244,7 +1251,7 @@ class SaturationTimeTest(unittest.TestCase):
         np.testing.assert_array_equal(sat, expected_sat)
 
 
-class PointingTest(unittest.TestCase):
+class TestPointing:
     computeSourcesPointingOffset = ComputeSourcesPointingOffset()
 
     def test_pointing_units(self):
@@ -1265,7 +1272,7 @@ class PointingTest(unittest.TestCase):
             a = self.computeSourcesPointingOffset(
                 source=source, parameters=parameters, pointing=(ra, dec)
             )
-            self.assertListEqual(a, [1, 1])
+            assert a == [1, 1]
 
     def test_angles(self):
         source = {"parsed_parameters": {"ra": 0 * u.deg, "dec": 0 * u.deg}}
@@ -1282,7 +1289,7 @@ class PointingTest(unittest.TestCase):
         a = self.computeSourcesPointingOffset(
             source=source, parameters=parameters, pointing=pointing
         )
-        self.assertListEqual(a, [1, 1])
+        assert a == [1, 1]
 
         parameters = {
             "detector": {
@@ -1294,7 +1301,7 @@ class PointingTest(unittest.TestCase):
         a = self.computeSourcesPointingOffset(
             source=source, parameters=parameters, pointing=pointing
         )
-        self.assertListEqual(a, [2, 2])
+        assert a == [2, 2]
 
         parameters = {
             "detector": {
@@ -1306,7 +1313,7 @@ class PointingTest(unittest.TestCase):
         a = self.computeSourcesPointingOffset(
             source=source, parameters=parameters, pointing=pointing
         )
-        self.assertListEqual(a, [2, 2])
+        assert a == [2, 2]
 
     def test_plate_scale_units(self):
         source = {"parsed_parameters": {"ra": 0 * u.deg, "dec": 0 * u.deg}}
@@ -1331,17 +1338,17 @@ class PointingTest(unittest.TestCase):
             a = self.computeSourcesPointingOffset(
                 source=source, parameters=parameters, pointing=pointing
             )
-            self.assertListEqual(a, [1, 1])
+            assert a == [1, 1]
 
         val_list = [1 * u.deg / u.s, 1 * u.m / u.pixel]
         for val in val_list:
             parameters["detector"]["plate_scale"] = val
-            with self.assertRaises(u.UnitConversionError):
+            with pytest.raises(u.UnitConversionError):
                 self.computeSourcesPointingOffset(
                     source=source, parameters=parameters, pointing=pointing
                 )
         parameters["detector"]["plate_scale"] = 1
-        with self.assertRaises(IOError):
+        with pytest.raises(IOError):
             self.computeSourcesPointingOffset(
                 source=source, parameters=parameters, pointing=pointing
             )

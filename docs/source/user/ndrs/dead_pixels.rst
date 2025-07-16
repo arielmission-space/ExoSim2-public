@@ -19,8 +19,8 @@ Dead pixel map can be applied by default using :class:`~exosim.tasks.detector.ap
 As shown, the input is a `.csv` file.
 The file contains two columns with the spectral and spatial coordinates of the dead pixels: `spectral_coords` and `spatial_coords`.
 
-Alternatively, the dead pixel map can be provided as a numpy array (see `numpy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_), 
-and parsed with the :class:`~exosim.tasks.detector.applyDeadPixelMapNumpy.ApplyDeadPixelMapNumpy` task:  
+Alternatively, the dead pixel map can be provided as a numpy array (see `numpy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_),
+and parsed with the :class:`~exosim.tasks.detector.applyDeadPixelMapNumpy.ApplyDeadPixelMapNumpy` task:
 
 .. code-block:: xml
 

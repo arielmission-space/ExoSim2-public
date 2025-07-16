@@ -8,7 +8,7 @@ Here we'll explain how this focal planes looks like.
 Note that so far we have built three different focal planes, that can be considered are three layers:
 
     - ``focal_plane``: containing the signal from the target star
-    - ``bkg_focal_plane``: containing the stars in the field of view 
+    - ``bkg_focal_plane``: containing the stars in the field of view
     - ``frg_focal_plane``: containing the signal from the foreground
 
 .. image:: _static/layers.png

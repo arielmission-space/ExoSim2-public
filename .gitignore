@@ -132,3 +132,23 @@ dmypy.json
 # ide
 .idea/
 .vscode/
+.VSCodeCounter
+
+#examples
+examples/plots
+examples/paper_scripts
+examples/*.h5
+examples/*.hdf5
+examples/*.png
+examples/*.npy
+examples/data/payload/PAOS
+examples/test_data
+
+#tests
+tests/*.png
+tests/*.h5
+tests/test_data/*.csv
+tests/test_data/*.xml
+tests/test_data/*.h5
+tests/test_data/plots/*.png
+tests/test_data/test_data

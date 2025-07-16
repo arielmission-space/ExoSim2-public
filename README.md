@@ -39,14 +39,14 @@ ExoSim 2 is the next generation of the Exoplanet Observation Simulator [ExoSim](
 
 ### Install from PyPI <a name="install-from-source-code"></a>
 
-ExoSim 2.0 is available on PyPI and can be installed via pip as 
+ExoSim 2.0 is available on PyPI and can be installed via pip as
 
     pip install exosim
 
 
 ### Install from source code <a name="install-from-source-code"></a>
 
-ExoSim 2.0 is compatible (tested) with Python 3.8, 3.9 and 3.10
+ExoSim 2.0 is compatible (tested) with Python 3.10 and 3.12
 
 To install from source, clone the [repository](https://github.com/arielmission-space/ExoSim2-public/) and move inside the directory.
 

@@ -40,22 +40,22 @@ If this gain is not known, an estimate is provided by the :ref:`adc_gain` tool.
     S_{out} = [ ADC_{gain} \cdot( S_{meas} - ADC_{offset}) ]_{int}
 
 Note that the offset is subtracted from the NDRs. All the resulting negative values are set to zero.
-The user can input any integer number of bits up to 32. 
-The :class:`~exosim.tasks.detector.analogToDigital.AnalogToDigital` chooses the minimum Python 
+The user can input any integer number of bits up to 32.
+The :class:`~exosim.tasks.detector.analogToDigital.AnalogToDigital` chooses the minimum Python
 data type to store the desired output to minimize the size of the output product and to be more representative of the expected result.
 
 `ADC_round_method` keyword indicates which method the ADC should use to cast the float into integers. Three options are available:
 
-- `floor` which uses :func:`numpy.floor`; 
-- `ceil` which uses :func:`numpy.ceil`; 
-- `round` which uses :func:`numpy.round`; 
+- `floor` which uses :func:`numpy.floor`;
+- `ceil` which uses :func:`numpy.ceil`;
+- `round` which uses :func:`numpy.round`;
 
 The default is `floor`.
 
 Automatic ADC
 ---------------
 
-ExoSim can help you setting this values automatically as 
+ExoSim can help you setting this values automatically as
 
 .. code-block:: xml
 
@@ -68,7 +68,7 @@ ExoSim can help you setting this values automatically as
         <detector>
     </channel>
 
-With this configuration, ExoSim will compute the offset (:code:`<ADC_offset> auto </ADC_offset>`) as the minimum value in all the datacube, and the gain (:code:`<ADC_gain> auto </ADC_gain>`) as 
+With this configuration, ExoSim will compute the offset (:code:`<ADC_offset> auto </ADC_offset>`) as the minimum value in all the datacube, and the gain (:code:`<ADC_gain> auto </ADC_gain>`) as
 
 .. math::
 

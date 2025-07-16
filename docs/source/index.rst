@@ -24,7 +24,7 @@ The guide goal is to train the user to customise the simulator according to the 
     .. image:: _static/install.png
         :width: 250
         :align: center
-        
+
 
     .. link-button:: installation
             :type: ref
@@ -32,9 +32,9 @@ The guide goal is to train the user to customise the simulator according to the 
             :classes: btn-outline-secondary btn-block stretched-link
     ---
 
-    User Guide 
+    User Guide
     ^^^^^^^^^^^^
-    
+
     .. image:: _static/user.png
         :width: 250
         :align: center
@@ -45,7 +45,7 @@ The guide goal is to train the user to customise the simulator according to the 
         :classes: btn-outline-secondary btn-block stretched-link
     ---
 
-    Developer Guide 
+    Developer Guide
     ^^^^^^^^^^^^^^^
     .. image:: _static/developers.png
         :width: 250
@@ -54,11 +54,11 @@ The guide goal is to train the user to customise the simulator according to the 
     .. link-button:: contributing/index
         :type: ref
         :text: Learn how to improve or customise ExoSim.
-        :classes: btn-outline-secondary btn-block stretched-link   
-    
+        :classes: btn-outline-secondary btn-block stretched-link
+
     ---
-    
-    API Guide 
+
+    API Guide
     ^^^^^^^^^^^^
 
     .. image:: _static/api.png
@@ -78,9 +78,9 @@ The guide goal is to train the user to customise the simulator according to the 
     :header: text-center
     :body: text-justify
 
-    FAQs 
+    FAQs
     ^^^^^^^^^^^^
-    
+
     .. image:: _static/faqs.png
         :width: 150
         :align: center
@@ -92,9 +92,9 @@ The guide goal is to train the user to customise the simulator according to the 
 
     ---
 
-    License 
+    License
     ^^^^^^^^^^^^
-    
+
     .. image:: _static/license.png
         :width: 150
         :align: center
@@ -103,12 +103,12 @@ The guide goal is to train the user to customise the simulator according to the 
         :type: ref
         :text: Go To License
         :classes: btn-outline-primary btn-block stretched-link
-    
+
     ---
 
-    Changelog 
+    Changelog
     ^^^^^^^^^^^^
-    
+
     .. image:: _static/changelog.png
         :width: 150
         :align: center
@@ -164,9 +164,9 @@ and supported by `ASI <https://www.asi.it/en/>`__.
 We thank Ahmed Al-Refaie for his support during the development and the inspiration provided by his code: `TauREx3 <https://arxiv.org/abs/1912.07759>`__ .
 
 
-.. The icons used in this page are from `Font PNGEgg <https://https://www.pngegg.com>`__, 
+.. The icons used in this page are from `Font PNGEgg <https://https://www.pngegg.com>`__,
     and all the icons are licensed under `Non commercial license <https://www.pngegg.com/tos>`__.
-    Non-commercial means something is not primarily intended for, or directed towards, commercial advantage or monetary compensation by an individual or organisation. 
-    As ExoSim is a publicly available software, under BSD-3-Clause license, we are allowed to use these icons in our documentation, because they are not used for commercial purposes. 
+    Non-commercial means something is not primarily intended for, or directed towards, commercial advantage or monetary compensation by an individual or organisation.
+    As ExoSim is a publicly available software, under BSD-3-Clause license, we are allowed to use these icons in our documentation, because they are not used for commercial purposes.
     We believe that our work do not conflict with the legitimate interests of the creator of the artistic icons.
     We also edited some of the icon to fit our needs.

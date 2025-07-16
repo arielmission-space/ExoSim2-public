@@ -1,0 +1,50 @@
+{
+    "@context": "https://w3id.org/codemeta/3.0",
+    "type": "SoftwareSourceCode",
+    "applicationCategory": "Astronomy",
+    "author": [
+        {
+            "id": "_:author_1",
+            "type": "Person",
+            "familyName": "Mugnai",
+            "givenName": "Lorenzo"
+        },
+        {
+            "id": "_:author_2",
+            "type": "Person",
+            "familyName": "Bocchieri",
+            "givenName": "Andrea"
+        },
+        {
+            "id": "_:author_3",
+            "type": "Person",
+            "familyName": "Pascale",
+            "givenName": "Enzo"
+        },
+        {
+            "id": "_:author_4",
+            "type": "Person",
+            "familyName": "Lorenzani",
+            "givenName": "Andrea"
+        },
+        {
+            "id": "_:author_5",
+            "type": "Person",
+            "familyName": "Papageorgiou",
+            "givenName": "Andreas"
+        }
+    ],
+    "codeRepository": "https://github.com/arielmission-space/ExoSim2-public",
+    "description": "ExoSim 2 is the next generation of the Exoplanet Observation Simulator ExoSim tailored for spectro-photometric observations of transiting exoplanets from space, ground, and sub-orbital platforms. This software is a complete rewrite implemented in Python 3, embracing object-oriented design principles, which allow users to replace each component with their functions when required.",
+    "downloadUrl": "https://pypi.org/project/exosim/",
+    "license": "https://spdx.org/licenses/BSD-3-Clause",
+    "name": "ExoSim2",
+    "programmingLanguage": "Python 3",
+    "version": "2.0.0",
+    "codemeta:contIntegration": {
+        "id": "https://app.codecov.io/gh/arielmission-space/ExoSim2-public"
+    },
+    "continuousIntegration": "https://app.codecov.io/gh/arielmission-space/ExoSim2-public",
+    "issueTracker": "https://github.com/arielmission-space/ExoSim2-public/issues",
+    "referencePublication": "https://link.springer.com/article/10.1007/s10686-024-09976-2"
+}

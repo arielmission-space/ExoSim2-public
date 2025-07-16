@@ -1,62 +1,65 @@
 import glob
 import logging
 import os
-import unittest
 
 import astropy.units as u
 import matplotlib.pyplot as plt
 import numpy as np
-from inputs import seed
-from inputs import skip_plot
-from inputs import test_dir
-from inputs import tools_file
+import pytest
 
 from exosim.log import setLogLevel
-from exosim.tools import ADCGainEstimator
-from exosim.tools import DarkCurrentMap
-from exosim.tools import DeadPixelsMap
-from exosim.tools import PixelsNonLinearity
-from exosim.tools import PixelsNonLinearityFromCorrection
-from exosim.tools import QuantumEfficiencyMap
-from exosim.tools import ReadoutSchemeCalculator
+from exosim.tools import (
+    ADCGainEstimator,
+    DarkCurrentMap,
+    DeadPixelsMap,
+    PixelsNonLinearity,
+    PixelsNonLinearityFromCorrection,
+    QuantumEfficiencyMap,
+    ReadoutSchemeCalculator,
+)
 from exosim.tools.exosimTool import ExoSimTool
 from exosim.utils import RunConfig
 
 setLogLevel(logging.DEBUG)
 
+class TestExoSimTools:
 
-class ExoSimToolsTest(unittest.TestCase):
-    exotools = ExoSimTool(tools_file)
-
-    def test_attr(self):
-        self.assertTrue(hasattr(self.exotools, "options"))
-
-
-class ReadoutSchemeCalculatorTest(unittest.TestCase):
-    f_list = glob.glob(os.path.join(test_dir, "test_data-*fp.h5"))
-
-    @unittest.skipIf(not f_list, "missing_file")
-    def test_read_out(self):
-        ReadoutSchemeCalculator(tools_file, self.f_list[0])
+    def test_attr(self, tools_file):
+        exotools = ExoSimTool(tools_file)
+        assert hasattr(exotools, "options")
 
 
-class QuantumEfficiencyMapTest(unittest.TestCase):
-    params = {
-        "time_grid": {
-            "start_time": 0 * u.hr,
-            "end_time": 1 * u.hr,
-            "low_frequencies_resolution": 1 * u.hr,
-        },
-        "channel": {
-            "value": "test",
-            "detector": {
-                "qe_sigma": 0.5,
-                "spatial_pix": 10,
-                "spectral_pix": 20,
+class TestReadoutSchemeCalculator:
+
+    def test_read_out(self, test_data_dir, tools_file):
+        f_list = glob.glob(os.path.join(test_data_dir, "test_data-*fp.h5"))
+        if not f_list:
+            pytest.skip("missing_file")
+        ReadoutSchemeCalculator(tools_file, f_list[0])
+
+
+@pytest.mark.usefixtures("test_data_dir")
+class TestQuantumEfficiencyMap:
+
+    @pytest.fixture(autouse=True)
+    def _init(self, test_data_dir):
+        self.params = {
+            "time_grid": {
+                "start_time": 0 * u.hr,
+                "end_time": 1 * u.hr,
+                "low_frequencies_resolution": 1 * u.hr,
             },
-        },
-    }
-    fname = os.path.join(test_dir, "qe_test.h5")
+            "channel": {
+                "value": "test",
+                "detector": {
+                    "qe_sigma": 0.5,
+                    "spatial_pix": 10,
+                    "spectral_pix": 20,
+                },
+            },
+        }
+        self.fname = os.path.join(test_data_dir, "qe_test.h5")
+
 
     def test_constant(self):
         self.params["channel"]["detector"]["qe_sigma"] = 0
@@ -85,7 +88,7 @@ class QuantumEfficiencyMapTest(unittest.TestCase):
         q_map = qe.results["test"]
         print(q_map.data.shape)
 
-        self.assertEqual(q_map.data.shape, (1, 10, 20))
+        assert q_map.data.shape == (1, 10, 20)
         os.remove(self.fname)
 
     def test_value(self):
@@ -134,7 +137,7 @@ class QuantumEfficiencyMapTest(unittest.TestCase):
         os.remove(self.fname)
 
 
-class DeadPixelMapTest(unittest.TestCase):
+class TestDeadPixelMap:
     def test_constant_value(self):
         params = {
             "channel": {
@@ -147,11 +150,12 @@ class DeadPixelMapTest(unittest.TestCase):
             }
         }
         test_out = DeadPixelsMap(params)
-        self.assertTrue(test_out.results["test"]["spatial_coords"].size == 10)
-        self.assertTrue(test_out.results["test"]["spectral_coords"].size == 10)
+        assert test_out.results["test"]["spatial_coords"].size == 10
+        assert test_out.results["test"]["spectral_coords"].size == 10
 
-    @unittest.skipIf(skip_plot, "This test only produces plots")
-    def test_plot(self):
+    def test_plot(self, skip_plot):
+        if skip_plot:
+            pytest.skip("This test only produces plots")
         params = {
             "channel": {
                 "value": "test",
@@ -173,9 +177,7 @@ class DeadPixelMapTest(unittest.TestCase):
         for x, y in dead_coords["spectral_coords", "spatial_coords"]:
             dead_pixels_map[y, x] = 0
 
-    #        plt.savefig('dp_map.png')
-
-    def test_output(self):
+    def test_output(self, test_data_dir):
         params = {
             "channel": {
                 "value": "test",
@@ -186,13 +188,13 @@ class DeadPixelMapTest(unittest.TestCase):
                 },
             }
         }
-        DeadPixelsMap(params, test_dir)
+        DeadPixelsMap(params, test_data_dir)
 
-        fname = os.path.join(test_dir, "dp_map_test.csv")
-        self.assertTrue(os.path.isfile(fname))
+        fname = os.path.join(test_data_dir, "dp_map_test.csv")
+        assert os.path.isfile(fname)
         os.remove(fname)
 
-    def test_random_map(self):
+    def test_random_map(self, seed):
         params = {
             "channel": {
                 "value": "test",
@@ -219,7 +221,7 @@ class DeadPixelMapTest(unittest.TestCase):
         np.testing.assert_allclose(np.std(test_y), 1, 0.1)
 
 
-class ADCGainTest(unittest.TestCase):
+class TestADCGain:
     def test_value(self):
         params = {
             "channel": {
@@ -258,7 +260,7 @@ class ADCGainTest(unittest.TestCase):
                 "detector": {"ADC_num_bit": "16", "ADC_max_value": 120000},
             }
         }
-        with self.assertRaises(TypeError) as context:
+        with pytest.raises(TypeError):
             ADCGainEstimator(params)
 
         params = {
@@ -267,11 +269,11 @@ class ADCGainTest(unittest.TestCase):
                 "detector": {"ADC_num_bit": 64, "ADC_max_value": 120000},
             }
         }
-        with self.assertRaises(ValueError) as context:
+        with pytest.raises(ValueError):
             ADCGainEstimator(params)
 
 
-class DarkCurrentMapTest(unittest.TestCase):
+class TestDarkCurrentMap:
     parameters = {
         "detector": {
             "dc_median": 1.0 * u.ct / u.s,
@@ -291,19 +293,16 @@ class DarkCurrentMapTest(unittest.TestCase):
         dc_map = darkCurrentMap(parameters=self.parameters, time=self.times)
 
         # testing the map shape
-        self.assertEqual(
-            dc_map.data.shape,
-            (
-                self.times.size,
-                self.parameters["detector"]["spatial_pix"]
-                * self.parameters["detector"]["oversampling"],
-                self.parameters["detector"]["spectral_pix"]
-                * self.parameters["detector"]["oversampling"],
-            ),
+        assert dc_map.data.shape == (
+            self.times.size,
+            self.parameters["detector"]["spatial_pix"]
+            * self.parameters["detector"]["oversampling"],
+            self.parameters["detector"]["spectral_pix"]
+            * self.parameters["detector"]["oversampling"],
         )
 
         # testing the dictionary dc_mean key
-        self.assertIn("dc_mean", self.parameters["detector"])
+        assert "dc_mean" in self.parameters["detector"]
 
         # testing the distribution
         np.testing.assert_allclose(
@@ -342,10 +341,11 @@ class DarkCurrentMapTest(unittest.TestCase):
         dc_mean = detector["dc_mean"].value
         mean = np.exp(mu + sigma**2 / 2)
 
-        self.assertEqual(dc_mean, mean)
+        assert dc_mean == mean
 
 
-class PixelNonLinearityTest(unittest.TestCase):
+
+class TestPixelNonLinearity:
     params = {
         "channel": {
             "value": "test",
@@ -358,19 +358,20 @@ class PixelNonLinearityTest(unittest.TestCase):
         }
     }
 
-    def test_values(self):
+    def test_values(self, skip_plot):
         test_out = PixelsNonLinearity(self.params, show_results=not skip_plot)
         results = test_out.results["test"]["coeff"]
+        assert results is not None  # Verifica placeholder
 
-    def test_map(self):
+    def test_map(self, skip_plot):
         test_out = PixelsNonLinearity(self.params, show_results=not skip_plot)
         results = test_out.results["test"]["map"]
         coeff = test_out.results["test"]["coeff"]
         expected_std = self.params["channel"]["detector"]["pnl_coeff_std"]
-        for i, map in enumerate(results):
-            mean = np.mean(map)
-            std = np.std(map) / np.abs(mean)
-            print(i, mean, std, coeff[i], expected_std)
+
+        for i, map_ in enumerate(results):
+            mean = np.mean(map_)
+            std = np.std(map_) / np.abs(mean)
             np.testing.assert_allclose(mean, coeff[i], rtol=5 * 1e-03)
             np.testing.assert_allclose(std, expected_std, rtol=5 * 1e-02)
 
@@ -379,11 +380,11 @@ class PixelNonLinearityTest(unittest.TestCase):
         test_out = PixelsNonLinearity(self.params, show_results=not skip_plot)
         results = test_out.results["test"]["map"]
         coeff = test_out.results["test"]["coeff"]
-        for i, map in enumerate(results):
-            np.testing.assert_allclose(map, np.ones(map.shape) * coeff[i])
 
+        for i, map_ in enumerate(results):
+            np.testing.assert_allclose(map_, np.ones(map_.shape) * coeff[i])
 
-class PixelNonLinearityFromCorrectionTest(unittest.TestCase):
+class TestPixelNonLinearityFromCorrection:
     params = {
         "channel": {
             "value": "test",
@@ -402,10 +403,8 @@ class PixelNonLinearityFromCorrectionTest(unittest.TestCase):
         }
     }
 
-    def test_values(self):
-        test_out = PixelsNonLinearityFromCorrection(
-            self.params, show_results=not skip_plot
-        )
+    def test_values(self, skip_plot):
+        test_out = PixelsNonLinearityFromCorrection(self.params, show_results=not skip_plot)
         results = test_out.results["test"]["coeff"]
         np.testing.assert_allclose(
             results,
@@ -419,16 +418,12 @@ class PixelNonLinearityFromCorrectionTest(unittest.TestCase):
             rtol=1e-06,
         )
 
-    def test_correction(self):
-        test_out = PixelsNonLinearityFromCorrection(
-            self.params, show_results=not skip_plot
-        )
+    def test_correction(self, skip_plot):
+        test_out = PixelsNonLinearityFromCorrection(self.params, show_results=not skip_plot)
         results = test_out.results["test"]["coeff"]
         p = np.polynomial.Polynomial(results)
 
-        Q = np.linspace(
-            1, test_out.results["test"]["saturation"], 2**10
-        )  # detector pixel counts in adu
+        Q = np.linspace(1, test_out.results["test"]["saturation"], 2**10)  # detector pixel counts in adu
         Q_det = Q * p(Q)
 
         corr_coeff = [
@@ -441,16 +436,9 @@ class PixelNonLinearityFromCorrectionTest(unittest.TestCase):
         p_corr = np.polynomial.Polynomial(corr_coeff)
         Q_corr = Q_det / p_corr(Q)
 
-        # plt.plot(Q,Q, label='expected')
-        # plt.plot(Q,Q_det, label='measured')
-        # plt.plot(Q,Q_corr, label='corrected')
-        # plt.legend()
-        # plt.grid()
-
-        # plt.show()
         np.testing.assert_allclose(Q_corr, Q, rtol=5 * 1e-02)
 
-    def test_missingkeys(self):
+    def test_missingkeys(self, skip_plot):
         params = {
             "channel": {
                 "value": "test",
@@ -461,7 +449,5 @@ class PixelNonLinearityFromCorrectionTest(unittest.TestCase):
                 },
             }
         }
-        with self.assertRaises(KeyError):
-            test_out = PixelsNonLinearityFromCorrection(
-                params, show_results=not skip_plot
-            )
+        with pytest.raises(KeyError):
+            PixelsNonLinearityFromCorrection(params, show_results=not skip_plot)
