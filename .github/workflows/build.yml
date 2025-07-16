@@ -94,8 +94,10 @@ jobs:
         run: |
           echo "Waiting for TestPyPI package to be available..."
           sleep 60
-          pip install --index-url https://test.pypi.org/simple/ exosim2
-
+          pip install --index-url https://test.pypi.org/simple/ exosim
+          # Verify installed version
+          python -c "import exosim; print(f'Installed version: {exosim.__version__}')"
+        
       - name: Publish to PyPI
         if: github.event_name == 'release' && success()
         env:
