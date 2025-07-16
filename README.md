@@ -1,4 +1,4 @@
-# ExoSim 2.0
+# ExoSim 2
 
 ![Version](https://img.shields.io/static/v1?label=Version&message=2.0.1&color=blue&logo=github)
 [![release-build](https://github.com/arielmission-space/ExoSim2-public/workflows/release-build/badge.svg)](https://github.com/arielmission-space/ExoSim2.0/actions/workflows/build.yml)
@@ -22,7 +22,7 @@ ExoSim 2 is the next generation of the Exoplanet Observation Simulator [ExoSim](
 
 ## Table of contents
 
-- [ExoSim 2.0](#exosim-20)
+- [ExoSim 2](#exosim-2)
   - [Introduction ](#introduction-)
   - [Table of contents](#table-of-contents)
   - [How to install ](#how-to-install-)
@@ -39,14 +39,14 @@ ExoSim 2 is the next generation of the Exoplanet Observation Simulator [ExoSim](
 
 ### Install from PyPI <a name="install-from-source-code"></a>
 
-ExoSim 2.0 is available on PyPI and can be installed via pip as
+ExoSim 2 is available on PyPI and can be installed via pip as
 
     pip install exosim
 
 
 ### Install from source code <a name="install-from-source-code"></a>
 
-ExoSim 2.0 is compatible (tested) with Python 3.12 and 3.13
+ExoSim 2 is compatible (tested) with Python 3.12 and 3.13
 
 To install from source, clone the [repository](https://github.com/arielmission-space/ExoSim2-public/) and move inside the directory.
 
@@ -96,10 +96,10 @@ Here is reported the use of `pdflatex`, if have another compiler for LaTex, plea
 
 ## How to contribute <a name="how-to-contribute"></a>
 
-You can contribute to ExoSim 2.0 by reporting bugs, suggesting new features, or contributing to the code itself. If you want to contribute to the code, please follow the steps described in the documentation under `Developer guide/Contributing guidelines`.
+You can contribute to ExoSim 2 by reporting bugs, suggesting new features, or contributing to the code itself. If you want to contribute to the code, please follow the steps described in the documentation under `Developer guide/Contributing guidelines`.
 
 ## How to cite
 
-If you use ExoSim 2.0 in your research, please cite the following paper:
+If you use ExoSim 2 in your research, please cite the following paper:
 
 [Mugnai, L.V., Bocchieri, A., Pascale, E. et al. ExoSim 2: the new exoplanet observation simulator applied to the Ariel space mission. Exp Astron 59, 9 (2025).](https://link.springer.com/article/10.1007/s10686-024-09976-2)
