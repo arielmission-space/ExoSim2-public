@@ -3,9 +3,10 @@
 import os
 import sys
 
-# sys.path.insert(0, os.path.abspath('../../'))
 current_dir = os.path.dirname(__file__)
-target_dir = os.path.abspath(os.path.join(current_dir, "../../"))
+target_dir = os.path.abspath(
+    os.path.join(current_dir, "../../src")
+)  # Added /src
 sys.path.insert(0, target_dir)
 
 # -- Project information -----------------------------------------------------
@@ -35,16 +36,13 @@ extensions = [
     "sphinx.ext.coverage",
     "sphinx.ext.mathjax",
     "sphinx.ext.viewcode",
-    # 'sphinx.ext.imgmath',
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
     "sphinx.ext.githubpages",
     "nbsphinx",
     "matplotlib.sphinxext.plot_directive",
     "autoapi.extension",
-    # TODO update to sphinx-design and sphinx>5
-    "sphinx_panels",
-    "sphinx_design",
+    "sphinx_design",  # Keep only sphinx_design, remove sphinx_panels
 ]
 # ------------------------------------------------------------------------------
 # Matplotlib plot_directive options
@@ -92,7 +90,7 @@ language = "en"
 # -----------------------------------------------------------------------------
 # Auto-API
 # -----------------------------------------------------------------------------
-autoapi_dirs = ["../../exosim"]
+autoapi_dirs = ["../../src/exosim"]  # Modified to point to src directory
 autoapi_root = "api"
 autoapi_type = "python"
 autoapi_options = [
@@ -109,8 +107,14 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/dev", None),
     "numpy": ("https://numpy.org/devdocs", None),
     "matplotlib": ("https://matplotlib.org", None),
-    "scipy": ("http://docs.scipy.org/doc/scipy/reference/", None),
-    "astropy": ("http://docs.astropy.org/en/latest/", None),
+    "scipy": (
+        "https://docs.scipy.org/doc/scipy/reference/",
+        None,
+    ),  # Updated to HTTPS
+    "astropy": (
+        "https://docs.astropy.org/en/latest/",
+        None,
+    ),  # Updated to HTTPS
     "h5py": ("https://docs.h5py.org/en/latest/", None),
     "photutils": ("https://photutils.readthedocs.io/en/stable/", None),
 }
@@ -124,22 +128,6 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 # HTML output
 # -----------------------------------------------------------------------------
 
-# html_theme = 'sphinx_rtd_theme'
-# html_theme_options = {
-#     'collapse_navigation': False,
-#     'sticky_navigation': True,
-#     'navigation_depth': 4,
-#     'includehidden': True,
-#     'titles_only': False
-# }
-
-# TODO change this from the example reported in pydata to ExoSim.
-# TODO change the switcher.json links to ExoSim's
-# Define the json_url for our version switcher.
-# TODO release this with correct link when move to readthedocs
-# json_url = "https://pydata-sphinx-theme.readthedocs.io/en/latest/_static/switcher.json"
-
-# Inizializziamo json_url con un valore di default
 json_url = "_static/switcher.json"
 
 # Define the version we use for matching in the version switcher.
