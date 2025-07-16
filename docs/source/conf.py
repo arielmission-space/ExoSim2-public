@@ -139,6 +139,9 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store"]
 # TODO release this with correct link when move to readthedocs
 # json_url = "https://pydata-sphinx-theme.readthedocs.io/en/latest/_static/switcher.json"
 
+# Inizializziamo json_url con un valore di default
+json_url = "_static/switcher.json"
+
 # Define the version we use for matching in the version switcher.
 version_match = os.environ.get("READTHEDOCS_VERSION")
 # If READTHEDOCS_VERSION doesn't exist, we're not on RTD
@@ -146,23 +149,13 @@ version_match = os.environ.get("READTHEDOCS_VERSION")
 if not version_match or version_match.isdigit():
     # For local development, infer the version to match from the package.
     release = __version__
-    # TODO change this to ExoSim if different production and development versions are used
-    # if "dev" in release or "rc" in release:
-    #     version_match = "latest"
-    #     # We want to keep the relative reference if we are in dev mode
-    #     # but we want the whole url if we are effectively in a released version
-    #     json_url = "_static/switcher.json"
-    # else:
     version_match = "v" + release
-    # TODO check how to wriite switcher.json from pydata github example
-    json_url = "_static/switcher.json"
 
 html_theme = "pydata_sphinx_theme"
 # panels_add_bootstrap_css = False
 # panels_dev_mode = True
 
 html_theme_options = {
-    #    "logo_link": "index",
     "github_url": "https://github.com/arielmission-space/ExoSim2-public",
     "collapse_navigation": True,
     "navbar_start": ["navbar-logo"],

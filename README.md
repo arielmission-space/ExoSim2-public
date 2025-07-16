@@ -61,7 +61,7 @@ Then use `pip` as
 If you have installed ExoSim from source-code, to test your ExoSim2 installation simply run from the main ExoSim2 folder
 
     pip install poetry
-    poetry run python -m unittest discover -s tests -t tests
+    poetry run -m pytest tests
 
 ## Documentation <a name="documentation"></a>
 
