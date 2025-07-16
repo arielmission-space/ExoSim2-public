@@ -46,7 +46,7 @@ ExoSim 2.0 is available on PyPI and can be installed via pip as
 
 ### Install from source code <a name="install-from-source-code"></a>
 
-ExoSim 2.0 is compatible (tested) with Python 3.10 and 3.12
+ExoSim 2.0 is compatible (tested) with Python 3.12 and 3.13
 
 To install from source, clone the [repository](https://github.com/arielmission-space/ExoSim2-public/) and move inside the directory.
 
