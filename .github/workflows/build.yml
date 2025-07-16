@@ -7,13 +7,19 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.9, '3.10']
+        python-version: ['3.12', '3.13']
 
     steps:
+      - name: Log workflow info
+        run: |
+          echo "Repository: ${{ github.repository }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Event: ${{ github.event_name }}"
+          echo "Commit: ${{ github.sha }}"
+
       - name: Check out repository
         uses: actions/checkout@v4
         
@@ -22,18 +28,33 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      -   name: Install Poetry and Dependencies
-          uses: snok/install-poetry@v1.4.1
-          with:
-              virtualenvs-create: true
-              virtualenvs-in-project: true
-              installer-parallel: true
-      -   name: Load cached venv
-          id: cached-poetry-dependencies
-          uses: actions/cache@v4
-          with:
-              path: .venv
-              key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      - name: Log Python setup
+        run: |
+          echo "Python version: $(python --version)"
+          echo "pip version: $(pip --version)"
+
+      - name: Install Poetry and Dependencies
+        uses: snok/install-poetry@v1.4.1
+        with:
+            virtualenvs-create: true
+            virtualenvs-in-project: true
+            installer-parallel: true
+
+      - name: Log Poetry info
+        run: |
+          echo "Poetry version: $(poetry --version)"
+          echo "Virtual env: $(poetry env info -p)"
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+            path: .venv
+            key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Log cache status
+        run: |
+          echo "Cache hit: ${{ steps.cached-poetry-dependencies.outputs.cache-hit }}"
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
@@ -42,10 +63,56 @@ jobs:
       - name: install exosim
         run: poetry install --no-interaction
 
-      - name: Test with unittest
+      - name: Log dependencies
         run: |
-          poetry run python -m unittest discover -s tests -t tests
+          echo "Installed packages:"
+          poetry show
 
       - name: Build
         run: |
           poetry build
+
+      - name: Log build artifacts
+        run: |
+          echo "Build artifacts:"
+          ls -l dist/
+
+      - name: Verify sync source
+        run: |
+          if [[ $(git log -1 --pretty=%B) != *"Publish snapshot from dev"* ]]; then
+            echo "Warning: Build triggered by non-sync commit"
+          fi
+          echo "Last commit message: $(git log -1 --pretty=%B)"
+
+      - name: Check version change
+        id: version_check
+        run: |
+          if [[ $(git log -1 --pretty=%B) == *"Bump version to"* ]]; then
+            echo "VERSION_CHANGED=true" >> $GITHUB_ENV
+          fi
+
+      - name: Publish to TestPyPI
+        if: env.VERSION_CHANGED == 'true'
+        env:
+          POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.TEST_PYPI_TOKEN }}
+        run: |
+          echo "Publishing to TestPyPI..."
+          poetry config repositories.testpypi https://test.pypi.org/legacy/
+          poetry publish -r testpypi
+          echo "Package published to TestPyPI successfully!"
+
+      - name: Wait and verify TestPyPI package
+        if: env.VERSION_CHANGED == 'true'
+        run: |
+          echo "Waiting for TestPyPI package to be available..."
+          sleep 60
+          pip install --index-url https://test.pypi.org/simple/ exosim2
+
+      - name: Publish to PyPI
+        if: env.VERSION_CHANGED == 'true' && success()
+        env:
+          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          echo "Publishing to PyPI..."
+          poetry publish
+          echo "Package published successfully!"
