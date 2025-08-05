@@ -91,7 +91,7 @@ jobs:
           ls -l dist/
 
       - name: Publish to TestPyPI
-        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.environment == 'testpypi' || inputs.environment == 'both'))
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.environment == 'testpypi' || inputs.environment == 'both')) || contains(github.event.head_commit.message, 'release')
         env:
           POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.TEST_PYPI_TOKEN }}
         run: |
@@ -101,19 +101,30 @@ jobs:
           echo "Package published to TestPyPI successfully!"
 
       - name: Wait and verify TestPyPI package
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' || contains(github.event.head_commit.message, 'release')
         run: |
           echo "Waiting for TestPyPI package to be available..."
           sleep 60
-          PACKAGE_VERSION=$(grep '^version =' pyproject.toml | sed -E 's/version = "(.*)"/\1/')
-          echo "Detected version: $PACKAGE_VERSION"
-          pip install --index-url https://test.pypi.org/simple/ --no-deps exosim==${PACKAGE_VERSION}
+          
+          # Extract version from pyproject.toml with better error handling
+          PACKAGE_VERSION=$(grep '^version' pyproject.toml | head -1 | sed -E 's/^version\s*=\s*"(.*)"/\1/')
+          echo "Detected version: '$PACKAGE_VERSION'"
+          
+          if [ -z "$PACKAGE_VERSION" ]; then
+            echo "Error: Could not extract package version from pyproject.toml"
+            echo "Contents of pyproject.toml version line:"
+            grep '^version' pyproject.toml || echo "No version line found"
+            exit 1
+          fi
+          
+          echo "Installing exosim==${PACKAGE_VERSION} from TestPyPI with --no-deps..."
+          pip install --index-url https://test.pypi.org/simple/ --no-deps "exosim==${PACKAGE_VERSION}"
           python -c "import exosim; print(f'Installed version: {exosim.__version__}')"
 
 
         
       - name: Publish to PyPI
-        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.environment == 'pypi' || inputs.environment == 'both'))
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.environment == 'pypi' || inputs.environment == 'both')) || contains(github.event.head_commit.message, 'release')
         env:
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
         run: |
