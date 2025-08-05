@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "exosim"
-version = "2.1.0"
+version = "2.1.1"
 description = "ExoSim 2 is the next generation of the Exoplanet Observation Simulator (ExoSim) tailored for spectro-photometric observations of transiting exoplanets from space, ground, and sub-orbital platforms. This software is a complete rewrite implemented in Python 3, embracing object-oriented design principles."
 authors = ["L. V. Mugnai <lorenzo.mugnai@uniroma1.it>", "E. Pascale", "A. Bocchieri", "A. Lorenzani", "A. Papageorgiou"]
 license = "BSD-3-Clause"

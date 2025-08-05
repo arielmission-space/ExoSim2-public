@@ -7,9 +7,15 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog (keepachangelog_), and this project adheres
 to Semantic Versioning (semver_).
 
+
+[2.1.1_] - CLI Fixed
+=======================================================
+Fixed
+-----
+- missing summary for cli.
+
 [2.1.0_] - Hello Python 3.12
 =======================================================
-
 Added
 -----
 - added unit normalization in Signal
@@ -83,6 +89,7 @@ Cleaned repository
 .. _2.0.1: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.0.1
 
 .. _2.1.0: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.1.0
+.. _2.1.1: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.1.1
 
 .. _keepachangelog: https://keepachangelog.com/en/1.0.0/
 .. _semver: https://semver.org/spec/v2.0.0.html

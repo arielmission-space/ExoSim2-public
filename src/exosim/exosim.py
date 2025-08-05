@@ -5,7 +5,7 @@ import click
 from rich_click import RichGroup
 
 import exosim.recipes as recipes
-from exosim import __summary__, __version__
+from exosim import __version__
 from exosim.log import addLogFile, setLogLevel
 from exosim.utils import RunConfig
 
@@ -75,10 +75,6 @@ def common_options(func):
 )
 def cli():
     """ExoSim CLI - A simulation toolkit for exoplanet characterisation."""
-    import sys
-
-    if len(sys.argv) == 1:  # No subcommands provided
-        click.echo(f"\n{__summary__}\n")
 
 
 @cli.command()

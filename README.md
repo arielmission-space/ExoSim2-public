@@ -1,5 +1,6 @@
 # ExoSim 2
 
+![Version](https://img.shields.io/static/v1?label=Version&message=2.0.1&color=blue&logo=github)
 [![release-build](https://github.com/arielmission-space/ExoSim2-public/workflows/release-build/badge.svg)](https://github.com/arielmission-space/ExoSim2.0/actions/workflows/build.yml)
 [![develop-build](https://github.com/arielmission-space/ExoSim2-public/workflows/develop-build/badge.svg)](https://github.com/arielmission-space/ExoSim2.0/actions/workflows/ci_linux.yml)
 [![codecov](https://codecov.io/gh/arielmission-space/ExoSim2-public/graph/badge.svg?token=8LDBCU43CK)](https://codecov.io/gh/arielmission-space/ExoSim2-public)
