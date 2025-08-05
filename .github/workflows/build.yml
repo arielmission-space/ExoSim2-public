@@ -117,8 +117,13 @@ jobs:
             exit 1
           fi
           
+          echo "Installing dependencies from PyPI..."
+          pip install decorator astropy numpy scipy matplotlib h5py tqdm
+          
           echo "Installing exosim==${PACKAGE_VERSION} from TestPyPI with --no-deps..."
           pip install --index-url https://test.pypi.org/simple/ --no-deps "exosim==${PACKAGE_VERSION}"
+          
+          echo "Testing import and version..."
           python -c "import exosim; print(f'Installed version: {exosim.__version__}')"
 
 
