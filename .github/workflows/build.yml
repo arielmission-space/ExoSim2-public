@@ -105,9 +105,12 @@ jobs:
         run: |
           echo "Waiting for TestPyPI package to be available..."
           sleep 60
-          pip install --index-url https://test.pypi.org/simple/ exosim
-          # Verify installed version
+          PACKAGE_VERSION=$(grep '^version =' pyproject.toml | sed -E 's/version = "(.*)"/\1/')
+          echo "Detected version: $PACKAGE_VERSION"
+          pip install --index-url https://test.pypi.org/simple/ --no-deps exosim==${PACKAGE_VERSION}
           python -c "import exosim; print(f'Installed version: {exosim.__version__}')"
+
+
         
       - name: Publish to PyPI
         if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && (inputs.environment == 'pypi' || inputs.environment == 'both'))
