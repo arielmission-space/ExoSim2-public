@@ -93,8 +93,11 @@ The script (``scripts/release.py``) will:
 #. ask whether the bump is ``major``, ``minor`` or ``patch`` (or pass it:
    ``nox -s release -- minor``) and compute the next ``X.Y.Z`` from the last
    ``vX.Y.Z`` tag;
-#. run ``scriv collect`` to fold the fragments into ``CHANGELOG.rst``, add the
-   release link, and mirror the file into ``docs/source/``;
+#. ask for a short **release name** (e.g. "CLI fixes"), used as the changelog
+   heading, the git tag subject and the GitHub Release title;
+#. run ``scriv collect`` to fold the fragments into ``CHANGELOG.rst`` under
+   ``[X.Y.Z] - <name>``, add the release link, and mirror the file into
+   ``docs/source/``;
 #. update ``CITATION.cff`` and ``codemeta.json``;
 #. commit on ``develop`` as ``docs: release X.Y.Z``;
 #. after a confirmation prompt, push ``develop``, fast-forward ``main`` and push
@@ -118,11 +121,17 @@ Pushing the tag triggers ``release.yml``:
    * - ``pypi``
      - Publishes to PyPI via OIDC trusted publishing.
    * - ``github-release``
-     - Creates the GitHub Release with notes extracted from ``CHANGELOG.rst``
-       and the ``dist/*`` artifacts attached.
+     - Creates the GitHub Release (title ``X.Y.Z — <name>``, notes from
+       ``CHANGELOG.rst``, ``dist/*`` attached).
+   * - ``mirror-release``
+     - Waits for ``sync-to-public.yml`` to mirror the release commit, then
+       clones the tag, release notes and wheels into
+       ``arielmission-space/ExoSim2-public``.
 
-The published GitHub Release then triggers ``sync-to-public.yml``, which mirrors
-the repository to the public remote and re-creates the release there.
+``sync-to-public.yml`` mirrors ``main`` to the public repo on every push; the
+release/tag clone is done by ``mirror-release`` above rather than by a
+``release: published`` trigger (which never fires for a release created with
+``GITHUB_TOKEN``).
 
 One-time setup
 ==============

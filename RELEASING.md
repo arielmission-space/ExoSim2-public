@@ -15,14 +15,14 @@ Full guide: `docs/source/contributing/releasing.rst`
   nox -s release
   ```
 
-  It asks major/minor/patch, folds the changelog fragments in, updates
-  `CITATION.cff` / `codemeta.json`, commits, fast-forwards `main`, and pushes the
-  `vX.Y.Z` tag.
+  It asks major/minor/patch **and a short release name**, folds the changelog
+  fragments in, updates `CITATION.cff` / `codemeta.json`, commits, fast-forwards
+  `main`, and pushes the `vX.Y.Z` tag.
 
 - The tag triggers `.github/workflows/release.yml`:
-  build → TestPyPI → verify install → PyPI → GitHub Release.
-  Then `sync-to-public.yml` mirrors `main` to `ExoSim2-public` and copies the
-  release there.
+  build → TestPyPI → verify install → PyPI → GitHub Release → clone of the
+  tag + release + wheels into `ExoSim2-public`.
+  `sync-to-public.yml` mirrors the `main` code on every push.
 
 ## One-time setup
 

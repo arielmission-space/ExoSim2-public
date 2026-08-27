@@ -14,8 +14,8 @@ Unreleased changes live as fragments in ``changelog.d/`` and are merged here by
 
 .. _changelog-2.2.0:
 
-[2.2.0_] - 2026-08-27
-=====================
+[2.2.0_] - End-to-end simulations
+=================================
 
 Added
 -----
