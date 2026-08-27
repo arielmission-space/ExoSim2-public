@@ -4,52 +4,16 @@
 Welcome to ExoSim 2's documentation!
 ===================================
 
-**Version**: |version|
+**ExoSim 2** is an end-to-end, time-domain simulator for exoplanet observations
+from space telescopes, ground-based observatories, and sub-orbital platforms.
+It models the full observation chain -- astronomical sources, instrument optics,
+dispersers, detector arrays, and readout electronics -- reproducing both the
+astrophysical signal and the instrumental systematics. Written in Python 3 with
+a modular, object-oriented design, almost every component can be replaced with a
+custom implementation without rewriting the rest of the pipeline.
 
-
-ExoSim is a time-domain simulator for exoplanet observations designed to be easy to use and largely customisable: almost every part of the code can be customised by the user.
-
-This guide will walk you through the simulation steps with examples and descriptions of the simulation strategy.
-The guide aims to train the user to customise the simulator according to the instrument required for the observation.
-
-What is ExoSim 2?
-=================
-
-**ExoSim 2** is an end-to-end time-domain simulator for exoplanet observations, designed to produce realistic synthetic data from space telescopes, ground-based observatories, and sub-orbital platforms. It models the complete observation chain from astronomical sources through instrument optics to detector readouts, capturing both astrophysical signals and instrumental systematic effects.
-
-Built from the ground up in Python 3 with object-oriented architecture, ExoSim 2 offers unprecedented flexibility: researchers can replace individual components with custom implementations while maintaining the integrity of the full simulation pipeline.
-
-What problems does ExoSim 2 solve?
------------------------------------
-
-**Mission and instrument design**: ExoSim 2 enables systematic exploration of design trade-offs before hardware is built, answering questions such as "How will detector noise affect transit depth precision?" or "What wavelength coverage is needed to characterise this atmosphere?"
-
-**Performance prediction**: Generate fast radiometric estimates of signal-to-noise ratios, saturation times, and noise budgets (photon noise, read noise, dark current) for specific observing scenarios. Evaluate feasibility and optimise observing strategies before committing telescope time.
-
-**Full time-domain simulation**: Produce complete synthetic observation datasets including focal plane evolution, sub-exposures with pointing jitter, and realistic detector readouts (NDRs). Test data reduction pipelines against known-truth inputs and quantify systematic biases.
-
-**Training and education**: Provide students and early-career researchers with hands-on experience of realistic observation scenarios without requiring telescope time or expensive hardware access.
-
-Key capabilities
-----------------
-
-- **Radiometric modelling**: Fast estimation of signal and noise budgets, aperture photometry, saturation analysis, and multiaccum readout factors for performance prediction and observing-time calculations
-- **Complete observation chain**: From source spectra through telescope optics, dispersive elements, detector arrays, and readout electronics to synthetic detector frames
-- **Time-domain modelling**: Capture low-frequency systematic effects such as pointing jitter, thermal fluctuations, and detector drifts across observation timescales
-- **Comprehensive noise budget**: Model photon noise, read noise, dark current, and custom noise sources with realistic detector behaviour
-- **Modular architecture**: Replace or extend individual components (optical elements, noise sources, readout schemes) without rewriting the pipeline
-- **Multi-instrument support**: Configured out-of-the-box for the Ariel space mission, with community-contributed configurations for JWST, ground-based spectrographs, and other platforms
-- **Flexible configuration**: XML and YAML parameter files with inheritance, path resolution, and full unit handling via Astropy
-- **HDF5 outputs**: Structured, self-documenting outputs compatible with standard analysis tools
-
-Who should use ExoSim 2?
--------------------------
-
-- **Mission planners** designing new exoplanet observatories and evaluating instrument concepts
-- **Instrument scientists** optimising detector parameters, readout schemes, and observing strategies
-- **Observers** estimating signal-to-noise ratios, exposure times, and feasibility before proposal submission
-- **Data pipeline developers** validating reduction algorithms against known-truth synthetic data
-- **Theorists** generating mock catalogues to test atmospheric retrieval codes and bias-correction methods
+This guide walks through the simulation steps with worked examples and explains
+how to configure ExoSim 2 for the instrument you want to model.
 
 .. grid:: 2 2 2 2
     :gutter: 3
@@ -172,6 +136,35 @@ Who should use ExoSim 2?
 
     This documentation is not complete yet. If you find any issue or difficulty,
     please contact the developers for help.
+
+What can ExoSim 2 do?
+=====================
+
+- **Radiometric modelling** -- fast estimates of signal and noise budgets,
+  aperture photometry, saturation analysis, and multiaccum readout factors for
+  performance prediction and observing-time calculations.
+- **Full time-domain simulation** -- focal-plane evolution, sub-exposures with
+  pointing jitter, and realistic detector readouts (NDRs) to test data reduction
+  pipelines against a known truth.
+- **Comprehensive noise budget** -- photon noise, read noise, dark current, and
+  user-defined noise sources with realistic detector behaviour.
+- **Low-frequency systematics** -- pointing jitter, thermal fluctuations, and
+  detector drifts captured across the full observation timescale.
+- **Multi-instrument support** -- configured out of the box for the Ariel space
+  mission, with community-contributed configurations for JWST and ground-based
+  spectrographs.
+- **Flexible configuration and outputs** -- XML and YAML parameter files with
+  inheritance and full unit handling via Astropy, and structured,
+  self-documenting HDF5 outputs.
+
+Who should use ExoSim 2?
+========================
+
+Mission planners and instrument scientists exploring design trade-offs before
+hardware is built; observers estimating signal-to-noise ratios and feasibility
+before proposal submission; data-pipeline developers validating reduction
+algorithms against known-truth synthetic data; and students gaining hands-on
+experience of realistic observation scenarios without needing telescope time.
 
 Cite
 ------
