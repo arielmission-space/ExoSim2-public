@@ -177,11 +177,27 @@
 
     <radiometric>
         <aperture_photometry>
-            <apertures_task> EstimateApertures </apertures_task>
+            <!-- <apertures_task> EstimateApertures </apertures_task>
             <auto_mode> bin </auto_mode>
-            <EnE> 0.91 </EnE>
+            <EnE> 0.91 </EnE> -->
+            <apertures_task> LoadApertures </apertures_task>
+            <file_name> __ConfigPath__/radiometric/Spectrometer_apertures.csv </file_name>
         </aperture_photometry>
+
         <photon_margin>0.41</photon_margin>
+
+        <dark_current> True </dark_current>
+
+        <read_noise> True </read_noise>
+
+        <custom_noise> 20
+            <name>test1</name>
+        </custom_noise>
+        <custom_noise> 30
+            <name>test2</name>
+        </custom_noise>
+
+
     </radiometric>
 
 </root>

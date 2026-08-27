@@ -4,14 +4,14 @@
 Custom Tasks
 ===================================
 
-`ExoSim` allow the user to replace some of the default :class:`~exosim.tasks.task.Task` with custom versions of the same process.
-Before writing a custom task, make you sure to read :ref:`tasks`.
+`ExoSim` allows the user to replace some of the default :class:`~exosim.tasks.task.Task` tasks with custom versions of the same process.
+Before writing a custom task, make sure to read :ref:`tasks`.
 
-To write a custom :class:`~exosim.tasks.task.Task` we need to create a class that first inherits from the default one,
+To write a custom :class:`~exosim.tasks.task.Task`, we need to create a class that first inherits from the default one,
 and then we can overwrite the `model` method.
 
-Let's do an example. Suppose we want to write our own version of :class:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity`.
-This task estimate the detector responsivity and shall be indicated in the channel description, as described in :ref:`responsivity`.
+Let's do an example. Suppose we want to write our own version of :class:`~exosim.tasks.instrument.load_responsivity.LoadResponsivity`.
+This task estimates the detector responsivity and shall be indicated in the channel description, as described in :ref:`responsivity`.
 
 The default task simply reads the right column from the file:
 
@@ -24,7 +24,7 @@ The default task simply reads the right column from the file:
             <datafile>__ConfigPath__/qe.ecsv</datafile>
         </qe>
 
-Using the :func:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity.model` method:
+Using the :func:`~exosim.tasks.instrument.load_responsivity.LoadResponsivity.model` method:
 
 .. code-block:: python
 
@@ -33,7 +33,7 @@ Using the :func:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity.mode
         Parameters
         ----------
         parameters: dict
-            dictionary contained the sources parameters.
+            dictionary containing the source parameters.
         wavelength: :class:`~astropy.units.Quantity`
             wavelength grid.
         time: :class:`~astropy.units.Quantity`
@@ -66,9 +66,9 @@ So, let's imagine that instead of reading the data from a file, we want to estim
 
 where :math:`\lambda_0` is a reference wavelength.
 This equation for the quantum efficiency obviously has no physical justification.
-This example has been chosen specifically because it is not representative of any physical process, just to focus the attention on the code capabilities.
+This example has been chosen specifically because it is not representative of any physical process, just to focus attention on the code capabilities.
 
-Then we need to include this model parameters in the channel description:
+Then we need to include these model parameters in the channel description:
 
 .. code-block:: xml
 
@@ -81,7 +81,7 @@ Then we need to include this model parameters in the channel description:
             <wl_0 unit=`micron`> 3.0 </wl_0>
         </qe>
 
-and then we can write our own :class:`~exosim.tasks.task.Task` as
+and then we can write our own :class:`~exosim.tasks.task.Task` as:
 
 .. code-block:: python
 
@@ -113,7 +113,7 @@ and then we can write our own :class:`~exosim.tasks.task.Task` as
             B = parameters['qe']['B']
             C = parameters['qe']['C']
             wl_0 = parameters['qe']['wl_0']
-            qe_ = A * (wavelength/wl_0)**2 + B * (wavelength/wl_0) + c
+            qe_ = A * (wavelength/wl_0)**2 + B * (wavelength/wl_0) + C
             qe = signal.Dimensionless(data=qe_, spectral=wavelength)
             qe.temporal_rebin(time)
 
@@ -122,9 +122,9 @@ and then we can write our own :class:`~exosim.tasks.task.Task` as
                                              u.m) / const.c / const.h * u.count)
             return responsivity
 
-It's important that the custom model returns an object of the same kind of the default one or an error will be raised.
+It is important that the custom model returns an object of the same kind as the default one, or an error will be raised.
 
-Now we need to store this class in a dedicated file. Assume the file is `your/path/customResponsivity.py`, then you have to indicate it in the `.xml` description as
+Now we need to store this class in a dedicated file. Assume the file is `your/path/customResponsivity.py`; then you have to indicate it in the `.xml` description as:
 
 .. code-block:: xml
 

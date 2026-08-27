@@ -18,7 +18,7 @@ as :math:`Q = \phi_t`, with :math:`\phi` being the number of electrons generated
 Pixels Non-Linearity from scratch
 ----------------------------------
 
-The :class:`~exosim.tools.pixelsNonLinearity.PixelsNonLinearity` tool retrieves the :math:`a_i` coefficients, starting from physical assumptions.
+The :class:`~exosim.tools.pixels_non_linearity.PixelsNonLinearity` tool retrieves the :math:`a_i` coefficients, starting from physical assumptions.
 
 The detector non linearity model, is written as polynomial such as
 
@@ -148,7 +148,7 @@ Where :math:`\bigtriangledown` is the inverse operator of :math:`\bigtriangleup`
 Depending on the way the non linearity is estimated, the operator can either be a division (:math:`\div`)
 or a multiplication (:math:`\times`). If not specified, a division is assumed.
 
-The :class:`~exosim.tools.pixelsNonLinearityFromCorrection.PixelsNonLinearityFromCorrection` can determine the coefficients :math:`b_i` from the measured non linearity correction.
+The :class:`~exosim.tools.pixels_non_linearityFromCorrection.PixelsNonLinearityFromCorrection` can determine the coefficients :math:`b_i` from the measured non linearity correction.
 
 The :math:`b_i` correction coefficients should be listed in the configuration file using the `pnl_coeff` keyword
 in increasing alphabetical order: `pnl_coeff_a` for :math:`b_1`,

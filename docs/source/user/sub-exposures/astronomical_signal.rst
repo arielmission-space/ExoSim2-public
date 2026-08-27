@@ -34,12 +34,12 @@ More details are reported in the following section.
 Estimate the signal
 ====================
 
-The astronomical signals are intriduced in the `sky configuration file`, along with the source description.
-The :class:`~exosim.tasks.task.Task` describing the astronomical signal is called :class:`~exosim.tasks.astrosignal.estimateAstronomicalSignal.EstimateAstronomicalSignal`.
+The astronomical signals are introduced in the `sky configuration file`, along with the source description.
+The :class:`~exosim.tasks.task.Task` describing the astronomical signal is called :class:`~exosim.tasks.astrosignal.estimate_astronomical_signal.EstimateAstronomicalSignal`.
 This is an abstract tasks with no model implemented.
-A complete example is reported in :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`.
+A complete example is reported in :class:`~exosim.tasks.astrosignal.estimate_planetary_signal.EstimatePlanetarySignal`.
 
-Here we report as example a signal that is the primary transit light curve of an exoplanet modelled using :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`.
+Here we report as example a signal that is the primary transit light curve of an exoplanet modelled using :class:`~exosim.tasks.astrosignal.estimate_planetary_signal.EstimatePlanetarySignal`.
 
 .. code-block:: xml
 
@@ -63,10 +63,10 @@ Here we report as example a signal that is the primary transit light curve of an
          </planet>
       </source>
 
-In this example we point to :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`
+In this example we point to :class:`~exosim.tasks.astrosignal.estimate_planetary_signal.EstimatePlanetarySignal`
 task to model the primary transit light curve of an exoplanet thanks to the ``signal_task``.
 Everything else under the ``planet`` tree is a parameter needed by the indicated Task.
-Note that ``planet`` is the keyword needed for :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal`,
+Note that ``planet`` is the keyword needed for :class:`~exosim.tasks.astrosignal.estimate_planetary_signal.EstimatePlanetarySignal`,
 but it can be any other keyword, as long as the corresponding Task is able to parse it.
 
 The user can define multiple astronomical signals for the same star.
@@ -79,19 +79,19 @@ All of them are loaded and applied one at a time by ExoSim2.
       can be defined, and the results can be combined later.
 
 
-The astronomical signals are parsed by :class:`~exosim.tasks.astrosignal.findAstronomicalSignals.FindAstronomicalSignals`,
+The astronomical signals are parsed by :class:`~exosim.tasks.astrosignal.find_astronomical_signals.FindAstronomicalSignals`,
 which looks for the ``signal_task`` keyword and instantiates the corresponding Task.
 The signal name is the parent tree keyword, in this case ``planet``.
 
-:class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal` is based on
+:class:`~exosim.tasks.astrosignal.estimate_planetary_signal.EstimatePlanetarySignal` is based on
 the `batman package <http://lkreidberg.github.io/batman/docs/html/index.html>`__
 presented in `Kreidberg 2015 <https://ui.adsabs.harvard.edu/abs/2015PASP..127.1161K/abstract>`__.
-As usual, the User can replace the default Taks withg a custom one.
-The results of an :class:`~exosim.tasks.astrosignal.estimateAstronomicalSignal.EstimateAstronomicalSignal` task
+As usual, the User can replace the default Task with a custom one.
+The results of an :class:`~exosim.tasks.astrosignal.estimate_astronomical_signal.EstimateAstronomicalSignal` task
 shall be a 2D array with the first dimension being the wavelength and the second the time.
 
 .. warning::
-      To run :class:`~exosim.tasks.astrosignal.estimatePlanetarySignal.EstimatePlanetarySignal` you need to have
+      To run :class:`~exosim.tasks.astrosignal.estimate_planetary_signal.EstimatePlanetarySignal` you need to have
       the  `batman package <http://lkreidberg.github.io/batman/docs/html/installation.html>`__ installed.
       Because the ``batman`` package is not a core dependency of ExoSim, it is not installed by default.
 

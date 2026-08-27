@@ -6,12 +6,12 @@ from rich_click import RichGroup
 
 import exosim.recipes as recipes
 from exosim import __version__
-from exosim.log import addLogFile, setLogLevel
+from exosim.log import add_log_file, set_log_level
 from exosim.utils import RunConfig
 
 # Logger configuration
 logger = logging.getLogger("exosim")
-code_name_and_version = "ExoSim {}".format(__version__)
+code_name_and_version = f"ExoSim {__version__}"
 
 
 # Common options decorator for shared command-line arguments
@@ -104,7 +104,7 @@ def radiometric(conf, output, numberOfThreads, debug, logger, plot):
     _set_log(debug, logger, output)
     _set_threads(numberOfThreads)
 
-    recipes.RadiometricModel(options_file=conf, input_file=output)
+    recipes.RadiometricModel(options_file=conf, output_file=output)
 
     if plot:
         _plot_radiometric(output)
@@ -127,17 +127,13 @@ def radiometric(conf, output, numberOfThreads, debug, logger, plot):
     show_default=True,
     help="H5 file chunk size.",
 )
-def subexposures(
-    conf, input, output, numberOfThreads, debug, logger, plot, chunk_size
-):
+def subexposures(conf, input, output, numberOfThreads, debug, logger, plot, chunk_size):
     """Create and plot sub-exposures."""
     _set_log(debug, logger, output)
     _set_threads(numberOfThreads)
     RunConfig.chunk_size = chunk_size
 
-    recipes.CreateSubExposures(
-        options_file=conf, input_file=input, output_file=output
-    )
+    recipes.CreateSubExposures(options_file=conf, input_file=input, output_file=output)
 
     if plot:
         _plot_subexposures(output)
@@ -160,9 +156,7 @@ def subexposures(
     show_default=True,
     help="H5 file chunk size.",
 )
-def ndrs(
-    conf, input, output, numberOfThreads, debug, logger, plot, chunk_size
-):
+def ndrs(conf, input, output, numberOfThreads, debug, logger, plot, chunk_size):
     """Create and plot NDRs."""
     _set_log(debug, logger, output)
     _set_threads(numberOfThreads)
@@ -178,16 +172,16 @@ def ndrs(
 def _set_log(debug, log, output):
     """Configure logging based on options."""
     if debug:
-        setLogLevel(logging.DEBUG)
+        set_log_level(logging.DEBUG)
     if log:
         log_file = "exosim.log"
         if output:
             log_dir = os.path.dirname(output)
             log_file = os.path.join(log_dir, "exosim.log")
         try:
-            addLogFile(fname=log_file)
+            add_log_file(fname=log_file)
         except PermissionError:
-            addLogFile(fname="exosim.log")
+            add_log_file(fname="exosim.log")
 
 
 def _set_threads(numberOfThreads):

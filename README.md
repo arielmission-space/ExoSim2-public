@@ -1,8 +1,5 @@
 # ExoSim 2
 
-![Version](https://img.shields.io/static/v1?label=Version&message=2.0.1&color=blue&logo=github)
-[![release-build](https://github.com/arielmission-space/ExoSim2-public/workflows/release-build/badge.svg)](https://github.com/arielmission-space/ExoSim2.0/actions/workflows/build.yml)
-[![develop-build](https://github.com/arielmission-space/ExoSim2-public/workflows/develop-build/badge.svg)](https://github.com/arielmission-space/ExoSim2.0/actions/workflows/ci_linux.yml)
 [![codecov](https://codecov.io/gh/arielmission-space/ExoSim2-public/graph/badge.svg?token=8LDBCU43CK)](https://codecov.io/gh/arielmission-space/ExoSim2-public)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 ![PyPI - Version](https://img.shields.io/pypi/v/exosim?label=pypi%20version&color=green)
@@ -12,7 +9,7 @@
 [![ascl.net](https://img.shields.io/badge/ascl-2503.031-blue.svg?colorB=262255)](https://ascl.net/2503.031)
 [![DOI](https://img.shields.io/badge/doi-10.1007%2Fs10686--024--09976--2-blue?link=https%3A%2F%2Fdoi.org%2F10.1007%2Fs10686-024-09976-2)](https://doi.org/10.1007/s10686-024-09976-2)
 [![arXiv](https://img.shields.io/badge/arXiv-2501.12809-red?link=https%3A%2F%2Farxiv.org%2Fabs%2F2501.12809)](https://arxiv.org/abs/2501.12809)
-[![EMAC](https://img.shields.io/badge/EMAC-2504--003-blue)](https://emac.gsfc.nasa.gov?cid=2504-003)
+[![EMACS](https://img.shields.io/badge/EMAC-2504--003-blue)](https://emacs.gsfc.nasa.gov?cid=2504-003)
 
 
 ## Introduction <a name="introduction"></a>
@@ -32,6 +29,7 @@ ExoSim 2 is the next generation of the Exoplanet Observation Simulator [ExoSim](
   - [Documentation ](#documentation-)
     - [Build the html documentation ](#build-the-html-documentation-)
     - [Build the pdf documentation  ](#build-the-pdf-documentation--)
+  - [Agentic support for AI assistants](#agentic-support-for-ai-assistants)
   - [How to contribute ](#how-to-contribute-)
   - [How to cite](#how-to-cite)
 
@@ -58,20 +56,19 @@ Then use `pip` as
 #### Test your installation <a name="test-your-installation"></a>
 
 
-If you have installed ExoSim from source-code, to test your ExoSim2 installation simply run from the main ExoSim2 folder
+If you have installed ExoSim from source code, to test your ExoSim 2 installation simply run from the main ExoSim 2 folder:
 
-    pip install poetry
-    poetry run -m pytest tests
+    uv sync --dev
+    uv run pytest tests
 
 ## Documentation <a name="documentation"></a>
 
 ExoSim2 comes with an extensive documentation, which can be built using Sphinx.
 The documentation includes a tutorial, a user guide and a reference guide.
 
-To build the documentation, install the needed packages first via `poetry`:
+To build the documentation, install the needed packages first via `uv`:
 
-    pip install poetry
-    poetry install --with dev
+    uv sync --extra dev,docs
 
 
 ### Build the html documentation <a name="build-the-html-documentation"></a>
@@ -93,6 +90,22 @@ The documentation will be produced into the `build/latex` directory inside `docs
 Open `exosim2.pdf` to read the documentation.
 
 Here is reported the use of `pdflatex`, if have another compiler for LaTex, please refer to [sphinx documentation](https://www.sphinx-doc.org/en/master/usage/configuration.html#latex-options).
+
+## Agentic support for AI assistants
+
+ExoSim 2 includes repository-local guidance for LLM and coding-agent tools. These files help assistants answer questions, choose the correct pipeline, and set up parameters from local evidence instead of guessing scientific defaults.
+
+The support includes:
+
+- `AGENTS.md`: canonical shared guide for OpenCode, Warp and generic repository-aware agents.
+- `CLAUDE.md`: Claude Code entry point.
+- `WARP.md`: Warp compatibility entry point.
+- `.github/copilot-instructions.md` and `.github/instructions/`: GitHub Copilot repository and path-specific instructions.
+- `docs/ai-agents/codebase-map.md`: source, documentation, examples and validation map.
+- `docs/ai-agents/parameter-setup-guide.md`: XML/YAML parameter setup workflow, including `__ConfigPath__`, `<config>` includes and unit handling.
+- `docs/ai-agents/agent-playbooks.md`: reusable roles for parameter setup, pipeline selection, scientific review and developer maintenance.
+
+The rendered documentation page is `docs/source/agentic_support.rst`.
 
 ## How to contribute <a name="how-to-contribute"></a>
 

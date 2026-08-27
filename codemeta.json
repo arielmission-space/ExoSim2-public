@@ -40,11 +40,12 @@
     "license": "https://spdx.org/licenses/BSD-3-Clause",
     "name": "ExoSim2",
     "programmingLanguage": "Python 3",
-    "version": "2.0.0",
+    "version": "2.2.0",
     "codemeta:contIntegration": {
         "id": "https://app.codecov.io/gh/arielmission-space/ExoSim2-public"
     },
     "continuousIntegration": "https://app.codecov.io/gh/arielmission-space/ExoSim2-public",
     "issueTracker": "https://github.com/arielmission-space/ExoSim2-public/issues",
-    "referencePublication": "https://link.springer.com/article/10.1007/s10686-024-09976-2"
+    "referencePublication": "https://link.springer.com/article/10.1007/s10686-024-09976-2",
+    "dateModified": "2026-08-27"
 }

@@ -15,9 +15,7 @@ def main():
         options_file="tools_input_example.xml", input_file="test_common.h5"
     )
 
-    tools.DeadPixelsMap(
-        options_file="tools_input_example.xml", output="data/payload"
-    )
+    tools.DeadPixelsMap(options_file="tools_input_example.xml", output="data/payload")
 
     tools.PixelsNonLinearity(
         options_file="tools_input_example.xml",

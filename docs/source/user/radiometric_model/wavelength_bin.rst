@@ -5,10 +5,10 @@ Wavelength binning
 =======================
 
 The first step is to produce the starting radiometric table with the spectral bins and their edges.
-This can be done for each channel by default :class:`~exosim.tasks.radiometric.estimateSpectralBinning.EstimateSpectralBinning`.
+This is done for each channel by the default :class:`~exosim.tasks.radiometric.estimateSpectralBinning.EstimateSpectralBinning`.
 The user can specify a dedicated :class:`~exosim.tasks.task.Task` in the channel description as described later in this section.
 
-Inside :class:`~exosim.recipes.radiometricModel.RadiometricModel` this tasks is handled by the :func:`~exosim.recipes.radiometricModel.RadiometricModel.create_table` method.
+Inside :class:`~exosim.recipes.radiometric_model.RadiometricModel` this task is handled by the :func:`~exosim.recipes.radiometric_model.RadiometricModel.create_table` method.
 To use the default task in a script on a channel parsed in a dictionary, the user can write:
 
 .. code-block:: python
@@ -31,19 +31,19 @@ This :class:`~exosim.tasks.task.Task` returns an :class:`astropy.table.QTable` f
 keyword                 content
 ====================    ====================================================
 ch_name                 channel name
-Wavelength              central bin wavelength in :math:`\mu m`
+wavelength              central bin wavelength in :math:`\mu m`
 bandwidth               band width of the spectral bin in :math:`\mu m`
 left_bin_edge           left edge of the spectral bin
 right_bin_edge          right edge of the spectral bin
 ====================    ====================================================
 
-The :class:`~exosim.tasks.radiometric.estimateSpectralBinning.EstimateSpectralBinning` task include different methods to estimate the spectral binning,
-that can be tuned in the channel description document.
+The :class:`~exosim.tasks.radiometric.estimateSpectralBinning.EstimateSpectralBinning` task includes different methods to estimate the spectral binning,
+which can be tuned in the channel description document.
 
 Photometer
 ^^^^^^^^^^^
 
-For a photometer the description `xml` file should look like this:
+For a photometer, the description XML file should look like this:
 
 .. code-block:: xml
 
@@ -71,7 +71,7 @@ Therefore the maximum and minimum wavelengths must be indicated along with the u
 Spectrometer
 ^^^^^^^^^^^^
 
-For a spectrometer the description `xml` file should look like this:
+For a spectrometer, the description XML file should look like this:
 
 .. code-block:: xml
 
@@ -84,7 +84,7 @@ For a spectrometer the description `xml` file should look like this:
 The wavelength grid can be estimated in 2 modes:
 
 - `native` mode. If `targetR` is set to `native` the wavelength grid computed is the pixel level wavelength grid, where each bin is of the size of a pixel;
-- `fixed R` mode. If targetR` is set to a constant value, the wavelength grid is estimated using :func:`~exosim.utils.grids.wl_grid`.
+- `fixed R` mode. If `targetR` is set to a constant value, the wavelength grid is estimated using :func:`~exosim.utils.grids.wl_grid`.
 
 The modes must be indicated in the configuration `xml` file along with the maximum and minimum wavelengths.
 The `native` configuration will look like this

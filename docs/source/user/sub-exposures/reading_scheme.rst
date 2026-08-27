@@ -54,7 +54,7 @@ This amounts to a total of 603 simulation clocks at :math:`0.1\,s` resolution, i
 
 The user can also set the `readout_frequency` in units of :math:`Hz` instead of :math:`s`.
 
-The reading scheme is computed by :class:`~exosim.tasks.subexposures.computeReadingScheme.ComputeReadingScheme`
+The reading scheme is computed by :class:`~exosim.tasks.subexposures.compute_reading_scheme.ComputeReadingScheme`
 
 .. code-block:: python
 
@@ -66,7 +66,7 @@ The reading scheme is computed by :class:`~exosim.tasks.subexposures.computeRead
             focal_plane=focal_plane,
             frg_focal_plane=frg_focal_plane)
 
-The outputs of this :class:`~exosim.tasks.taks.Task` can be confusing, because is written to optimise the next step in the sub-exposures procedure.
+The outputs of this :class:`~exosim.tasks.task.Task` can be confusing, because is written to optimise the next step in the sub-exposures procedure.
 In the following we discuss each of them.
 
 + ``clock``: this is the simulation frequency, which is the inverse of `high_frequencies_resolution` defined in :ref:`sub-exposures creation`;
@@ -76,7 +76,7 @@ In the following we discuss each of them.
   Referring to the previous image, the base will look like [0, 1, 1, 1, 1, 1, 1, 0].
 + ``frame_sequence``: this is the full list of simulation stapes for each steps on the ramp repeated by the number of ramps. E.g. [2, 1, 1, 296, 1, 296, 1, 2].
 + ``number_of_exposures``: this is the number of exposures needed to sample the full observation using ramps of the exposure time size.
-  To estimate this quantity, the :class:`~exosim.tasks.task.Task` compute the integration time using :class:`~exosim.tasks.instrument.computeSaturation.ComputeSaturation`,
+  To estimate this quantity, the :class:`~exosim.tasks.task.Task` compute the saturation time using :class:`~exosim.tasks.instrument.compute_saturation.ComputeSaturation`,
   which is why it need the focal planes.
 
 

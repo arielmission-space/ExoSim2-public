@@ -8,6 +8,8 @@ __pycache__/
 
 # Distribution / packaging
 .Python
+# setuptools-scm generated version file (written at build/install time)
+src/exosim/_version.py
 build/
 develop-eggs/
 dist/
@@ -26,6 +28,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+tmp/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -152,3 +155,18 @@ tests/test_data/*.xml
 tests/test_data/*.h5
 tests/test_data/plots/*.png
 tests/test_data/test_data
+
+
+#config
+codecov
+
+# data format to exclude
+.*
+!.github/
+!.github/copilot-instructions.md
+!.github/instructions/
+!.github/instructions/*.instructions.md
+*.ipynb
+examples/*/*.ecsv
+examples/*/*.png
+examples/*/*.h5

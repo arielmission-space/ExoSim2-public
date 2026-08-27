@@ -4,9 +4,7 @@ import os
 import sys
 
 current_dir = os.path.dirname(__file__)
-target_dir = os.path.abspath(
-    os.path.join(current_dir, "../../src")
-)  # Added /src
+target_dir = os.path.abspath(os.path.join(current_dir, "../../src"))  # Added /src
 sys.path.insert(0, target_dir)
 
 # -- Project information -----------------------------------------------------
@@ -14,9 +12,7 @@ from datetime import date
 
 project = "ExoSim2"
 
-author = (
-    "L. V. Mugnai, E. Pascale, A. Bocchieri, A. Lorenzani, A. Papageorgiou"
-)
+author = "L. V. Mugnai, E. Pascale, A. Bocchieri, A. Lorenzani, A. Papageorgiou"
 
 copyright = "2020-{:d}, {}".format(date.today().year, author)
 
@@ -39,7 +35,6 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
     "sphinx.ext.githubpages",
-    "nbsphinx",
     "matplotlib.sphinxext.plot_directive",
     "autoapi.extension",
     "sphinx_design",  # Keep only sphinx_design, remove sphinx_panels
@@ -73,12 +68,8 @@ autodoc_default_options = {
     #    'exclude-members': '__weakref__'
 }
 napoleon_use_ivar = True
-autodoc_typehints = (
-    "description"  # show type hints in doc body instead of signature
-)
-autoclass_content = (
-    "both"  # get docstring from class level and init simultaneously
-)
+autodoc_typehints = "description"  # show type hints in doc body instead of signature
+autoclass_content = "both"  # get docstring from class level and init simultaneously
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -104,20 +95,56 @@ autoapi_options = [
 # Intersphinx configuration
 # -----------------------------------------------------------------------------
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/dev", None),
-    "numpy": ("https://numpy.org/devdocs", None),
-    "matplotlib": ("https://matplotlib.org", None),
+    "python": ("https://docs.python.org/3", "https://docs.python.org/3/objects.inv"),
+    "numpy": ("https://numpy.org/devdocs", "https://numpy.org/devdocs/objects.inv"),
+    "matplotlib": ("https://matplotlib.org", "https://matplotlib.org/objects.inv"),
     "scipy": (
-        "https://docs.scipy.org/doc/scipy/reference/",
-        None,
-    ),  # Updated to HTTPS
+        "https://docs.scipy.org/doc/scipy",
+        "https://docs.scipy.org/doc/scipy/objects.inv",
+    ),  # Use canonical base URL and explicit inventory to avoid redirects
     "astropy": (
         "https://docs.astropy.org/en/latest/",
-        None,
+        "https://docs.astropy.org/en/latest/objects.inv",
     ),  # Updated to HTTPS
-    "h5py": ("https://docs.h5py.org/en/latest/", None),
-    "photutils": ("https://photutils.readthedocs.io/en/stable/", None),
+    "h5py": (
+        "https://docs.h5py.org/en/latest/",
+        "https://docs.h5py.org/en/latest/objects.inv",
+    ),
+    "photutils": (
+        "https://photutils.readthedocs.io/en/stable/",
+        "https://photutils.readthedocs.io/en/stable/objects.inv",
+    ),
 }
+
+# Test remote inventories and remove entries that are unreachable to avoid
+# blocking the build when a remote site is slow or down.
+try:
+    from urllib.request import urlopen
+    from urllib.error import URLError, HTTPError
+
+    reachable = {}
+    for key, (base_url, inv_url) in list(intersphinx_mapping.items()):
+        test_url = inv_url or (base_url.rstrip("/") + "/objects.inv")
+        try:
+            with urlopen(test_url, timeout=5) as resp:
+                if resp.status == 200:
+                    reachable[key] = (base_url, test_url)
+                else:
+                    print(
+                        f"intersphinx: inventory for {key} returned status {resp.status}; skipping"
+                    )
+        except (URLError, HTTPError, Exception) as e:
+            print(
+                f"intersphinx: cannot reach inventory for {key} ({test_url}): {e}; skipping"
+            )
+
+    intersphinx_mapping = reachable
+except Exception:
+    # If urllib is not available for some reason, fall back to the original mapping.
+    pass
+# Avoid long stalls when a remote intersphinx inventory is slow or unreachable.
+# Value is seconds; set to a modest timeout to prevent blocking builds.
+intersphinx_timeout = 10
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -182,14 +209,14 @@ htmlhelp_basename = "exosim"
 add_module_names = False
 add_function_parentheses = False
 
-nbsphinx_execute = "never"
-
 if "sphinx.ext.pngmath" in extensions:
     pngmath_use_preview = True
     pngmath_dvipng_args = ["-gamma", "1.5", "-D", "96", "-bg", "Transparent"]
 
 # mathjax_path = "scipy-mathjax/MathJax.js?config=scipy-mathjax"
-mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+mathjax_path = (
+    "https://cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
+)
 
 plot_html_show_formats = False
 plot_html_show_source_link = False

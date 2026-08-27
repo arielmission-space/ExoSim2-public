@@ -1,5 +1,3 @@
-from typing import Union
-
 import astropy.units as u
 import h5py
 from astropy.io.misc.hdf5 import read_table_hdf5
@@ -28,26 +26,26 @@ def load_signal(input: h5py.File) -> signal.Signal:
 
     """
     metadata = {}
-    if "metadata" in input.keys():
+    if "metadata" in input:
         metadata = recursively_read_dict_contents(input["metadata"])
 
     unit = u.Unit(input["data_units"][()].decode("utf-8"))
 
     spectral = (
         input["spectral"] * u.Unit(input["spectral_units"][()].decode("utf-8"))
-        if "spectral" in input.keys()
+        if "spectral" in input
         else None
     )
 
     time = (
         input["time"] * u.Unit(input["time_units"][()].decode("utf-8"))
-        if "time" in input.keys()
+        if "time" in input
         else None
     )
 
     spatial = (
         input["spatial"] * u.Unit(input["spatial_units"][()].decode("utf-8"))
-        if "spatial" in input.keys()
+        if "spatial" in input
         else None
     )
 
@@ -81,8 +79,7 @@ def load_signal(input: h5py.File) -> signal.Signal:
             spatial=spatial,
             metadata=metadata,
         )
-    else:
-        raise OSError("impossible to load a cached dataset in a Signal class")
+    raise OSError("Cannot load cached signal")
 
 
 def recursively_read_dict_contents(input_dict: dict) -> dict:
@@ -100,19 +97,14 @@ def recursively_read_dict_contents(input_dict: dict) -> dict:
         Dictionary we want to use
 
     """
-    new_keys = [k for k in input_dict.keys()]
+    new_keys = list(input_dict)
     output_dict = {}
 
     if all(elem in new_keys for elem in ["value", "unit"]):
-        output_dict = input_dict["value"][()] * u.Unit(
-            input_dict["unit"][()].decode("utf-8")
-        )
-        return output_dict
+        return input_dict["value"][()] * u.Unit(input_dict["unit"][()].decode("utf-8"))
 
-    elif any(".__table_column_meta__" in elem for elem in new_keys):
-        table_keys = [
-            elem for elem in new_keys if ".__table_column_meta__" in elem
-        ]
+    if any(".__table_column_meta__" in elem for elem in new_keys):
+        table_keys = [elem for elem in new_keys if ".__table_column_meta__" in elem]
         table_keys = (elem.split(".")[0] for elem in table_keys)
         for k in table_keys:
             table = read_table_hdf5(input_dict, k)
@@ -130,9 +122,7 @@ def recursively_read_dict_contents(input_dict: dict) -> dict:
     return output_dict
 
 
-def copy_file(
-    in_object: Union[Group, Dataset], out_object: Union[Group, Dataset]
-) -> None:
+def copy_file(in_object: Group | Dataset, out_object: Group | Dataset) -> None:
     """
     Recursively copy an HDF5 tree structure from one file to another.
 

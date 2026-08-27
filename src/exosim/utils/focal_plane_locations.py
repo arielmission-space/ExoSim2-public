@@ -1,5 +1,4 @@
 import logging
-from typing import Tuple
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 def locate_wavelength_windows(
     psf: np.array, focal_plane: Signal, parameters: dict
-) -> Tuple[np.array, np.array]:
+) -> tuple[np.array, np.array]:
     focal_plane_shape = (
         focal_plane.data.shape if not focal_plane.cached else focal_plane.shape
     )
@@ -24,9 +23,9 @@ def locate_wavelength_windows(
     if psf.ndim == 3:
         logger.debug("PSF is 3D, will use spectral dimension only")
         if parameters["type"].lower() == "spectrometer":
-            j0_ = np.round(
-                np.arange(focal_plane_shape[2]) - psf.shape[2] // 2
-            ).astype(int)
+            j0_ = np.round(np.arange(focal_plane_shape[2]) - psf.shape[2] // 2).astype(
+                int
+            )
         if parameters["type"].lower() == "photometer":
             j0_ = np.repeat(
                 focal_plane_shape[2] // 2 - psf.shape[2] // 2 - 1,
@@ -34,6 +33,7 @@ def locate_wavelength_windows(
             )
 
         return None, j0_
+    return None
 
 
 def _locate_spectral_and_spatial(
@@ -41,11 +41,9 @@ def _locate_spectral_and_spatial(
     focal_plane: Signal,
     parameters: dict,
     focal_plane_shape: tuple,
-) -> Tuple[np.array, np.array]:
+) -> tuple[np.array, np.array]:
     if parameters["type"].lower() == "spectrometer":
-        j0_ = np.round(
-            np.arange(focal_plane_shape[2]) - psf.shape[3] // 2
-        ).astype(int)
+        j0_ = np.round(np.arange(focal_plane_shape[2]) - psf.shape[3] // 2).astype(int)
 
         if focal_plane.spatial.data == np.zeros_like(focal_plane.spatial):
             # crop PSF no spatial direction of too big

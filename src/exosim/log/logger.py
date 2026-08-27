@@ -1,200 +1,257 @@
-# This code is inspired by the logger devolped for TauREx 3.1.
-# Therefore, we attach here TauREx3.1 license:
-#
-# BSD 3-Clause License
-#
-# Copyright (c) 2019, Ahmed F. Al-Refaie, Quentin Changeat, Ingo Waldmann, Giovanna Tinetti
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-#
-# 3. Neither the names of the copyright holders nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-import logging
-from typing import Any
+"""
+Modern Logger class using structlog as backend.
 
-from decorator import decorator
+This module provides a modern structured logging implementation
+for ExoSim 2.0 Task classes using structlog for enhanced capabilities.
+"""
 
-from exosim import __pkg_name__
-
-__all__ = ["Logger"]
-
-root_logger = logging.getLogger(__pkg_name__)
-root_logger.propagate = False
-
-# inspired by https://stackoverflow.com/a/56944256 on StackOverflow
-# by sergey-pleshakov (https://stackoverflow.com/users/9150146/sergey-pleshakov)
-# this is compliant to StackOverflow's CC BY-SA 3.0
-# and its attribution requirement
-# (https://stackoverflow.blog/2009/06/25/attribution-required/)
-
-
-class CustomFormatter(logging.Formatter):
-    grey = "\x1b[38;20m"
-    green = "\x1b[32;20m"
-    blue = "\x1b[34;20m"
-    light_blue = "\x1b[36;20m"
-    yellow = "\x1b[33;20m"
-    red = "\x1b[31;20m"
-    bold_red = "\x1b[31;1m"
-    reset = "\x1b[0m"
-    format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-
-    FORMATS = {
-        10: grey + format + reset,
-        15: green + format + reset,
-        20: grey + format + reset,
-        24: light_blue + format + reset,
-        25: blue + format + reset,
-        30: yellow + format + reset,
-        40: red + format + reset,
-        50: bold_red + format + reset,
-    }
-
-    def format(self, record):
-        log_fmt = self.FORMATS.get(record.levelno)
-        formatter = logging.Formatter(log_fmt)
-        return formatter.format(record)
-
-
-# formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-ch = logging.StreamHandler()
-ch.setFormatter(CustomFormatter())
-ch.setLevel(logging.DEBUG)
-root_logger.addHandler(ch)
-root_logger.setLevel(logging.DEBUG)
+from .structlog_config import ExoSimLogger, get_default_logger, with_logger
 
 
 class Logger:
     """
-    *Abstract class*
+    Modern structured logger for ExoSim 2.0 Tasks.
 
-    Standard logging using logger library.
-    It's an abtract class to be inherited to load its methods for logging.
-    It define the logger name at the initialization, and then provides the logging methods.
+    This class uses structlog as the backend for structured logging capabilities,
+    providing enhanced observability and better log analysis.
     """
 
     def __init__(self):
-        super().__init__()
+        """Initialize the logger with automatic name detection."""
+        import contextlib
+
+        with contextlib.suppress(TypeError):
+            super().__init__()
         self.set_log_name()
 
     def set_log_name(self) -> None:
         """
-        Produces the logger name and store it inside the class.
-        The logger name is the name of the class that inherits this Logger class.
-        """
-        self._log_name = "{}.{}".format(__pkg_name__, self.__class__.__name__)
-        self._logger = logging.getLogger(
-            "{}.{}".format(__pkg_name__, self.__class__.__name__)
-        )
+        Set the logger name based on the class that inherits this Logger.
 
-    def announce(self, message, *args, **kwargs):
+        Creates a structured logger with automatic class context detection.
         """
-        Produces ANNOUNCE level log
-        See :class:`logging.Logger`
-        """
-        self._logger.announce(message, *args, **kwargs)
+        class_name = self.__class__.__name__
 
-    def graphics(self, message, *args, **kwargs):
+        # Create structured logger with class context (no module to keep logs clean)
+        self._logger = ExoSimLogger.for_class(self, class_name=class_name)
+
+        # Store logger name
+        self._log_name = f"exosim.{class_name}"
+
+    # Standard logging methods
+
+    def debug(self, message: str, *args, **kwargs) -> None:
         """
-        Produces INFO level log
-        See :class:`logging.Logger`
+        Log debug message.
+
+        Parameters
+        ----------
+        message : str
+            Log message (supports % formatting)
+        *args
+            Positional arguments for message formatting
+        **kwargs
+            Additional structured data for the log record
         """
-        self._logger.graphics(message, *args, **kwargs)
+        formatted_message = self._format_message(message, args)
+        self._logger.debug(formatted_message, **kwargs)
 
     def info(self, message: str, *args, **kwargs) -> None:
         """
-        Produces INFO level log
-        See :class:`logging.Logger`
+        Log info message.
+
+        Parameters
+        ----------
+        message : str
+            Log message
+        *args
+            Positional arguments for message formatting
+        **kwargs
+            Additional structured data
         """
-        self._logger.info(message, *args, **kwargs)
+        formatted_message = self._format_message(message, args)
+        self._logger.info(formatted_message, **kwargs)
 
-    def warning(self, message, *args, **kwargs) -> None:
+    def warning(self, message: str, *args, **kwargs) -> None:
         """
-        Produces WARNING level log
-        See :class:`logging.Logger`
+        Log warning message.
+
+        Parameters
+        ----------
+        message : str
+            Log message
+        *args
+            Positional arguments for message formatting
+        **kwargs
+            Additional structured data
         """
-        self._logger.warning(message, *args, **kwargs)
+        formatted_message = self._format_message(message, args)
+        self._logger.warning(formatted_message, **kwargs)
 
-    def debug(self, message, *args, **kwargs) -> None:
+    def error(self, message: str, *args, **kwargs) -> None:
         """
-        Produces DEBUG level log
-        See :class:`logging.Logger`
+        Log error message.
+
+        Parameters
+        ----------
+        message : str
+            Log message
+        *args
+            Positional arguments for message formatting
+        **kwargs
+            Additional structured data
         """
-        self._logger.debug(message, *args, **kwargs)
+        formatted_message = self._format_message(message, args)
+        self._logger.error(formatted_message, **kwargs)
 
-    def trace(self, message, *args, **kwargs) -> None:
+    def critical(self, message: str, *args, **kwargs) -> None:
         """
-        Produces TRACE level log
-        See :class:`logging.Logger`
+        Log critical message.
+
+        Parameters
+        ----------
+        message : str
+            Log message
+        *args
+            Positional arguments for message formatting
+        **kwargs
+            Additional structured data
         """
-        self._logger.trace(message, *args, **kwargs)
+        formatted_message = self._format_message(message, args)
+        self._logger.critical(formatted_message, **kwargs)
 
-    def error(self, message, *args, **kwargs) -> None:
+    # ExoSim-specific logging methods
+
+    def trace(self, message: str, *args, **kwargs) -> None:
         """
-        Produces ERROR level log
-        See :class:`logging.Logger`
+        Log trace message.
+
+        Maps to debug level with trace marker for structured logging.
         """
-        self._logger.error(message, *args, **kwargs)
+        formatted_message = self._format_message(message, args)
+        self._logger.trace(formatted_message, **kwargs)
 
-    def critical(self, message, *args, **kwargs) -> None:
+    def announce(self, message: str, *args, **kwargs) -> None:
         """
-        Produces CRITICAL level log
-        See :class:`logging.Logger`
+        Log announcement message.
+
+        Maps to info level with announcement marker.
         """
-        self._logger.critical(message, *args, **kwargs)
+        formatted_message = self._format_message(message, args)
+        self._logger.announce(formatted_message, **kwargs)
+
+    def graphics(self, message: str, *args, **kwargs) -> None:
+        """
+        Log graphics-related message.
+
+        Maps to info level with graphics category marker.
+        """
+        formatted_message = self._format_message(message, args)
+        self._logger.graphics(formatted_message, **kwargs)
+
+    # Enhanced structured logging methods
+
+    def bind(self, **context) -> "Logger":
+        """
+        Create a new logger with additional context bound to all messages.
+
+        Parameters
+        ----------
+        **context
+            Key-value pairs to bind to the logger context
+
+        Returns
+        -------
+        Logger
+            New logger instance with bound context
+
+        Usage
+        -----
+        task_logger = self.bind(task_id="sim_001", instrument="ARIEL")
+        task_logger.info("Starting simulation")  # Will include task_id and instrument
+        """
+        new_logger = Logger.__new__(Logger)
+        new_logger._logger = self._logger.bind(**context)
+        new_logger._log_name = self._log_name
+        return new_logger
+
+    def time_operation(self, operation_name: str, **context):
+        """
+        Context manager for timing operations with structured logging.
+
+        Parameters
+        ----------
+        operation_name : str
+            Name of the operation being timed
+        **context
+            Additional context to include in timing logs
+
+        Usage
+        -----
+        with self.time_operation("focal_plane_generation", channels=4):
+            # ... focal plane generation logic ...
+            pass
+        """
+        return self._logger.time_operation(operation_name, **context)
+
+    def log_runtime(self, message: str, level: str = "info") -> None:
+        """
+        Log runtime since last call.
+
+        Parameters
+        ----------
+        message : str
+            Log message
+        level : str
+            Log level (debug, info, warning, error, critical)
+        """
+        self._logger.log_runtime(message, level)
+
+    def log_runtime_complete(self, message: str, level: str = "info") -> None:
+        """
+        Log total runtime since logger creation.
+
+        Parameters
+        ----------
+        message : str
+            Log message
+        level : str
+            Log level
+        """
+        self._logger.log_runtime_complete(message, level)
+
+    # Utility methods
+
+    def _format_message(self, message: str, args: tuple) -> str:
+        """
+        Format message with args using % formatting.
+
+        Handles % formatting while gracefully handling formatting errors.
+        """
+        if args:
+            try:
+                return message % args
+            except (TypeError, ValueError):
+                # If formatting fails, return the original message
+                return message
+        return message
+
+    # Properties
+
+    @property
+    def logger(self):
+        """Access to the underlying structured logger."""
+        return self._logger
+
+    @property
+    def log_name(self) -> str:
+        """Get the logger name."""
+        return self._log_name
 
 
-@decorator
-def traced(obj: Any, *args, **kwargs) -> None:
-    """
-    Decorator to attach to functions and methods to log at TRACE level.
-    Trace level produced a log anythime a function or a methos is entered and exited.
-    """
-    logger = logging.getLogger(generate_logger_name(obj))
-
-    logger.trace("called")
-    value = obj(*args, **kwargs)
-    logger.trace("exited")
-
-    return value
+def get_logger(name: str = "exosim"):
+    """Get a logger instance."""
+    return get_default_logger()
 
 
-def generate_logger_name(obj: Any) -> str:
-    """
-    Given a class method or a function it returns the logger name.
-
-    Parameters
-    ----------
-    obj
-        class method or function
-
-    Returns
-    -------
-    str
-        logger name
-    """
-    parent_logger_name = obj.__module__
-    return "{}.{}".format(
-        parent_logger_name, getattr(obj, "__qualname__", obj.__name__)
-    )
+__all__ = ["Logger", "get_logger", "with_logger"]

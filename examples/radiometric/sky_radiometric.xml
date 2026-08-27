@@ -1,0 +1,30 @@
+<root>
+    <source> targetlist
+        <targetlist_filepath>__ConfigPath__/radiometric/sizing_planets.csv</targetlist_filepath>
+        <source_type>planck</source_type>
+        <column_mapping>
+            <name>star name</name>
+            <T>star Teff [K]</T>
+            <R>star R [R_sun]</R>
+            <D>star D [pc]</D>
+            <M>star M [M_sun]</M>
+        </column_mapping>
+
+    </source>
+
+
+    <foregrounds>
+        <opticalElement> zodiacal
+            <zodiacal_factor>2.5</zodiacal_factor>
+        </opticalElement>
+
+        <opticalElement> earthsky
+            <task_model>LoadOpticalElement</task_model>
+            <datafile>__ConfigPath__/data/foregrounds/modtran_38km_sun_180az_55zd_los_45zd.ecsv</datafile>
+            <wavelength_key>Wavelength</wavelength_key>
+            <radiance_key>Radiance</radiance_key>
+            <efficiency_key>Transmission</efficiency_key>
+        </opticalElement>
+    </foregrounds>
+
+</root>

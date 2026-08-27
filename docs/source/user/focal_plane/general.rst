@@ -8,12 +8,12 @@ General settings
 =======================
 
 Here we will explore how to set up your machine for the simulation.
-To simulate a secific observation you need to define both the astroscene and the instrument payload.
-In ExoSim the user can set them both using xml file.
+To simulate a specific observation you need to define both the astro-scene and the instrument payload.
+In ExoSim, the user can set both using an XML file.
 
-To start planing your simulation, you first need to setup a main configuration `.xml` file.
+To start planning your simulation, you first need to set up a main configuration `.xml` file.
 This is an index where your settings are to be listed.
-This file will be parsed by :class:`~exosim.tasks.load.loadOptions.LoadOptions` into a dictionary,
+This file will be parsed by :class:`~exosim.tasks.load.load_options.LoadOptions` into a dictionary.
 
 Configuration path
 --------------------
@@ -29,9 +29,9 @@ The first thing to set is the configuration path:
     </root>
 
 This is the path that contains all the data you will need for the simulation.
-The `ConfigPath` content will be replaced by the parser (:class:`~exosim.tasks.load.loadOptions.LoadOptions`) in your string everytime you write ``__ConfigPath__`` in your `.xml`.
+The `ConfigPath` value will be substituted by the parser (:class:`~exosim.tasks.load.load_options.LoadOptions`) in your string every time you write ``__ConfigPath__`` in your `.xml`.
 
-Similarly, the user can set a specific keyword to easily replace in the configuration file as
+Similarly, a specific keyword can be set to easily replace in the configuration file as
 
 .. code-block:: xml
 
@@ -40,14 +40,14 @@ Similarly, the user can set a specific keyword to easily replace in the configur
         <another_keyword> __CustomKeyword__ </another_keyword>
     </root>
 
-and the code will replace `__CustomKeyword__` with `your_value`.
+and the code will replace ``__CustomKeyword__`` with `your_value`.
 
 .. _wavelength grid:
 
 Wavelength grid
 ------------------
 
-Then we need to set up a wavelength grid. This will be used for the production of emissions and signals from all the source in the simulation.
+Then we need to set up a wavelength grid. This will be used for the production of emissions and signals from all sources in the simulation.
 These quantities will then be rebinned into the instrument wavelength grid when the focal plane is produced.
 
 .. code-block:: xml
@@ -61,7 +61,7 @@ These quantities will then be rebinned into the instrument wavelength grid when 
     </root>
 
 This data will be fed into the :func:`~exosim.utils.grids.wl_grid` to produce the wavelength grid.
-The wavelength at the center of the spectral bins is defined as
+The wavelength at the centre of the spectral bins is defined as
 
 .. math::
 
@@ -74,13 +74,13 @@ and :math:`R` is the `logbin_resolution` defined by the user.
 
     \lambda_{j+1} = \lambda_{j} \left( 1 + \frac{1}{R} \right)
 
-And, given the maximum and minimum wavelengths, provided by the user, the number of bins is
+Given the maximum and minimum wavelengths provided by the user, the number of bins is
 
 .. math::
 
     n_{bins} = \frac{\log \left( \frac{\lambda_{max}}{\lambda_{min}} \right) } {\log \left( 1 + \frac{1}{R}\right)} + 1
 
-The python code to parse the wavelength grid will be:
+The Python code to parse the wavelength grid will be:
 
 .. code-block:: python
 
@@ -112,8 +112,8 @@ Now we need to set the temporal grid.
         </time_grid>
     </root>
 
-This is going to be the focal plane temporal grid and should only use for low frequencies variation.
-For high frequency dependency a dedicated pipeline will be discussed later.
+This is the focal plane temporal grid and should only be used for low-frequency variation.
+For high-frequency dependency a dedicated pipeline will be discussed later.
 This data will be fed into the :func:`~exosim.utils.grids.time_grid` to produce an equally sampled grid.
 
 .. code-block:: python
@@ -129,13 +129,13 @@ This data will be fed into the :func:`~exosim.utils.grids.time_grid` to produce 
                                            mainConfig['time_grid']['low_frequencies_resolution'])
 
 If no `<low_frequencies_resolution>` is provided (or its value is `None`),
-the function will return a single‐element array containing only the `start_time`.
+the function will return a single-element array containing only the `start_time`.
 
 .. _configuration file:
 
 Sky and payload
 ------------------
-Then we can describe the astroscene and the instrument payload by filling the keywords:
+Then we can describe the astro-scene and the instrument payload by filling the keywords:
 
 .. code-block:: xml
 
@@ -150,15 +150,15 @@ Then we can describe the astroscene and the instrument payload by filling the ke
     </root>
 
 In this example we use two different `.xml` files to describe the sky and the payload.
-We make use of the ``__ConfigPath__`` to point to file contained in the directory mentioned above.
-The `config` keyword tells to the parser (:class:`~exosim.tasks.load.loadOptions.LoadOptions`) to look for another `.xml` file.
+We make use of the ``__ConfigPath__`` to point to files contained in the directory mentioned above.
+The `config` keyword tells the parser (:class:`~exosim.tasks.load.load_options.LoadOptions`) to look for another `.xml` file.
 
 The `sky` root contains all the information about the light sources and the sky foregrounds.
 The `payload` root contains the description of the instrument.
 
-In particular, the `payload` root can contain both the common part of the instrument and the channel dedicated parts.
-In the following example, the payload contains a common optics path, which is the telescope,
-and two separated channels. Each of these part is described in a dedicated `.xml` configuration file.
+In particular, the `payload` root can contain both the common part of the instrument and the channel-specific parts.
+In the following example, the payload contains a common optical path, which is the telescope,
+and two separate channels. Each of these parts is described in a dedicated `.xml` configuration file.
 
 .. code-block:: xml
 
@@ -180,10 +180,10 @@ and two separated channels. Each of these part is described in a dedicated `.xml
 Preparing output
 =================
 
-`ExoSim` can store all its product into an output file. At the moment of writing only `.hdf5` file are supported as output.
+`ExoSim` can store all its products in an output file. At the time of writing only `.hdf5` files are supported as output.
 
 
-To prepare the output the following script can be used:
+To prepare the output, the following script can be used:
 
 .. code-block:: python
 
@@ -192,17 +192,17 @@ To prepare the output the following script can be used:
     output = SetOutput('output_file.h5')
 
 This will set `output_file.h5` as the output file.
-To use the file the method :func:`~exosim.output.setOutput.SetOutput.use` can be use as it return an :class:`~exosim.output.output.Output` class:
+To use the file, the method :func:`~exosim.output.setOutput.SetOutput.use` can be used as it returns an :class:`~exosim.output.output.Output` class:
 
 .. code-block:: python
 
         with output.use(append=True, cache=True) as out:
             ...
 
-With the file in use, to produce sub-folders in the file the user can use.
+With the file in use, to create sub-groups in the file, the user can use:
 
 .. code-block:: python
 
     out_group = out.create_group('group name')
 
-For other functionalities refer to the :class:`~exosim.output.output.Output` class.
+For other functionality refer to the :class:`~exosim.output.output.Output` class.

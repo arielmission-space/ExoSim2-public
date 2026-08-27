@@ -34,9 +34,25 @@ def check_units(input_data, desired_units, calling_class=None, force=False):
         """
         if calling_class:
             calling_class.debug("input data has no unit")
+            calling_class.debug(f"input data type: {type(_input_data)}")
+            calling_class.debug(f"input data value: {_input_data!r}")
+
+        # Try to convert to a numeric type if it's a string
+        if isinstance(_input_data, str):
+            try:
+                _input_data = float(_input_data)
+                if calling_class:
+                    calling_class.debug(f"converted string to float: {_input_data}")
+            except ValueError:
+                if calling_class:
+                    calling_class.debug(
+                        f"failed to convert string to float: {_input_data!r}"
+                    )
+                # If it fails, leave it as is and let numpy handle it
+
         if _force:
             if calling_class:
-                calling_class.debug("forcing {} units".format(_desired_units))
+                calling_class.debug(f"forcing {_desired_units} units")
             _input_data = np.array(_input_data) * u.Unit(_desired_units)
         else:
             if calling_class:
@@ -49,31 +65,22 @@ def check_units(input_data, desired_units, calling_class=None, force=False):
         try:
             output_data = _input_data.to(u.Unit(_desired_units))
             if calling_class:
-                calling_class.debug(
-                    "converted {} to {}".format(
-                        _input_data.unit, _desired_units
-                    )
-                )
-                calling_class.debug("converted data: {}".format(output_data))
+                calling_class.debug(f"converted {_input_data.unit} to {_desired_units}")
+                calling_class.debug(f"converted data: {output_data}")
             return output_data
 
         except u.UnitConversionError:
-            if _input_data.unit == u.s and _desired_units == u.Hz:
+            if (_input_data.unit == u.s and _desired_units == u.Hz) or (
+                _input_data.unit == u.Hz and _desired_units == u.s
+            ):
                 return check_units(1 / _input_data, _desired_units)
-            elif _input_data.unit == u.Hz and _desired_units == u.s:
-                return check_units(1 / _input_data, _desired_units)
-            else:
-                msg = "impossible to convert {} into {}".format(
-                    _input_data.unit, _desired_units
-                )
-                raise u.UnitConversionError(msg)
+            msg = f"impossible to convert {_input_data.unit} into {_desired_units}"
+            raise u.UnitConversionError(msg) from None
 
     if desired_units is None:
         desired_units = ""
 
-    if not hasattr(input_data, "unit"):
-        input_data = _has_no_unit(input_data, desired_units, force)
-    elif input_data.unit is None:
+    if not hasattr(input_data, "unit") or input_data.unit is None:
         input_data = _has_no_unit(input_data, desired_units, force)
     else:
         input_unit = input_data.unit
@@ -86,13 +93,12 @@ def check_units(input_data, desired_units, calling_class=None, force=False):
         input_data = np.array(input_data) * u.Unit(input_unit)
 
     if calling_class:
-        calling_class.debug("input data: {}".format(input_data))
+        calling_class.debug(f"input data: {input_data}")
 
     if input_data.unit != u.Unit(desired_units):
         return _has_different_unit(input_data, desired_units)
 
-    else:
-        return input_data
+    return input_data
 
 
 def find_key(input_class_keys, key_list, calling_class=None):
@@ -118,18 +124,16 @@ def find_key(input_class_keys, key_list, calling_class=None):
     KeyError
         If no matching key is found.
     """
-    # Create a set of lower-case keys from the input class for efficient lookup
-    lower_input_keys = {key.lower() for key in input_class_keys}
+    # Map lower-case key -> original key
+    key_map = {key.lower(): key for key in input_class_keys}
 
     try:
-        # Find the first key from key_list that exists in lower_input_keys (case-insensitive)
-        key = [k for k in key_list if k.lower() in lower_input_keys][0]
-        return key
-    except IndexError:
+        return next(key_map[k.lower()] for k in key_list if k.lower() in key_map)
+    except StopIteration:
         msg = "no matching key found"
         if calling_class:
             calling_class.error(msg)
-        raise KeyError(msg)
+        raise KeyError(msg) from None
 
 
 def look_for_key(input_dict, key, value, foo=False):
@@ -154,7 +158,6 @@ def look_for_key(input_dict, key, value, foo=False):
         if k == key and val == value:
             foo = True
             break
-        else:
-            if isinstance(input_dict[k], dict):
-                foo = look_for_key(input_dict[k], key, value, foo)
+        if isinstance(input_dict[k], dict):
+            foo = look_for_key(input_dict[k], key, value, foo)
     return foo

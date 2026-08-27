@@ -4,7 +4,7 @@ import numpy as np
 from tqdm.auto import tqdm
 
 
-def iterate_over_opticalElements(input, key, last_key, val):
+def iterate_over_optical_elements(input, key, last_key, val):
     """
     It iterates over the optical element of a given class and returns the edited dictionary
 
@@ -24,12 +24,12 @@ def iterate_over_opticalElements(input, key, last_key, val):
     dict
     """
 
-    if key in input.keys():
-        if "optical_path" in input[key].keys():
+    if key in input:
+        if "optical_path" in input[key]:
             _nested(input[key]["optical_path"], last_key, val)
         elif isinstance(input[key], OrderedDict):
-            for ch in input[key].keys():
-                if "optical_path" in input[key][ch].keys():
+            for ch in input[key]:
+                if "optical_path" in input[key][ch]:
                     _nested(input[key][ch]["optical_path"], last_key, val)
                 else:
                     _nested(input[key][ch], last_key, val)
@@ -40,10 +40,19 @@ def iterate_over_opticalElements(input, key, last_key, val):
 
 def _nested(input, key, val):
     if isinstance(input["opticalElement"], OrderedDict):
-        for opt in input["opticalElement"].keys():
+        for opt in input["opticalElement"]:
             input["opticalElement"][opt][key] = val
     else:
-        input["opticalElement"][key] = val
+        # Check if opticalElement contains elements (dicts) or parameters (primitive values)
+        # If the values are dicts, iterate over them; otherwise add directly
+        values = list(input["opticalElement"].values())
+        if values and all(isinstance(v, dict) for v in values):
+            # Multi-element case: values are dictionaries representing elements
+            for opt in input["opticalElement"]:
+                input["opticalElement"][opt][key] = val
+        else:
+            # Single element case: opticalElement IS the element
+            input["opticalElement"][key] = val
 
 
 def iterate_over_chunks(dataset, **kwargs):
@@ -75,5 +84,4 @@ def searchsorted(known_array, test_array):
         known_array_sorted[1:] - np.diff(known_array_sorted.astype("f")) / 2
     )
     idx1 = np.searchsorted(known_array_middles, test_array)
-    indices = index_sorted[idx1]
-    return indices
+    return index_sorted[idx1]

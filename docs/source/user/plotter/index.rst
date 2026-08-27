@@ -4,11 +4,11 @@
 Plotters
 ===================================
 
-`ExoSim 2` includes some plotters which allows a fast evaluation of the produced data.
+`ExoSim 2` includes some plotters which allow a fast evaluation of the produced data.
 The default plotter can be run from console as ``exosim-plot``.
 
-The scipt includes two plotters: :class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter` and
-:class:`~exosim.plots.radiometricPlotter.RadiometricPlotter`.
+The script includes two plotters: :class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter` and
+:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter`.
 
 .. _focal plane plotter:
 
@@ -28,14 +28,14 @@ The focal plane plotted is the combination of the source focal plane
 plus the foreground focal plane.
 
 Given the `test_file.h5` produced by Exosim, to plot the focal plane at the first time step,
-the user can run from console
+run from console
 
 .. code-block:: console
 
     exosim-plot -i test_file.h5 -o plots/ -f -t 0 --plot-scale linear
 
 where ``-o`` is the output directory, ``-f`` is to run the focal plane plotter (:class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter`)
-and ``-t`` is to select the time step, ``--plot-scale`` indicate the image scale to use.
+and ``-t`` is to select the time step, ``--plot-scale`` indicates the image scale to use.
 By default the plot scale is `linear`, but another possible option is `dB`, and the image is plotted as :math:`10 \cdot log_{10} \left( ima/ max(ima) \right)`.
 
 The result will be similar to
@@ -44,7 +44,7 @@ The result will be similar to
     :width: 600
     :align: center
 
-The same result can be obtained also by using the plotter in a python script:
+The same result can be obtained by using the plotter in a Python script:
 
 .. code-block:: python
 
@@ -53,13 +53,13 @@ The same result can be obtained also by using the plotter in a python script:
     focalPlanePlotter.plot_focal_plane(time_step=0, scale='linear')
     focalPlanePlotter.save_fig('focal_plane.png')
 
-if ``-plot-scale`` is set to `dB` the result will be
+If ``-plot-scale`` is set to `dB`, the result will be
 
 .. image:: _static/focal_plane_dB.png
     :width: 600
     :align: center
 
-Inside the focal plane plotter a functionality to plot the total efficiency can be found:
+Inside the focal plane plotter, a functionality to plot the total efficiency can be found:
 
 .. code-block:: python
 
@@ -77,17 +77,17 @@ Inside the focal plane plotter a functionality to plot the total efficiency can 
 Radiometric Plotter
 ===================================
 
-:class:`~exosim.plots.radiometricPlotter.RadiometricPlotter`
+:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter`
 handles the methods to plot the radiometric table produced by `exosim`.
 
 Given the `test_file.h5` produced by Exosim and which includes a radiometric table,
-to plot the table the user can run from console
+to plot the table run from console
 
 .. code-block:: console
 
     exosim-plot -i test_file.h5 -o plots/ -r
 
-where ``-o`` is the output directory and ``-r`` is to run the radiometric plotter (:class:`~exosim.plots.radiometricPlotter.RadiometricPlotter`).
+where ``-o`` is the output directory and ``-r`` is to run the radiometric plotter (:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter`).
 
 The result will be similar to
 
@@ -95,7 +95,7 @@ The result will be similar to
     :width: 600
     :align: center
 
-The same result can be obtained also by using the plotter in a python script:
+The same result can be obtained by using the plotter in a Python script:
 
 .. code-block:: python
 
@@ -105,7 +105,7 @@ The same result can be obtained also by using the plotter in a python script:
     radiometricPlotter.save_fig('radiometric.png')
 
 
-The radiometric plotter can also plot the apertures superimposed to the focal planes with
+The radiometric plotter can also plot the apertures superimposed onto the focal planes with
 
 .. code-block:: python
 
@@ -124,11 +124,11 @@ Sub-Exposures Plotter
 ===================================
 
 :class:`~exosim.plots.subExposuresPlotter.SubExposuresPlotter`
-handles the methods to plot the Sub-Exposures produced :class:`~exosim.recipes.createSubExposures.CreateSubExposures`,
+handles the methods to plot the sub-exposures produced by :class:`~exosim.recipes.createSubExposures.CreateSubExposures`,
 as described in :ref:`sub-exposures creation`.
 
 Given the `test_se.h5` produced by `ExoSim` and which includes the sub-exposures,
-to plot them, the user can run from console
+to plot them, run from console
 
 .. code-block:: console
 
@@ -140,7 +140,7 @@ or
 
     exosim-plot -i test_se.h5 -o plots/ -s
 
-:class:`~exosim.plots.subExposuresPlotter.SubExposuresPlotter` iteratively store the images of the sub-exposures in the output folder,
+:class:`~exosim.plots.subExposuresPlotter.SubExposuresPlotter` iteratively stores the images of the sub-exposures in the output folder,
 along with the sub-exposure time (which is the time where the sub-exposure integration ends) and the integration time.
 
 Here we report for example the first and the second sub-exposures, collected using a CDS reading scheme, for both the channels
@@ -154,7 +154,7 @@ Here we report for example the first and the second sub-exposures, collected usi
     :align: center
 
 .. note::
-    Because the ExoSim output may contain a lot of sub-exposures, This plotter only produces images of the sub-exposures of the first exposure (the first ramp).
+Because the ExoSim output may contain a lot of sub-exposures, this plotter only produces images of the sub-exposures of the first exposure (the first ramp).
 
 
 .. _ndrs plotter:
@@ -163,11 +163,11 @@ NDRs Plotter
 ===================================
 
 :class:`~exosim.plots.ndrsPlotter.NDRsPlotter`
-handles the methods to plot the Sub-Exposures produced :class:`~exosim.recipes.createNDRs.CreateNDRs`,
+handles the methods to plot the NDRs produced by :class:`~exosim.recipes.createNDRs.CreateNDRs`,
 as described in :ref:`ndrs creation`.
 
 Given the `test_ndrs.h5` produced by `ExoSim` and which includes the NDRs,
-to plot them, the user can run from console
+to plot them, run from console
 
 .. code-block:: console
 

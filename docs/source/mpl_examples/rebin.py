@@ -15,9 +15,7 @@ import matplotlib.pyplot as plt
 
 fig, (ax0, ax1) = plt.subplots(2, 1)
 ax0.plot(xp, fp, label="original array", alpha=0.5, c="r")
-ax0.scatter(
-    x_inter, f_inter, marker="X", label="interpolated array", alpha=0.5
-)
+ax0.scatter(x_inter, f_inter, marker="X", label="interpolated array", alpha=0.5)
 ax0.scatter(x_bin, f_bin, marker="v", label="binned array", alpha=0.5)
 ax0.legend()
 

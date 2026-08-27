@@ -49,7 +49,9 @@ def create_psf(
 
     We produce and plot an Airy PSF:
 
-    >>> img = create_psf(1*u.um, 40, 6*u.um, nzero=8, shape='airy')
+    >>> img = create_psf(
+    ...     1 * u.um, 40, 6 * u.um, nzero=8, shape="airy"
+    ... )
 
     >>> import matplotlib.pyplot as plt
     >>> import numpy as np
@@ -74,7 +76,9 @@ def create_psf(
 
     Similarly, we can produce and plot a Gaussian PSF:
 
-    >>> img = create_psf(1*u.um, (40,40), 6*u.um, shape='gauss')
+    >>> img = create_psf(
+    ...     1 * u.um, (40, 40), 6 * u.um, shape="gauss"
+    ... )
 
     >>> import matplotlib.pyplot as plt
     >>> import numpy as np
@@ -99,10 +103,15 @@ def create_psf(
 
     We can also create a PSF with different F-numbers:
 
-    >>> img = create_psf(1*u.um, (60,40), 6*u.um, shape='gauss')
+    >>> img = create_psf(
+    ...     1 * u.um, (60, 40), 6 * u.um, shape="gauss"
+    ... )
 
     >>> import matplotlib.pyplot as plt
-    >>> plt.imshow(img, aspect='equal',)
+    >>> plt.imshow(
+    ...     img,
+    ...     aspect="equal",
+    ... )
     >>> plt.show()
 
     .. plot:: mpl_examples/create_psf_gauss_fnum.py
@@ -124,12 +133,7 @@ def create_psf(
     )
     Ny = int(
         np.round(
-            jn_zeros(1, nzero)[-1]
-            / (2.0 * np.pi)
-            * fnum
-            * ratio
-            * wl.max()
-            / delta
+            jn_zeros(1, nzero)[-1] / (2.0 * np.pi) * fnum * ratio * wl.max() / delta
         ).astype(int)
     )
 
@@ -146,17 +150,15 @@ def create_psf(
             else (max_array_size[1] + 1) // 2
         )
 
-        Nx = max_array_size[0] if Nx > max_array_size[0] else Nx
-        Ny = max_array_size[1] if Ny > max_array_size[1] else Ny
+        Nx = min(Nx, max_array_size[0])
+        Ny = min(Ny, max_array_size[1])
 
     if array_size is not None:
         if array_size[0] == "full":
             if max_array_size is not None:
                 Nx = max_array_size[0]
             else:
-                logger.error(
-                    "max_array_size must be set if array_size is set to full"
-                )
+                logger.error("max_array_size must be set if array_size is set to full")
                 raise ValueError(
                     "max_array_size must be set if array_size is set to full"
                 )
@@ -171,9 +173,7 @@ def create_psf(
             if max_array_size is not None:
                 Ny = max_array_size[1]
             else:
-                logger.error(
-                    "max_array_size must be set if array_size is set to full"
-                )
+                logger.error("max_array_size must be set if array_size is set to full")
                 raise ValueError(
                     "max_array_size must be set if array_size is set to full"
                 )
@@ -187,22 +187,11 @@ def create_psf(
     if shape == "airy":
         d = 1.0 / (fnum * (1.0e-30 * delta.unit + wl))
     elif shape == "gauss":
-        sigma = (
-            1.029
-            * fnum
-            * (1.0e-30 * delta.unit + wl)
-            / np.sqrt(8.0 * np.log(2.0))
-        )
+        sigma = 1.029 * fnum * (1.0e-30 * delta.unit + wl) / np.sqrt(8.0 * np.log(2.0))
         d = 0.5 / (sigma * sigma)
 
-    x = (
-        np.linspace(-Nx * delta.item(), Nx * delta.item(), 2 * Nx + 1)
-        * delta.unit
-    )
-    y = (
-        np.linspace(-Ny * delta.item(), Ny * delta.item(), 2 * Ny + 1)
-        * delta.unit
-    )
+    x = np.linspace(-Nx * delta.item(), Nx * delta.item(), 2 * Nx + 1) * delta.unit
+    y = np.linspace(-Ny * delta.item(), Ny * delta.item(), 2 * Ny + 1) * delta.unit
 
     yy, xx = np.meshgrid(y, x)
     yy /= ratio
@@ -222,6 +211,4 @@ def create_psf(
     img /= norm
 
     img[..., wl <= 0.0] *= 0.0
-    img = np.moveaxis(img, -1, 0)
-
-    return img
+    return np.moveaxis(img, -1, 0)

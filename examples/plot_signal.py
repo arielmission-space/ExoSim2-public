@@ -1,7 +1,6 @@
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib import animation
 
 input = "./test_freq.h5"
 
@@ -45,7 +44,7 @@ def main():
                 plt.colorbar(im, ax=ax, cax=ax)
                 i += 1
 
-            plt.savefig("plots/iter/{}.png".format(t))
+            plt.savefig(f"plots/iter/{t}.png")
 
 
 if __name__ == "__main__":

@@ -3,9 +3,9 @@ Resulting focal planes
 ===================================
 
 In the previous sections we saw how to produce the focal planes for different channels.
-Here we'll explain how this focal planes looks like.
+Here we will explain how these focal planes look.
 
-Note that so far we have built three different focal planes, that can be considered are three layers:
+Note that so far we have built three different focal planes, which can be considered as three layers:
 
     - ``focal_plane``: containing the signal from the target star
     - ``bkg_focal_plane``: containing the stars in the field of view
@@ -14,12 +14,12 @@ Note that so far we have built three different focal planes, that can be conside
 .. image:: _static/layers.png
     :align: center
 
-The reason for this separation is cleared when the astronomical signal (see :ref:`Astronomical signals`) needs to be added to the target star.
+The reason for this separation becomes clear when the astronomical signal (see :ref:`Astronomical signals`) needs to be added to the target star.
 
-We remember here that in the previous sections we mentioned the possibility to oversampling the pixel array.
-In that case the resulting focal plane will be oversampled.
+We recall here that in the previous sections we mentioned the possibility of oversampling the pixel array.
+In that case, the resulting focal plane will be oversampled.
 
-In the following we report examples for both the oversampled focal plane and the real focal plane.
+In the following, we report examples for both the oversampled focal plane and the real focal plane.
 To move from the oversampled focal plane to the original one, one can use the following script
 
 .. code-block:: python
@@ -38,7 +38,7 @@ In this example we used an oversampling factor of 4.
 .. image:: _static/focal_planes-phot.png
     :align: center
 
-The focal planes looks like data cube because we recall here that the first axis is for time evolution.
+The focal planes look like data cubes because we recall here that the first axis is for time evolution.
 
 Spectrometers
 -------------------------
@@ -50,7 +50,7 @@ We still used an oversampling factor of 4.
 
 Foregrounds
 -------------------------
-In this example, we report first the case of a not-dispersed foreground focal plane,
+In this example, we first report the case of a non-dispersed foreground focal plane,
 which results in a constant value over the full oversampled array.
 
 .. image:: _static/focal_planes-fore.png
@@ -65,14 +65,14 @@ Then we include the example of a dispersed foreground focal plane:
 
 Store and load the focal planes
 --------------------------------------------
-To store the focal plane into the output file, the user can simply use the :func:`~exosim.models.signal.Signal.write` method of the :class:`~exosim.models.signal.Signal` class:
+To store the focal plane in the output file, simply use the :func:`~exosim.models.signal.Signal.write` method of the :class:`~exosim.models.signal.Signal` class:
 
 .. code-block:: python
 
         channel.focal_plane.write()
         channel.frg_focal_plane.write()
 
-The sub focal planes, if generated, can be stored as
+The sub-focal planes, if generated, can be stored as
 
 .. code-block:: python
 

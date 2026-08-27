@@ -31,14 +31,13 @@ It can be set as
         <detector>
     </channel>
 
-Using the configuration reported in the example, the codes adds to each pixel
+Using the configuration reported in the example, the code adds to each pixel
 :math:`5 \, ct/s \times t_{s, \,int}` where :math:`t_{s, \,int}` is the sub-exposure integration time.
 
 It is always possible to replace this function with one using a dark current map, to add a different dark current to each pixel which can also evolve in time.
 A custom task can be used to replace :class:`~exosim.tasks.detector.addConstantDarkCurrent.AddConstantDarkCurrent` (see :ref:`Custom Tasks`).
 
-An implementation of dark current map has been prepared assuming numpy array (see `numpy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_)
- as input (:class:`~exosim.tasks.detector.addDarkCurrentMapNumpy.AddDarkCurrentMapNumpy`). It can be used as
+An implementation of dark current map has been prepared assuming NumPy array (see `NumPy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_) as input (:class:`~exosim.tasks.detector.addDarkCurrentMapNumpy.AddDarkCurrentMapNumpy`). It can be used as
 
 .. code-block:: xml
 

@@ -9,11 +9,11 @@ Therefore it has units of :math:`\sqrt{hr}`.
 
 The task dedicated to this job is :class:`~exosim.tasks.radiometric.computeTotalNoise.ComputeTotalNoise`.
 
-We start from an empy array of variances :math:` Var_{1 \, hr}(\lambda)`.
+We start from an empty array of variances :math:` Var_{1 \, hr}(\lambda)`.
 
-This tasks iterates over the column of the radiometric table looking for noise sources.
-If a column name contains the word `noise` then is handled by this task.
-Assuming that the code founds a column name `X_noise`.
+This task iterates over the columns of the radiometric table looking for noise sources.
+If a column name contains the word `noise`, then it is handled by this task.
+Assuming that the code finds a column name `X_noise`.
 If the column `X_noise` units are :math:`ct/s` then
 
 .. math::
@@ -22,7 +22,7 @@ If the column `X_noise` units are :math:`ct/s` then
 
 where :math:`\Delta T_{int} = 3600 \, s` for the :math:`1 \, hr` integration time.
 
-When the noise from all the columns that has such units has been added, the total variance is converted into relative noise.
+When the noise from all the columns that have such units has been added, the total variance is converted into relative noise.
 
 .. note::
     To avoid confusion, only the noise from the source and the cumulative foreground are added to the total noise.
@@ -34,7 +34,7 @@ Then the relative noise is
 
 where :math:`S_{source}` is the source signal in the radiometric table.
 
-Assuming that the code founds also a column name `Y_noise` and that the column `Y_noise` has no units.
+Assuming that the code also finds a column name `Y_noise` and that the column `Y_noise` has no units.
 This is a relative noise already.
 So, the code updates the total noise as
 

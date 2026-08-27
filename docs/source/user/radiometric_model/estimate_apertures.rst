@@ -4,9 +4,9 @@
 Estimate apertures
 =======================
 
-Once the wavelength table is ready, is it time to estimate the aperture sizes for the photometry.
-By default this is handled by :class:`~exosim.tasks.radiometric.estimateApertures.EstimateApertures`.
-This Task has lot of options inside, but is still possible to define a custom task to replace this one.
+Once the wavelength table is ready, it is time to estimate the aperture sizes for the photometry.
+By default this is handled by :class:`~exosim.tasks.radiometric.estimate_apertures.EstimateApertures`.
+This task has many options, but it is still possible to define a custom task to replace this one.
 To develop a custom :class:`~exosim.tasks.task.Task`, please refer to :ref:`Custom Tasks`.
 The aperture task must be specified under the `radiometric` keyword:
 
@@ -24,7 +24,7 @@ The aperture task must be specified under the `radiometric` keyword:
 
     </channel>
 
-Inside :class:`~exosim.recipes.radiometricModel.RadiometricModel` this tasks is handled by the :func:`~exosim.recipes.radiometricModel.RadiometricModel.compute_apertures` method.
+Inside :class:`~exosim.recipes.radiometric_model.RadiometricModel` this task is handled by the :func:`~exosim.recipes.radiometric_model.RadiometricModel.compute_apertures` method.
 To use the default task in a script on a channel, the user can write:
 
 .. code-block:: python
@@ -43,17 +43,17 @@ and `wl_grid` is the focal plane wavelength grid.
 
 .. caution::
     If the user doesn't include the `apertures_task` keyword in the channel description,
-    the default :class:`~exosim.tasks.radiometric.estimateApertures.EstimateApertures` task is used.
+    the default :class:`~exosim.tasks.radiometric.estimate_apertures.EstimateApertures` task is used.
     To develop a custom :class:`~exosim.tasks.task.Task`, please refer to :ref:`Custom Tasks`.
 
-The results of this :class:`~exosim.tasks.task.Task` is a :class:`~astropy.table.QTable` with the centers, sizes and shapes of the apertures for the channel.
+The result of this :class:`~exosim.tasks.task.Task` is a :class:`~astropy.table.QTable` with the centers, sizes and shapes of the apertures for the channel.
 
 ====================    ====================================================
 keyword                 content
 ====================    ====================================================
-spectral_center         center of the aperture in the spectral direction
+spectral_center         centre of the aperture in the spectral direction
 spectral_size           size of the aperture in the spectral direction
-spatial_center          center of the aperture in the spatial direction
+spatial_center          centre of the aperture in the spatial direction
 spatial_size            size of the aperture in the spatial direction
 aperture_shape          shape of the aperture (rectangular or elliptical)
 ====================    ====================================================
@@ -69,13 +69,13 @@ By combining different options the user can have control on the summing method.
 Spectral modes
 ----------------
 
-Spectral modes specifies how the detector pixels counts are summed inm the two directions.
-These, are set with the `spectral_mode` keyword.
+Spectral modes specify how the detector pixel counts are summed in the two directions.
+These are set with the `spectral_mode` keyword.
 
 Rows
 ^^^^^^^^^
 
-By setting the `spectral_mode` equal to `row`, the aperture sizes in the spectral direction are set such that the ful pixel row is summed together.
+By setting the `spectral_mode` equal to `row`, the aperture sizes in the spectral direction are set such that the full pixel row is summed together.
 
 .. code-block:: xml
 
@@ -127,7 +127,7 @@ Spatial modes
 
 At the moment only a spatial mode is available.
 By setting the `spatial_mode` equal to `column`, the aperture sizes in the spatial direction
-are set such that the ful pixel column is summed together.
+are set such that the full pixel column is summed together.
 
 
 .. code-block:: xml
@@ -148,11 +148,11 @@ are set such that the ful pixel column is summed together.
 .. image:: _static/aperture_column.png
     :align: center
 
-Use cases example
+Use-case examples
 -----------------------
 
-To summarise with a couple of examples, if the user wants to read a photometer by summing up all the pixel values,
-it can either use the automatic mode `full` (shown later)
+To summarise with a couple of examples, if the user wants to sum all the pixel values for a photometer,
+they can either use the automatic mode `full` (shown later)
 
 .. code-block:: xml
 
@@ -169,8 +169,8 @@ it can either use the automatic mode `full` (shown later)
 
     </channel>
 
-or can specify the different methods in the two direction and
-ask to the :class:`~exosim.tasks.radiometric.estimateApertures.EstimateApertures` task
+or can specify the different methods in the two directions and
+ask the :class:`~exosim.tasks.radiometric.estimate_apertures.EstimateApertures` task
 to sum all the columns and rows:
 
 .. code-block:: xml
@@ -189,8 +189,8 @@ to sum all the columns and rows:
 
     </channel>
 
-If the user want to read a spectrometer by summing up all the pixel along the columns of a spectral bin,
-it can combine the `column` and `wl_solution` methods:
+If the user wants to sum all the pixels along the columns of a spectral bin for a spectrometer,
+they can combine the `column` and `wl_solution` methods:
 
 .. code-block:: xml
 
@@ -210,15 +210,15 @@ it can combine the `column` and `wl_solution` methods:
 
 Automatic modes
 ================
-The :class:`~exosim.tasks.radiometric.estimateApertures.EstimateApertures` task
-includes come automatic functionalities aimed to optimise the search for the right aperture.
+The :class:`~exosim.tasks.radiometric.estimate_apertures.EstimateApertures` task
+includes some automatic functionalities aimed at optimising the search for the right aperture.
 
 Elliptical apertures
 ----------------------
 This mode can be set with `auto_mode` equal to `elliptical`.
 Using this method the :func:`~exosim.utils.aperture.find_elliptical_aperture` is run.
-The function look for an elliptical aperture on the focal plane which enclose at least
-the Encircled Energy specify by the keyword `EnE`, while minimizing the number of pixel inside in the aperture area.
+The function looks for an elliptical aperture on the focal plane which encloses at least
+the Encircled Energy specified by the keyword `EnE`, while minimising the number of pixels in the aperture area.
 
 .. code-block:: xml
 
@@ -243,8 +243,8 @@ Rectangular apertures
 ----------------------
 This mode can be set with `auto_mode` equal to `rectangular`.
 Using this method the :func:`~exosim.utils.aperture.find_rectangular_aperture` is run.
-The function look for a rectangular aperture on the focal plane which enclose at least
-the Encircled Energy specify by the keyword `EnE`, while minimizing the number of pixel inside in the aperture area.
+The function looks for a rectangular aperture on the focal plane which encloses at least
+the Encircled Energy specified by the keyword `EnE`, while minimising the number of pixels in the aperture area.
 
 
 .. code-block:: xml
@@ -270,8 +270,8 @@ Spectral bins apertures
 ------------------------
 This mode can be set with `auto_mode` equal to `bin`.
 Using this method the :func:`~exosim.utils.aperture.find_bin_aperture` is run.
-The function look for a rectangular aperture with fixed spectral size on the focal plane which enclose at least
-the Encircled Energy specify by the keyword `EnE`, while minimizing the number of pixel inside in the aperture area.
+The function looks for a rectangular aperture with fixed spectral size on the focal plane which encloses at least
+the Encircled Energy specified by the keyword `EnE`, while minimising the number of pixels in the aperture area.
 
 
 .. code-block:: xml

@@ -4,12 +4,18 @@
 Photon Noise
 =======================
 
-For each signal in the radiometric table is possible to compute the photon noise.
+For each signal in the radiometric table, it is possible to compute the photon noise.
 The photon noise is computed by :class:`~exosim.tasks.radiometric.computePhotonNoise.ComputePhotonNoise`
 
-Given the incoming signal :math:`S` the resulting photon noise variance is :math:`Var[S]=S`.
+Before computing the photon noise, the incoming signal :math:`S` is first multiplied by the duty cycle efficiency :math:`\eta_{duty}`
+to account for observing time losses due to shutters, choppers, or other mechanisms that interrupt the observation
+(see :ref:`timing_model` for details on duty cycle and timing calculations).
 
-If photon gain factor :math:`gain_{phot}` has been computed with multiaccum equation (see :ref:`multiaccum`), then  :math:`Var[S]= gain_{phot} \cdot Var[S]`.
+The effective signal is then: :math:`S_{eff} = \eta_{duty} \cdot S`
+
+Given the effective signal :math:`S_{eff}`, the resulting photon noise variance is :math:`Var[S_{eff}]=S_{eff}`.
+
+If photon gain factor :math:`gain_{phot}` has been computed with multiaccum equation (see :ref:`multiaccum`), then  :math:`Var[S_{eff}]= gain_{phot} \cdot Var[S_{eff}]`.
 
 The user can also add a margin to the photon noise as
 
@@ -21,10 +27,22 @@ The user can also add a margin to the photon noise as
         </radiometric>
     </channel>
 
-If photon noise margin, :math:`\chi`, is found in the description, then  :math:`Var[S]= (1+\chi) \cdot Var[S]`.
-The noise returned is :math:`\sigma = \sqrt{Var[S]}`
+The duty cycle efficiency can be specified in the radiometric configuration:
 
-For each channel can be run in a script as
+.. code-block:: xml
+
+    <channel> channel_name
+        <radiometric>
+            <duty_cycle> 0.8 </duty_cycle>
+        </radiometric>
+    </channel>
+
+If not specified, the duty cycle defaults to 1.0 (100% observing efficiency).
+
+If photon noise margin, :math:`\chi`, is found in the description, then  :math:`Var[S_{eff}]= (1+\chi) \cdot Var[S_{eff}]`.
+The noise returned is :math:`\sigma = \sqrt{Var[S_{eff}]}`
+
+For each channel, it can be run in a script as
 
 .. code-block:: python
 

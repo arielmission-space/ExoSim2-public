@@ -13,8 +13,8 @@ Focal plane Sub-Exposures
 ============================
 This is handled by :class:`~exosim.tasks.subexposures.instantaneousReadOut.InstantaneousReadOut` task.
 
-This :class:`~exosim.tasks.task.Task`, first calls :class:`~exosim.tasks.subexposures.computeReadingScheme.ComputeReadingScheme`,
-described in :ref:`reading_scheme`, then it scales the jitter to the indicated channel focal plane, using :class:`~exosim.tasks.subexposures.estimateChJitter.EstimateChJitter`,
+This :class:`~exosim.tasks.task.Task` first calls :class:`~exosim.tasks.subexposures.compute_reading_scheme.ComputeReadingScheme`,
+described in :ref:`reading_scheme`, then it scales the jitter to the indicated channel focal plane, using :class:`~exosim.tasks.subexposures.estimate_ch_jitter.EstimateChJitter`,
 described in  :ref:`ch_jitter`.
 
 Preparing the output datacube
@@ -28,20 +28,20 @@ The time dimension of this :class:`~exosim.models.signal.Signal` class contains 
 So, this datacube has for each time step the shape of the focal plane without considering the oversampling factor (see :ref:`detector geometry`),
 and a time step for each sub-exposure expected, which corresponds to the total number of NDRs listed in the reading scheme.
 This means that if each ramp is sampled using 3 groups of 2 NDRs, we have 6 NDRs for each ramp, and therefore 6 sub-exposures.
-Saying that each ramp last 60 s, to sample 8 hr of observation requires 480 ramps, and this results in 2880 sub-exposures.
+Saying that each ramp lasts 60 s, to sample 8 hr of observation requires 480 ramps, and this results in 2880 sub-exposures.
 As mentioned, this number can grow quite fast: for a bright target the saturation time can go down for example to 1 second.
-Assuming this is the size of the ramp, we have 172800 sub-exposure.
+Assuming this is the size of the ramp, we have 172800 sub-exposures.
 Given that the sub-exposures are stored using ``float64`` data format (64 bits = 8 Bytes memory size),
 the size of this datacube, for a focal plane of :math:`64 \times 64` pixels
-is :math:`172800 \cdot 64 \cdot 64 / 8 = 88.473.600` Bytes. The resulting datacube is around 84 MB.
-This justifies the use of cached data, which are stored stored and used in chunks.
+is :math:`172800 \cdot 64 \cdot 64 \cdot 8 = 88.473.600` Bytes. The resulting datacube is around 84 MB.
+This justifies the use of cached data, which are stored and used in chunks.
 The chunk size is set to 2 MB by default, but the user can set its own value as.
 
 .. code-block:: Python
 
     RunConfig.chunk_size = N
 
-where `N` is the desired size expressed in Mbs.
+where `N` is the desired size expressed in MB.
 
 .. note::
     The use of ``float64`` data format, instead of ``float32`` is justified by the numerical precision required to handle the convoluted focal plane.
@@ -57,9 +57,9 @@ The main steps of the instantaneous readout process are summarised in the follow
     :align: center
 
 
-Once the output is ready, `ExoSim` iterates over the chunks, thanks to the :class:`h5py.Dataset` methods (see also :ref:`cached`), extracting a slice of sub-exposure.
-For each of the sub-exposures this slice there are a set of simulation time steps of `high_frequencies_resolution` unit associated.
-For each of this time step we recover the associated jitter offsets in the spectral and spatial directions.
+Once the output is ready, `ExoSim` iterates over the chunks, thanks to the :class:`h5py.Dataset` methods (see also :ref:`cached`), extracting a slice of sub-exposures.
+For each of the sub-exposures in this slice there are a set of simulation time steps of `high_frequencies_resolution` unit associated.
+For each of these time steps we recover the associated jitter offsets in the spectral and spatial directions.
 We select the low frequencies sampled focal plane corresponding to the time step considered.
 We remove the focal plane oversampling factor by shifting the focal plane by the offset quantity.
 Because the focal plane is sampled at a different cadence than the Sub-Exposures,
@@ -73,7 +73,7 @@ the time index of the focal plane used for that sub-exposure.
         It is important to calibrate the oversampling factor to the expected jitter amplitude in the channel.
 
 Then, all the jittered focal planes associated to the same sub-exposure are averaged.
-The resulted sub-exposure is then multiplied by its integration time, moving from the :math:`ct/s` of the focal planet to the :math:`ct` of the sub-exposure,
+The resulting sub-exposure is then multiplied by its integration time, moving from the :math:`ct/s` of the focal plane to the :math:`ct` of the sub-exposure,
 and it is stored back to the output datacube.
 
 This is performed with
@@ -97,7 +97,7 @@ Where ``main_parameters`` is the the main configurations dictionary, ``payload_p
 Finally, ``output_file`` is an output file, as described in :ref:`cached`.
 
 .. note::
-    Because of the phisycs of the problem, the total power collected on the focal plane is not always conserved.
+Because of the physics of the problem, the total power collected on the focal plane is not always conserved.
     However, for debugging reasons, the user can force the conservation of the total power by setting the following parameter in the channel configuration file:
     :xml:`<force_power_conservation> True </force_power_conservation>`
 
@@ -105,9 +105,9 @@ Finally, ``output_file`` is an output file, as described in :ref:`cached`.
 
 Focal plane oversampling factor for small jitter effects
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-It may happens that the jitter effect is too small to be captured by the defined oversampling factor.
+It may happen that the jitter effect is too small to be captured by the defined oversampling factor.
 In this case, the focal plane is resampled in order to capture the jitter rms in at least 3 sub-pixels.
-The user can specify the number of sub-pixels to caputure the jitter rms by setting
+The user can specify the number of sub-pixels to capture the jitter rms by setting
 
 .. code-block:: xml
 
@@ -118,8 +118,8 @@ The user can specify the number of sub-pixels to caputure the jitter rms by sett
     </channel>
 
 In this case 10 subpixels are used. By default this quantity is set to 3.
-Small numbers of sub-pixels are suggested to sample random jitter effects (to sample a Normal distributed noise effect, 3 sub-pixel are more than enough), while larger numbers might be needed to sampled pointing drift.
-The use of an incorrect number of sub-pixel may results in a digitalisation effect on the photometry.
+Small numbers of sub-pixels are suggested to sample random jitter effects (to sample a Normally distributed noise effect, 3 sub-pixels are more than enough), while larger numbers might be needed to sample pointing drift.
+The use of an incorrect number of sub-pixels may result in a digitalisation effect on the photometry.
 
 The magnification is computed by :class:`~exosim.tasks.subexposures.prepareInstantaneousReadOut.PrepareInstantaneousReadOut`,
 but the resampling operation is performed by the :func:`~exosim.tasks.subexposures.instantaneousReadOut.InstantaneousReadOut.oversample`,
@@ -143,4 +143,4 @@ the code computes and apply the right factor.
 
 .. note::
 
-    The magnificattion and the rms minimum resolution are two face of the same coin.
+The magnification and the rms minimum resolution are two faces of the same coin.

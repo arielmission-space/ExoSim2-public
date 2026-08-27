@@ -19,7 +19,7 @@ This is under the :py:mod:`~exosim.recipes` of `ExoSim`.
     recipes.CreateFocalPlane(options_file='your_config_file.xml',
                                  output_file='output_file.h5')
 
-The :class:`~exosim.recipes.createFocalPlane.CreateFocalPlane` can also be run from console as
+The :class:`~exosim.recipes.create_focal_plane.CreateFocalPlane` can also be run from the console as
 
 .. code-block:: console
 
@@ -31,4 +31,4 @@ or
 
     exosim-focalplane -c your_config_file.xml -o output_file.h5 -P
 
-to also run ExoSim :class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter`, which is documented in :ref:`focal plane plotter`.
+to also run the ExoSim :class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter`, which is documented in :ref:`focal plane plotter`.

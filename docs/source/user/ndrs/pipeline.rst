@@ -4,7 +4,7 @@
 NDRs automatic Recipe
 ==============================
 
-Al the steps needed to the production of sub-exposures are already collected in a pre-made pipeline.
+All the steps needed for the production of sub-exposures are already collected in a pre-made pipeline.
 This is under the :py:mod:`~exosim.recipes` of `ExoSim`.
 
 .. code-block:: python

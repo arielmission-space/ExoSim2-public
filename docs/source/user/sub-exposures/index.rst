@@ -8,7 +8,7 @@ The second step af an `ExoSim` simulation is the creation of the `sub-exposures`
 With `sub-exposures` here we are referring to the production of focal planes sampled at the same cadence of NDRs.
 
 To better understand the idea of sub-exposures, we first need to discuss a little the detector ramp sampling.
-While the photons arrive to the focal plane, the detector pixels start converting them into electrons anc collecting them.
+While the photons arrive to the focal plane, the detector pixels start converting them into electrons and collecting them.
 We can think of each pixel as an accumulator of charge. So, during time, the collected charges increases.
 When the accumulator is full, a reset process empties it to collect charges again.
 The focal plane is read during the charge accumulation, producing a certain number of NDRs,

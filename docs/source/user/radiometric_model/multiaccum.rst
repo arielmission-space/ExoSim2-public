@@ -8,8 +8,8 @@ Multiaccum
     Multiaccum factors are not validated yet.
 
 When the detector is collecting light, the pixel are being filled with electrons.
-During time the number of electrons in the pixels increases until eh pixel saturates.
-This saturation ramp hold the information abut the incoming flux.
+During time the number of electrons in the pixels increases until the pixel saturates.
+This saturation ramp holds the information about the incoming flux.
 
 Different way to fit this ramp results in different noises.
 This analysis has been done in Rauscher and Fox et al. 2007 (http://iopscience.iop.org/article/10.1086/520887/pdf)
@@ -34,7 +34,7 @@ The resulting total noise, as reported in Batalha et al. 2017 (https://doi.org/1
 where :math:`m` is the number of frames per group, :math:`n` is the number of groups,
 :math:`\sigma_{read}` is the read noise and :math:`S` is the incoming photon flux.
 
-To summarise, different fitting patters produce different gain factors for read noise and photon noise.
+To summarise, different fitting patterns produce different gain factors for read noise and photon noise.
 We can then determine two gain factors: one for the read noise and one for the photon noise.
 
 .. math::

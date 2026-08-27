@@ -5,7 +5,7 @@
 Shot Noise
 ===================================
 
-The addition of shot noise to each sub-exposures is managed by :class:`~exosim.tasks.detector.addShotNoise.AddShotNoise`.
+The addition of shot noise to each sub-exposure is managed by :class:`~exosim.tasks.detector.addShotNoise.AddShotNoise`.
 
 This functionality can be enabled in the channel configuration file as
 
@@ -17,9 +17,9 @@ This functionality can be enabled in the channel configuration file as
         <detector>
     </channel>
 
-or disabled by setting the `shot_noise` keyword to `False`
+or disabled by setting the `shot_noise` keyword to `False`.
 
-This :class:`~exosim.tasks.task.Task` replace the values of each pixel with random number distributed around its true value according to a Poisson distribution.
+This :class:`~exosim.tasks.task.Task` replaces the values of each pixel with random numbers distributed around its true value according to a Poisson distribution.
 
 .. math::
 

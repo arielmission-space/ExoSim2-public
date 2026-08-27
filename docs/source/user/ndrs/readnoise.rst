@@ -4,9 +4,9 @@
 Read out noise
 ===================================
 
-Every time a pixel is read by the electronic, an error is introduced. This is called `read noise`.
+Every time a pixel is read by the electronics, an error is introduced. This is called `read noise`.
 This is the noise of the amplifier which converts the counts into a change in analog voltage for the ADC.
-This kind of uncertainty is represented by default by  :class:`~exosim.tasks.detector.addReadNoise.AddNormalReadNoise`.
+This kind of uncertainty is represented by default by :class:`~exosim.tasks.detector.addReadNoise.AddNormalReadNoise`.
 This :class:`~exosim.tasks.task.Task` simulates the read noise as a normal distribution whose parameters can be defined in the configuration file.
 
 .. code-block:: xml
@@ -24,7 +24,7 @@ A different realization of the same distribution is added to each pixel of each 
 .. math::
     S_{meas} = S_{meas} + \mathcal{N}(\mu = 0, \sigma = \sigma_{RN})
 
-Alternatively, a map of read noise measured for each pixel can be used. A default Task is provided for this scope assuming numpy array (see `numpy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_) as input: :class:`~exosim.tasks.detector.addReadNoiseMapNumpy.AddReadNoiseMapNumpy`
+Alternatively, a map of read noise measured for each pixel can be used. A default Task is provided for this purpose assuming NumPy array (see `NumPy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_) as input: :class:`~exosim.tasks.detector.addReadNoiseMapNumpy.AddReadNoiseMapNumpy`
 
 .. code-block:: xml
 

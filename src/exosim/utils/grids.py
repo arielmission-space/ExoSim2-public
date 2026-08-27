@@ -46,8 +46,9 @@ def wl_grid(wl_min, wl_max, R, return_bin_width=False):
     :class:`~astropy.units.Quantity`
         bin wavelength width
     """
-    wl_min, wl_max = check_units(wl_min, u.um, force=True), check_units(
-        wl_max, u.um, force=True
+    wl_min, wl_max = (
+        check_units(wl_min, u.um, force=True),
+        check_units(wl_max, u.um, force=True),
     )
 
     number_of_spectral_bins = (
@@ -59,8 +60,7 @@ def wl_grid(wl_min, wl_max, R, return_bin_width=False):
 
     if return_bin_width:
         return wl_bin_c, wl_bin_width
-    else:
-        return wl_bin_c
+    return wl_bin_c
 
 
 def time_grid(time_min, time_max, low_frequencies_resolution=None):
@@ -93,8 +93,6 @@ def time_grid(time_min, time_max, low_frequencies_resolution=None):
     )
 
     return (
-        np.arange(
-            time_min.value, time_max.value, low_frequencies_resolution.value
-        )
+        np.arange(time_min.value, time_max.value, low_frequencies_resolution.value)
         * u.hr
     )

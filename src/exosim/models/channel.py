@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from typing import Tuple
 
 import astropy.units as u
 import numpy as np
@@ -22,7 +21,7 @@ class Channel(log.Logger):
         channel name
     path: dict
         dictionary of :class:`~exosim.models.signal.Radiance` and :class:`~exosim.models.signal.Dimensionless`,
-        represeting the radiance and efficiency of the path.
+        representing the radiance and efficiency of the path.
     responsivity: :class:`~exosim.models.signal.Signal`
         channel responsivity
     sources: dict
@@ -30,7 +29,7 @@ class Channel(log.Logger):
     time: :class:`~astropy.units.Quantity`
         time grid.
     parameters: dict
-        dictionary contained the optical element parameters. This is usually parsed from :class:`~exosim.tasks.load.loadOptions.LoadOptions`
+        dictionary contained the optical element parameters. This is usually parsed from :class:`~exosim.tasks.load.load_options.LoadOptions`
     wavelength: :class:`~numpy.ndarray` or :class:`~astropy.units.Quantity`
         wavelength grid. If no units are attached is considered as expressed in `um`.
     focal_plane: :class:`~exosim.models.signal.Signal`
@@ -58,7 +57,7 @@ class Channel(log.Logger):
         Parameters
         __________
         parameters: dict
-            dictionary contained the optical element parameters. This is usually parsed from :class:`~exosim.tasks.load.loadOptions.LoadOptions`
+            dictionary contained the optical element parameters. This is usually parsed from :class:`~exosim.tasks.load.load_options.LoadOptions`
         wavelength: :class:`~numpy.ndarray` or :class:`~astropy.units.Quantity`
             wavelength grid. If no units are attached is considered as expressed in `um`.
         time: :class:`~astropy.units.Quantity`
@@ -107,7 +106,7 @@ class Channel(log.Logger):
         -------
         dict
             dictionary of :class:`~exosim.models.signal.Radiance` and :class:`~exosim.models.signal.Dimensionless`,
-            represeting the radiance and efficiency of the path.
+            representing the radiance and efficiency of the path.
 
         Note
         ----
@@ -128,7 +127,7 @@ class Channel(log.Logger):
 
     def estimate_responsivity(self) -> signal.Signal:
         """
-        It estimates the responsivity using the indicated :class:`~exosim.tasks.instrument.loadResponsivity.LoadResponsivity`
+        It estimates the responsivity using the indicated :class:`~exosim.tasks.instrument.load_responsivity.LoadResponsivity`
 
         Returns
         -------
@@ -161,7 +160,7 @@ class Channel(log.Logger):
         -------
         dict
             dictionary of :class:`~exosim.models.signal.Radiance` and :class:`~exosim.models.signal.Dimensionless`,
-            represeting the radiance and efficiency of the path.
+            representing the radiance and efficiency of the path.
 
         Note
         ----
@@ -176,17 +175,14 @@ class Channel(log.Logger):
         )
         return self.path
 
-    def propagate_sources(self, sources: OrderedDict, Atel: ValueType) -> dict:
+    def define_sources(self, sources: dict) -> None:
         """
-        It propagates the sources though the channel,
-        by applying :class:`~exosim.tasks.instrument.propagateSources.PropagateSources`
+        It defines the sources for the channel
 
         Parameters
         __________
-        sources:  dict
+        sources: dict
             dictionary containing :class:`~exosim.models.signal.Sed`
-        Atel:  :class:`~astropy.units.Quantity`
-            effective telescope Area
 
         Returns
         -------
@@ -196,17 +192,35 @@ class Channel(log.Logger):
 
         out_sources = {}
 
-        for source in sources.keys():
+        for source in sources:
             out_sources[source] = signal.Sed(
                 data=sources[source].data,
                 spectral=sources[source].spectral,
                 time=sources[source].time,
                 metadata=sources[source].metadata,
             )
+        self.sources = out_sources
+        return out_sources
+
+    def propagate_sources(self, Atel: ValueType) -> dict:
+        """
+        It propagates the sources though the channel,
+        by applying :class:`~exosim.tasks.instrument.propagate_sources.PropagateSources`
+
+        Parameters
+        __________
+        Atel:  :class:`~astropy.units.Quantity`
+            effective telescope Area
+
+        Returns
+        -------
+        dict
+            dictionary containing :class:`~exosim.models.signal.Signal`
+        """
 
         propagateSources = instrument.PropagateSources()
         self.sources = propagateSources(
-            sources=out_sources,
+            sources=self.sources,
             Atel=Atel,
             efficiency=self.path["efficiency"],
             responsivity=self.responsivity,
@@ -235,16 +249,15 @@ class Channel(log.Logger):
         self.focal_plane = focal_plane
         self.frg_focal_plane = focal_plane.copy(dataset_name="frg_focal_plane")
         if len(self.sources) > 1:
-            self.bkg_focal_plane = focal_plane.copy(
-                dataset_name="bkg_focal_plane"
-            )
+            self.bkg_focal_plane = focal_plane.copy(dataset_name="bkg_focal_plane")
         return focal_plane
 
+    # todo change into a more clearer name
     def rescale_contributions(self) -> None:
         """
         It updated the contributions (sources and path)
         by rebinning them to the wavelength solution grid
-        and multipling them by the wl solution gradient
+        and multiplying them by the wl solution gradient
         """
 
         def wl_gradient(x_wav_osr):
@@ -256,33 +269,34 @@ class Channel(log.Logger):
             return d_x_wav_osr
 
         d_spectral_wl = (
-            wl_gradient(self.focal_plane.spectral)
-            * self.focal_plane.spectral_units
+            wl_gradient(self.focal_plane.spectral) * self.focal_plane.spectral_units
         )
 
         # multiply sources by gradient
         if self.sources:
-            for source in self.sources.keys():
+            for source in self.sources:
                 self.sources[source].spectral_rebin(self.focal_plane.spectral)
                 self.sources[source] *= d_spectral_wl
 
         # multiply radiances by gradient
         if self.path:
-            for rad in [k for k in self.path.keys() if "radiance" in k]:
+            for rad in [k for k in self.path if "radiance" in k]:
                 self.path[rad].spectral_rebin(self.focal_plane.spectral)
                 self.path[rad] *= d_spectral_wl
 
     @property
     def target_source(self):
         # TODO test this
+        if not self.sources:
+            return None
         if len(self.sources) == 1:
-            return list(self.sources.keys())[0]
+            return next(iter(self.sources.keys()))
 
         target = [
             source
             for source, param in self.sources.items()
-            if "source_target" in param.metadata["parsed_parameters"].keys()
-            and param.metadata["parsed_parameters"]["source_target"] == True
+            if "source_target" in param.metadata["parsed_parameters"]
+            and param.metadata["parsed_parameters"]["source_target"]
         ]
         if len(target) > 1:
             self.error(
@@ -292,7 +306,7 @@ class Channel(log.Logger):
         return target[0]
 
     def populate_focal_plane(
-        self, pointing: Tuple[u.Quantity, u.Quantity] = None
+        self, pointing: tuple[u.Quantity, u.Quantity] | None = None
     ) -> signal.Signal:
         """
         It populates the empty focal plane with monocromatic PSFs.
@@ -310,6 +324,10 @@ class Channel(log.Logger):
 
         # selecting the target source
         target = self.target_source
+
+        if target is None:
+            self.info("No sources defined, skipping focal plane population.")
+            return self.focal_plane
 
         # storing binned target source
         sources_out = self.output.create_group("sources")
@@ -329,7 +347,7 @@ class Channel(log.Logger):
         return focal_plane
 
     def populate_bkg_focal_plane(
-        self, pointing: Tuple[u.Quantity, u.Quantity] = None
+        self, pointing: tuple[u.Quantity, u.Quantity] | None = None
     ) -> signal.Signal:
         """
         It populates the empty background focal plane with monocromatic PSFs for each of the background sources.
@@ -352,7 +370,7 @@ class Channel(log.Logger):
 
             # storing binned sources
             sources_out = self.output.create_group("sources")
-            for source in self.sources.keys():
+            for source in self.sources:
                 self.sources[source].write(sources_out, name=source)
 
             # populates the focal plane
@@ -392,9 +410,7 @@ class Channel(log.Logger):
         )
 
         if "convolution_method" in self.parameters["detector"]:
-            convolution_method = self.parameters["detector"][
-                "convolution_method"
-            ]
+            convolution_method = self.parameters["detector"]["convolution_method"]
         else:
             convolution_method = "fftconvolve"
 
@@ -427,7 +443,7 @@ class Channel(log.Logger):
 
     def populate_foreground_focal_plane(
         self,
-    ) -> Tuple[signal.Signal, signal.Signal]:
+    ) -> tuple[signal.Signal, signal.Signal]:
         """
         It adds the foreground contribution to the foreground focal plane
 

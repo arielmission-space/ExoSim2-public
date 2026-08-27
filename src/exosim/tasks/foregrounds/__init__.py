@@ -1,1 +1,1 @@
-from .estimateZodi import EstimateZodi
+from .estimate_zodi import EstimateZodi

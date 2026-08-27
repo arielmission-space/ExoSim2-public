@@ -19,7 +19,7 @@ class Multiaccum(Task):
         Parameters
         __________
         parameters: dict
-            dictionary containing the MULTIACCUM channel parameters. This is usually parsed from :class:`~exosim.tasks.load.loadOptions.LoadOptions`
+            dictionary containing the MULTIACCUM channel parameters. This is usually parsed from :class:`~exosim.tasks.load.load_options.LoadOptions`
         """
         self.add_task_param("parameters", "multiaccum parameters dict")
 

@@ -30,9 +30,9 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+import contextlib
 import datetime
 import os
-from typing import List, Union
 
 import astropy.units as u
 import h5py
@@ -52,7 +52,7 @@ from exosim import (
     __url__,
     __version__,
 )
-from exosim.utils.runConfig import RunConfig
+from exosim.utils.run_config import RunConfig
 
 META_KEY = "__table_column_meta__"
 
@@ -63,7 +63,7 @@ class HDF5OutputGroup(output.OutputGroup):
         entry: h5py.Group,
         fd: h5py.File,
         cache: bool = False,
-        filename: str = None,
+        filename: str | None = None,
     ) -> None:
         self.set_log_name()
         self.fd = fd
@@ -72,11 +72,11 @@ class HDF5OutputGroup(output.OutputGroup):
         self.filename = filename
 
     def write_array(
-        self, array_name: str, array: np.ndarray, metadata: dict = None
+        self, array_name: str, array: np.ndarray, metadata: dict | None = None
     ) -> None:
         if isinstance(array, list):
             for idx, a in enumerate(array):
-                self.write_array("{}{}".format(array_name, idx), a, metadata)
+                self.write_array(f"{array_name}{idx}", a, metadata)
             return
         ds = self._entry.create_dataset(
             str(array_name), data=array, shape=array.shape, dtype=array.dtype
@@ -90,21 +90,16 @@ class HDF5OutputGroup(output.OutputGroup):
     def write_table(
         self,
         table_name: str,
-        table: Union[Table, QTable],
-        metadata: dict = None,
+        table: Table | QTable,
+        metadata: dict | None = None,
         replace: bool = False,
     ) -> None:
-        if replace:
-            if str(table_name) in self._entry.keys():
-                del self._entry[str(table_name)]
-                try:
-                    del self._entry[str(table_name) + "." + META_KEY]
-                except KeyError:
-                    pass
-                try:
-                    del self._entry["{}_to_group".format(str(table_name))]
-                except KeyError:
-                    pass
+        if replace and str(table_name) in self._entry:
+            del self._entry[str(table_name)]
+            with contextlib.suppress(KeyError):
+                del self._entry[str(table_name) + "." + META_KEY]
+            with contextlib.suppress(KeyError):
+                del self._entry[f"{table_name!s}_to_group"]
 
         table = _encode_mixins(table)
         if any(col.info.dtype.kind == "U" for col in table.itercols()):
@@ -119,8 +114,8 @@ class HDF5OutputGroup(output.OutputGroup):
             str(table_name) + "." + META_KEY, data=header_encoded
         )
 
-        tg = self._entry.create_group("{}_to_group".format(str(table_name)))
-        for col in table.keys():
+        tg = self._entry.create_group(f"{table_name!s}_to_group")
+        for col in table.colnames:
             tg_c = tg.create_group(str(col))
             tg_c.create_dataset("value", data=table[col])
             if table[col].unit is not None:
@@ -134,7 +129,7 @@ class HDF5OutputGroup(output.OutputGroup):
                 tg.attrs[k] = v
 
     def write_scalar(
-        self, scalar_name: str, scalar: float, metadata: dict = None
+        self, scalar_name: str, scalar: float, metadata: dict | None = None
     ) -> None:
         ds = self._entry.create_dataset(str(scalar_name), data=scalar)
 
@@ -144,9 +139,9 @@ class HDF5OutputGroup(output.OutputGroup):
                 ds.attrs[k] = v
 
     def write_string(
-        self, string_name: str, string: str, metadata: dict = None
+        self, string_name: str, string: str, metadata: dict | None = None
     ) -> None:
-        # h5py new string hanlder support bites. So we convert strings into bites
+        # h5py new string handler support bites. So we convert strings into bites
         string = string.encode("utf-8")
         ds = self._entry.create_dataset(str(string_name), data=string)
 
@@ -183,14 +178,14 @@ class HDF5OutputGroup(output.OutputGroup):
         try:
             del self._entry[key]
         except KeyError:
-            self.error("key {} not found".format(key))
-            raise KeyError
+            self.error(f"key {key} not found")
+            raise KeyError from None
 
     def flush(self) -> None:
         self.fd.flush()
 
     def write_string_array(
-        self, string_name: str, string_array: List[str], metadata: dict = None
+        self, string_name: str, string_array: list[str], metadata: dict | None = None
     ) -> None:
         string_array = string_array.astype("S64")
         ds = self._entry.create_dataset(str(string_name), data=string_array)
@@ -201,7 +196,7 @@ class HDF5OutputGroup(output.OutputGroup):
                 ds.attrs[k] = v
 
     def write_quantity(
-        self, quantity_name: str, quantity: u.Quantity, metadata: dict = None
+        self, quantity_name: str, quantity: u.Quantity, metadata: dict | None = None
     ) -> None:
         if quantity_name == "value":
             qg_c = self._entry.create_dataset(
@@ -215,7 +210,6 @@ class HDF5OutputGroup(output.OutputGroup):
                 data=quantity.value,
             )
             qg_c.create_dataset("unit", data=str(quantity.unit))
-            pass
         qg_c.attrs["datatype"] = str(quantity.__class__)
 
         if metadata:
@@ -228,9 +222,7 @@ def _encode_mixins(tbl):
     from astropy.utils.data_info import serialize_context_as
 
     with serialize_context_as("hdf5"):
-        encode_tbl = serialize.represent_mixins_as_columns(tbl)
-
-    return encode_tbl
+        return serialize.represent_mixins_as_columns(tbl)
 
 
 class HDF5Output(output.Output):
@@ -242,10 +234,16 @@ class HDF5Output(output.Output):
         self.fd = None
 
     def open(self) -> None:
-        self.fd = self._openFile(self.filename)
-        self.debug("opened {}".format(self.filename))
+        self.fd = self._open_file(self.filename)
+        self.debug(f"opened {self.filename}")
 
-    def _openFile(self, fname: str) -> h5py.File:
+    def _open_file(self, fname: str) -> h5py.File:
+        # Ensure the output directory exists
+        from pathlib import Path
+
+        output_path = Path(fname)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+
         mode = "w"
         if self._append:
             mode = "a"
@@ -276,7 +274,7 @@ class HDF5Output(output.Output):
         for key in attrs:
             fd.attrs[key] = attrs[key]
 
-        if mode == "w" or "info" not in fd.keys():
+        if mode == "w" or "info" not in fd:
             try:
                 gd_ = fd["info"]
             except KeyError:
@@ -289,7 +287,7 @@ class HDF5Output(output.Output):
 
         return fd
 
-    def add_info(self, attrs: dict, name: str = None) -> None:
+    def add_info(self, attrs: dict, name: str | None = None) -> None:
         gd = self.create_group("info")
         gd.store_dictionary(attrs, name)
 
@@ -321,9 +319,7 @@ class HDF5Output(output.Output):
             entry, cache=self._cache, filename=self.filename, fd=self.fd
         )
 
-    def store_dictionary(
-        self, dictionary: dict, group_name: str = None
-    ) -> None:
+    def store_dictionary(self, dictionary: dict, group_name: str | None = None) -> None:
         """
         it stores a full dictionary inside the :class:`HDF5Output`, forcing the flush.
 
@@ -351,7 +347,7 @@ class HDF5Output(output.Output):
         if self.fd:
             self.fd.flush()
             self.fd.close()
-            self.debug("closed {}".format(self.filename))
+            self.debug(f"closed {self.filename}")
 
     def getsize(self) -> u.Quantity:
         """It returns the output file size"""
@@ -368,5 +364,5 @@ class HDF5Output(output.Output):
         try:
             del self.fd[key]
         except KeyError:
-            self.error("key {} not found".format(key))
-            raise KeyError
+            self.error(f"key {key} not found")
+            raise KeyError from None

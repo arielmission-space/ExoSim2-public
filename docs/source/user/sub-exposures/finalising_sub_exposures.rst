@@ -63,7 +63,7 @@ With clear reference to the quantities defined above.
 Resulting sub-exposure
 ===========================================
 
-The resulting sub-exposures will look similar to the followings:
+The resulting sub-exposures will look similar to the following:
 
 .. image:: _static/subexposures_plotter-Page-1.png
     :width: 600
@@ -90,7 +90,7 @@ If the user has its own map, can write a custom task load this map into a :class
 Otherwise, `ExoSim` includes a tool (:ref:`tools`) which allow the creation of a quantum efficiency variation map (see :ref:`quantum_efficiency_map`),
 which can be stored and used in successive simulations.
 
-The :class:`~exosim.tasks.task.Task` to use to laod the QE variation map should be indicated under the channel detector configuration using the `qe_map_task` keyword.
+The :class:`~exosim.tasks.task.Task` to use to load the QE variation map should be indicated under the channel detector configuration using the `qe_map_task` keyword.
 In the following we report the example using the default :class:`~exosim.tasks.subexposures.loadQeMap.LoadQeMap` task:
 
 .. code-block:: xml

@@ -90,7 +90,7 @@ Channel Pointing Jitter
 Once the instrument pointing jitter is computed, it is shared between all the channels.
 Because each channel has a different plate scale (see also :ref:`pointing`),
 we now need to rescale the pointing jitter to the channel pixel.
-This is handled by :class:`~exosim.tasks.subexposures.estimateChJitter.EstimateChJitter`,
+This is handled by :class:`~exosim.tasks.subexposures.estimate_ch_jitter.EstimateChJitter`,
 which computes the angle of view of each sub-pixel of the focal plane and convert the instrument pointing jitter,
 expressed as :math:`deg`, to units of sub-pixels.
 
@@ -121,7 +121,7 @@ Assuming the instrument jitter has been already computed, and the channels plate
         </readout>
     </channel>
 
-Than :class:`~exosim.tasks.subexposures.estimateChJitter.EstimateChJitter` can be run as
+Than :class:`~exosim.tasks.subexposures.estimate_ch_jitter.EstimateChJitter` can be run as
 
 .. code-block:: python
 

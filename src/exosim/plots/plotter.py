@@ -10,7 +10,7 @@ logger = logging.getLogger("exosim")
 def main() -> None:
     import argparse
 
-    parser = argparse.ArgumentParser(description="ExoSim {}".format(version))
+    parser = argparse.ArgumentParser(description=f"ExoSim {version}")
     parser.add_argument(
         "-i",
         "--input",
@@ -89,7 +89,7 @@ def main() -> None:
         scale = args.plot_scale
         focal_plane_plotter = plots.FocalPlanePlotter(input=args.input)
         focal_plane_plotter.plot_focal_plane(time_step=time, scale=scale)
-        fig_name = os.path.join(args.output, "focal_plane_{}.png".format(time))
+        fig_name = os.path.join(args.output, f"focal_plane_{time}.png")
         focal_plane_plotter.save_fig(fig_name)
 
         focal_plane_plotter.plot_efficiency()

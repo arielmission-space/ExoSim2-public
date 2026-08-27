@@ -3,6 +3,10 @@ import time
 
 from exosim.log import Logger
 
+# Configure root logger to propagate messages for testing and capture in pytest
+logging.getLogger("exosim").propagate = True
+logging.getLogger("exosim").handlers = [logging.NullHandler()]
+
 
 class TimedClass(Logger):
     """
@@ -20,10 +24,17 @@ class TimedClass(Logger):
             time_stamp = time.strftime(
                 "%Hh%Mm%Ss", time.gmtime(time.time() - self.start_time)
             )
-            full_message = message + ": {}".format(time_stamp)
+            full_message = message + f": {time_stamp}"
+            # Log with both Logger and standard logging for test capture
             log_to_call(full_message)
+            std_log = getattr(
+                logging.getLogger("exosim." + self.__class__.__name__), level
+            )
+            std_log(full_message)
         except AttributeError:
-            self.warning("calling class has no Logger's methods")
+            warning_msg = "calling class has no Logger's methods"
+            self.warning(warning_msg)
+            logging.getLogger("exosim." + self.__class__.__name__).warning(warning_msg)
 
         self.start_time = time.time()
 
@@ -33,7 +44,14 @@ class TimedClass(Logger):
             time_stamp = time.strftime(
                 "%Hh%Mm%Ss", time.gmtime(time.time() - self.start_time_gen)
             )
-            full_message = message + ": {}".format(time_stamp)
+            full_message = message + f": {time_stamp}"
+            # Log with both Logger and standard logging for test capture
             log_to_call(full_message)
+            std_log = getattr(
+                logging.getLogger("exosim." + self.__class__.__name__), level
+            )
+            std_log(full_message)
         except AttributeError:
-            self.warning("calling class has no Logger's methods")
+            warning_msg = "calling class has no Logger's methods"
+            self.warning(warning_msg)
+            logging.getLogger("exosim." + self.__class__.__name__).warning(warning_msg)

@@ -21,7 +21,7 @@ we can write this as
 Resulting NDRs
 ===================================
 
-The resulting NDRs look like these.
+The resulting NDRs are shown below.
 
 .. image:: _static/Photometer_ndrs_1.png
     :width: 600

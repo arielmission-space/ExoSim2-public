@@ -51,13 +51,18 @@ def find_rectangular_aperture(
     >>> from exosim.utils.aperture import find_rectangular_aperture
     >>> from exosim.utils.psf import create_psf
     >>>
-    >>> img = create_psf(1*u.um, (60,40), 6*u.um)
+    >>> img = create_psf(1 * u.um, (60, 40), 6 * u.um)
     >>> size, area, ene = find_rectangular_aperture(img, 0.85)
-    >>> positions = [(img.shape[1]//2,img.shape[0]//2)]
-    >>> aperture = photutils.aperture.RectangularAperture(positions, size[0], size[1])
+    >>> positions = [(img.shape[1] // 2, img.shape[0] // 2)]
+    >>> aperture = photutils.aperture.RectangularAperture(
+    ...     positions, size[0], size[1]
+    ... )
     >>>
     >>> plt.imshow(img)
-    >>> aperture.plot(color='r', lw=2,)
+    >>> aperture.plot(
+    ...     color="r",
+    ...     lw=2,
+    ... )
     >>> plt.show()
 
     .. plot:: mpl_examples/find_rectangular_aperture.py
@@ -74,8 +79,7 @@ def find_rectangular_aperture(
 
     def ene_fit(pos, center, ima, desired_ene):
         ene = ene_func(center, pos[0], pos[1], ima)
-        enec = np.abs(ene - desired_ene)
-        return enec
+        return np.abs(ene - desired_ene)
 
     start_h_ = start_h if start_h else 2.0
     start_w_ = start_w if start_w else 2.0
@@ -128,13 +132,18 @@ def find_elliptical_aperture(ima, desired_ene, center=None):
     >>> from exosim.utils.psf import find_elliptical_aperture
     >>> from exosim.utils.psf import create_psf
     >>>
-    >>> img = create_psf(1*u.um, (60,40), 6*u.um)
+    >>> img = create_psf(1 * u.um, (60, 40), 6 * u.um)
     >>> size, area, ene = find_elliptical_aperture(img, 0.85)
-    >>> positions = [(img.shape[1]//2,img.shape[0]//2)]
-    >>> aperture = photutils.aperture.EllipticalAperture(positions, size[0], size[1])
+    >>> positions = [(img.shape[1] // 2, img.shape[0] // 2)]
+    >>> aperture = photutils.aperture.EllipticalAperture(
+    ...     positions, size[0], size[1]
+    ... )
     >>>
     >>> plt.imshow(img)
-    >>> aperture.plot(color='r', lw=2,)
+    >>> aperture.plot(
+    ...     color="r",
+    ...     lw=2,
+    ... )
     >>> plt.show()
 
     .. plot:: mpl_examples/find_elliptical_aperture.py
@@ -151,8 +160,7 @@ def find_elliptical_aperture(ima, desired_ene, center=None):
 
     def ene_fit(pos, center, ima, desired_ene):
         ene = ene_func(center, pos[0], pos[1], ima)
-        enec = np.abs(ene - desired_ene)
-        return enec
+        return np.abs(ene - desired_ene)
 
     res = minimize(
         ene_fit,
@@ -210,8 +218,7 @@ def find_bin_aperture(ima, desired_ene, spatial_with, center=None):
     def ene_fit(pos, spatial_with, center, ima, desired_ene):
         h = pos[0]
         ene = ene_func(center, h, spatial_with, ima)
-        enec = np.abs(ene - desired_ene)
-        return enec
+        return np.abs(ene - desired_ene)
 
     res = minimize(
         ene_fit,

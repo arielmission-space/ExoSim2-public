@@ -13,14 +13,14 @@ Usage and Parameters
 --------------------
 
 To apply gain drift using the :class:`~exosim.tasks.detector.addGainDrift.AddGainDrift` task, the following parameters should be specified in the configuration file.
-Here we include also some example values.
+We also include some example values here.
 - ``gain_coeff_order_t``: Order of the polynomial used for the time-dependent trend.
 - ``gain_coeff_t_min`` and ``gain_coeff_t_max``: Minimum and maximum values for the randomly generated coefficients of the time-dependent polynomial trend.
 - ``gain_coeff_order_w``: Order of the polynomial used for the wavelength-dependent trend.
 - ``gain_coeff_w_min`` and ``gain_coeff_w_max``: Minimum and maximum values for the randomly generated coefficients of the wavelength-dependent polynomial trend.
 - ``gain_drift_amplitude``: gain drift desired maximum amplitude relative to the signal.
 
-These parameters control the characteristics of the gain noise, allowing for detailed modeling of the detector's response.
+These parameters control the characteristics of the gain noise, allowing for detailed modelling of the detector's response.
 
 .. code-block:: xml
 

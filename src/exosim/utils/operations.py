@@ -37,5 +37,4 @@ def operate_over_axis(
     axis_index = [np.newaxis] * matrix.ndim
     axis_index[axis] = slice(None)
     axis_index = tuple(axis_index)
-    matrix = ops[operation](matrix, vector[axis_index])
-    return matrix
+    return ops[operation](matrix, vector[axis_index])

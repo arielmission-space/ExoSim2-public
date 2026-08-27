@@ -4,15 +4,15 @@
 Analog to Digital conversion
 ===================================
 
-At this point the NDRs are stored as `float64`, however, we know that the detector output is reported in integers in :math:`adu` units.
-Here we simulate the Analog to Digital Converter (ADC) thanks to  :class:`~exosim.tasks.detector.analogToDigital.AnalogToDigital`,
+At this point the NDRs are stored as `float64`; however, we know that the detector output is reported in integers in :math:`adu` units.
+Here we simulate the Analog to Digital Converter (ADC) thanks to :class:`~exosim.tasks.detector.analogToDigital.AnalogToDigital`,
 which converts the :math:`counts` units of sub-exposures into :math:`adu` units of NDRs.
 This task needs two inputs from the channel configuration file:
 
 + the number of bits of the output integer (e.g. 16 bits)
 + ADC gain factor
 
-These can be injected as
+These can be set as
 
 .. code-block:: xml
 
@@ -26,13 +26,13 @@ These can be injected as
         <detector>
     </channel>
 
-To enable the conversion set `True` for the `ADC` keyword, as in the example.
+To enable the conversion, set `True` for the `ADC` keyword, as in the example.
 If `False`, this step will be skipped.
 
-In this example, we want the ADC to convert the NDRs into 16 bits unsigned integers.
+In this example, we want the ADC to convert the NDRs into 16-bit unsigned integers.
 Because integers can represent numbers up to a maximum value of :math:`2^{16} -1 = 65535`,
 we need a conversion factor to rescale our float NDRs to fit in the new data type range.
-This conversion factor is defined by `ADC_gain`, such that the float focal plane is multiplied by this gain (:math:`g_{ADC}`) before the conversion.
+This conversion factor is defined by `ADC_gain`, such that the floating-point focal plane is multiplied by this gain (:math:`g_{ADC}`) before the conversion.
 If this gain is not known, an estimate is provided by the :ref:`adc_gain` tool.
 
 .. math::
@@ -42,9 +42,9 @@ If this gain is not known, an estimate is provided by the :ref:`adc_gain` tool.
 Note that the offset is subtracted from the NDRs. All the resulting negative values are set to zero.
 The user can input any integer number of bits up to 32.
 The :class:`~exosim.tasks.detector.analogToDigital.AnalogToDigital` chooses the minimum Python
-data type to store the desired output to minimize the size of the output product and to be more representative of the expected result.
+data type to store the desired output to minimise the size of the output product and to be more representative of the expected result.
 
-`ADC_round_method` keyword indicates which method the ADC should use to cast the float into integers. Three options are available:
+The `ADC_round_method` keyword indicates which method the ADC should use to cast the floating-point values into integers. Three options are available:
 
 - `floor` which uses :func:`numpy.floor`;
 - `ceil` which uses :func:`numpy.ceil`;
@@ -55,7 +55,7 @@ The default is `floor`.
 Automatic ADC
 ---------------
 
-ExoSim can help you setting this values automatically as
+ExoSim can help you set these values automatically as
 
 .. code-block:: xml
 
@@ -68,7 +68,7 @@ ExoSim can help you setting this values automatically as
         <detector>
     </channel>
 
-With this configuration, ExoSim will compute the offset (:code:`<ADC_offset> auto </ADC_offset>`) as the minimum value in all the datacube, and the gain (:code:`<ADC_gain> auto </ADC_gain>`) as
+With this configuration, ExoSim will compute the offset (:code:`<ADC_offset> auto </ADC_offset>`) as the minimum value in the entire datacube, and the gain (:code:`<ADC_gain> auto </ADC_gain>`) as
 
 .. math::
 

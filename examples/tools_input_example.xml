@@ -1,5 +1,5 @@
 <root>
-    <ConfigPath>/home/lorenzo/git/Exosim2.0/examples
+    <ConfigPath>.
         <comment>Main directory for the configuration files</comment>
     </ConfigPath>
 
@@ -31,7 +31,7 @@
 
             <pnl_coeff_std> 0.005</pnl_coeff_std>
             <!-- To create a non linearity map of the detector, we randomize the coefficients.
-                This is the standard deviation of the randomization. It is realative to the coefficients.
+                This is the standard deviation of the randomization. It is relative to the coefficients.
                 if not specified, the standard deviation is set to 0.5% of the
                 mean value of the polynomial coefficients -->
         </detector>

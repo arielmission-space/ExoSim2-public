@@ -1,194 +1,172 @@
-# This code is inspired by the code devolped for TauREx 3.1.
-# Therefore, we attach here TauREx3.1 license:
-#
-# BSD 3-Clause License
-#
-# Copyright (c) 2019, Ahmed F. Al-Refaie, Quentin Changeat, Ingo Waldmann, Giovanna Tinetti
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice, this
-#    list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-#    this list of conditions and the following disclaimer in the documentation
-#    and/or other materials provided with the distribution.
-#
-# 3. Neither the names of the copyright holders nor the names of its
-#    contributors may be used to endorse or promote products derived from
-#    this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""
+ExoSim 2.0 Modern Structured Logging
+
+This module provides structured logging capabilities for ExoSim 2.0 using structlog.
+
+Key Features:
+- Structured JSON logs for production environments
+- Human-readable colored logs for development
+- Automatic context binding (class names, execution time, metadata)
+- Performance metrics and operation timing
+- Environment-based configuration
+
+Usage:
+    class MyTask(Task):
+        def execute(self):
+            # Context binding
+            logger = self.bind(instrument="ARIEL", simulation_id="sim_001")
+            logger.info("Simulation started")
+
+            # Performance timing
+            with self.time_operation("focal_plane_generation", channels=4):
+                # ... simulation logic ...
+                pass
+
+Environment Variables:
+    EXOSIM_LOG_LEVEL: Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    EXOSIM_DEV_MODE: Enable development mode with colors (true/false)
+    EXOSIM_JSON_LOGS: Enable JSON structured output (true/false)
+    EXOSIM_LOG_FILE: Path to log file for persistent logging
+"""
+
 import logging
+import os
+from pathlib import Path
 
-from exosim import __pkg_name__
+__pkg_name__ = "exosim"
 
-from .logger import Logger, generate_logger_name, traced
+# Import modern structured logging implementation
+from .logger import Logger
+from .structlog_config import (
+    ExoSimLogger,
+    configure_structlog,
+    disable_logging,
+    enable_logging,
+    with_logger,
+)
 
-# these are imported here because they are to be imported from the logger module
+# Auto-configure structured logging based on environment
+_log_level = os.environ.get("EXOSIM_LOG_LEVEL", "INFO")
+_development = os.environ.get("EXOSIM_DEV_MODE", "true").lower() == "true"
+_json_logs = os.environ.get("EXOSIM_JSON_LOGS", "false").lower() == "true"
+_log_file = os.environ.get("EXOSIM_LOG_FILE")
 
-last_log = logging.INFO
-
-
-# producing TRACE log
-
-logging.TRACE = 15
-logging.addLevelName(logging.TRACE, "TRACE")
-
-
-def trace(self, message: str, *args, **kws) -> None:
-    """
-    Log TRACE level.
-    Trace level log should be produced anytime a function or a method is entered and exited.
-    """
-    if self.isEnabledFor(logging.TRACE):
-        # Yes, logger takes its '*args' as 'args'.
-        self._log(logging.TRACE, message, args, **kws)
-
-
-logging.Logger.trace = trace
-
-logging.ANNOUNCE = 25
-logging.addLevelName(logging.ANNOUNCE, "ANNOUNCE")
-
-# producing ANNOUNCE log
+configure_structlog(
+    log_level=_log_level,
+    log_file=_log_file,
+    development=_development,
+    json_logs=_json_logs,
+)
 
 
-def announce(self, message, *args, **kws):
-    """
-    Log ANNOUNCE level.
-    This level log should be produced for huge announcements, as the starting of a long process.
-    """
-    if self.isEnabledFor(logging.ANNOUNCE):
-        # Yes, logger takes its '*args' as 'args'.
-        self._log(logging.ANNOUNCE, message, args, **kws)
-
-
-logging.Logger.announce = announce
-
-# producing GRAPHICS log
-
-logging.GRAPHICS = 24
-logging.addLevelName(logging.GRAPHICS, "GRAPHICS")
-
-
-def graphics(self, message, *args, **kws):
-    """
-    Log GRAPHICS level.
-    This level log should be produced for graphical reasons only."""
-    if self.isEnabledFor(logging.GRAPHICS):
-        # Yes, logger takes its '*args' as 'args'.
-        self._log(logging.GRAPHICS, message, args, **kws)
-
-
-logging.Logger.graphics = graphics
-
-
-def setLogLevel(level: int, log_id: int = 0) -> None:
-    """
-    Simple function to set the logger level
-
-    Parameters
-    ----------
-    level: logging level
-    log_id: int
-        this is the index of the handler to edit. The basic handler index is 0.
-        Every added handler is appended to the list. Default is 0.
-
-    """
-    global last_log
-    from .logger import root_logger
-
-    root_logger.handlers[log_id].setLevel(level)
-    last_log = level
-
-
-def disableLogging(log_id: int = 0) -> None:
-    """
-    It disables the logging setting the log level to ERROR.
-
-    Parameters
-    ----------
-    log_id: int
-        this is the index of the handler to edit. The basic handler index is 0.
-        Every added handler is appended to the list. Default is 0.
-
-    """
-    setLogLevel(logging.ERROR, log_id)
-
-
-def enableLogging(level: int = logging.INFO, log_id: int = 0) -> None:
-    """
-    It disables the logging setting the log level to ERROR.
-
-    Parameters
-    ----------
-    level: logging level
-        Default is logging.INFO.
-    log_id: int
-        this is the index of the handler to edit. The basic handler index is 0.
-        Every added handler is appended to the list. Default is 0.
-
-    """
-    global last_log
-    if last_log is None:
-        last_log = level
-    setLogLevel(level, log_id)
-
-
-def addHandler(handler: logging.Handler) -> None:
-    """
-    It adds a handler to the logging handlers list.
-
-    Parameters
-    ----------
-    handler: logging handler
-
-    """
-    from .logger import root_logger
-
-    root_logger.addHandler(handler)
-
-
-def addLogFile(
-    fname: str = "{}.log".format(__pkg_name__),
-    reset: bool = False,
-    level: int = logging.DEBUG,
+def configure_logging(
+    log_level: str = "INFO",
+    log_file: str | Path | None = None,
+    json_logs: bool = False,
+    development: bool = True,
 ) -> None:
     """
-    It adds a log file to the handlers list.
+    Configure ExoSim logging with modern structured capabilities.
 
     Parameters
     ----------
-    fname: str
-        name for the log file. Default is exosim.log.
-    reset: bool
-        it reset the log file if it exists already. Default is False.
-    level: logging level
-        Default is logging.INFO.
-    """
-    if reset:
-        import os
+    log_level : str
+        Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    log_file : Optional[Union[str, Path]]
+        Path to log file for persistent logging
+    json_logs : bool
+        Enable JSON structured log output
+    development : bool
+        Enable development-friendly formatting with colors
 
-        try:
-            os.remove(fname)
-        except OSError:
-            pass
-    file_handler = logging.FileHandler(fname)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    Examples
+    --------
+    # Development setup with colors
+    configure_logging("DEBUG", development=True)
+
+    # Production setup with JSON logs
+    configure_logging("INFO", "exosim.log", json_logs=True, development=False)
+    """
+    configure_structlog(
+        log_level=log_level,
+        log_file=log_file,
+        json_logs=json_logs,
+        development=development,
     )
-    file_handler.setFormatter(formatter)
-    file_handler.setLevel(level)
-    addHandler(file_handler)
+
+
+def set_log_level(
+    level: str | int,
+    log_id: int = 0,
+    logger_prefixes: list[str] | None = None,
+) -> None:
+    """
+    Set the logger level.
+
+    Parameters
+    ----------
+    level : Union[str, int]
+        Logging level ("DEBUG", "INFO", etc. or numeric value)
+    log_id : int
+        Handler index (ignored, for backward compatibility)
+    logger_prefixes : Optional[List[str]]
+        List of logger name prefixes to configure. If None, uses default ('exosim', 'arielrad').
+    """
+    # Import here to avoid circular imports
+    from .structlog_config import _set_log_level_internal
+
+    _set_log_level_internal(level, logger_prefixes)
+
+
+def add_log_file(
+    fname: str | Path,
+    reset: bool = False,
+    level: str | int | None = None,
+) -> None:
+    """
+    Add a log file handler to the logging system.
+
+    This is a backward-compatibility function that wraps the modern
+    configure_logging system.
+
+    Parameters
+    ----------
+    fname : Union[str, Path]
+        Path to the log file
+    reset : bool
+        If True, remove existing file handlers before adding new one
+    level : Optional[Union[str, int]]
+        Log level for the file handler (if None, uses current log level)
+    """
+    # Import here to avoid circular imports
+
+    if reset:
+        # Remove existing file handlers
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers[:]:
+            if isinstance(handler, logging.FileHandler):
+                root_logger.removeHandler(handler)
+                handler.close()
+
+    # Add new file handler using the internal function
+    from .structlog_config import _configure_file_logging
+
+    if level is None:
+        # Get current log level
+        root_logger = logging.getLogger()
+        level = root_logger.level
+
+    _configure_file_logging(fname, json_logs=False, level=level)
+
+
+# Export all public functions and classes (sorted alphabetically)
+__all__ = [
+    "ExoSimLogger",
+    "Logger",
+    "add_log_file",
+    "configure_logging",
+    "disable_logging",
+    "enable_logging",
+    "set_log_level",
+    "with_logger",
+]

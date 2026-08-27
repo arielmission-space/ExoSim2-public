@@ -17,7 +17,7 @@ This is the kTC noise and can be included in the simulation as
 
 or disabled by setting the `ktc_offset` keyword to `False`.
 
-By default, this :class:`~exosim.tasks.task.Task` used to add the reset bias is :class:`~exosim.tasks.detector.addKTC.AddKTC`,
+By default, the :class:`~exosim.tasks.task.Task` used to add the reset bias is :class:`~exosim.tasks.detector.addKTC.AddKTC`,
 which adds a random number of counts to each pixel of the same ramp, normally distributed according to the given mean and standard deviation:
 
 .. code-block:: xml

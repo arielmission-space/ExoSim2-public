@@ -19,8 +19,14 @@ def main():
     focal_plane_plotter = FocalPlanePlotter(input="./test_common.h5")
     focal_plane_plotter.plot_focal_plane(time_step=0, scale="linear")
     focal_plane_plotter.save_fig("plots/focal_plane.png")
-    focal_plane_plotter.plot_efficiency()
-    focal_plane_plotter.save_fig("plots/efficiency.png")
+
+    # Try to plot efficiency if data is available
+    try:
+        focal_plane_plotter.plot_efficiency()
+        focal_plane_plotter.save_fig("plots/efficiency.png")
+    except (TypeError, KeyError) as e:
+        print(f"Cannot plot efficiency: {e}")
+        print("This is expected for focal plane files without efficiency data.")
 
     # # run radiometric model
     recipes.RadiometricModel("main_example.xml", "./test_common.h5")

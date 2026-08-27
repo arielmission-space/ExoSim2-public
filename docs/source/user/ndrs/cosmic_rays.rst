@@ -4,7 +4,7 @@
 Cosmic Rays
 ===================================
 
-The :class:`~exosim.tasks.detector.addCosmicRays.AddCosmicRays` task is part of the Exosim simulation package.
+The :class:`~exosim.tasks.detector.addCosmicRays.AddCosmicRays` task is part of the ExoSim simulation package.
 It models the impact of cosmic rays on a detector during its exposure time.
 Cosmic rays are high-energy particles originating from space, which can introduce noise into the captured data.
 This class provides a simulation of this effect by adding cosmic ray events to the detector's sub-exposures.
@@ -44,7 +44,7 @@ These parameters should be specified in the configuration XML file as shown belo
         </detector>
     </channel>
 
-So the number of pixels hit by a cosmic ray during a sub-exposures is
+So the number of pixels hit by a cosmic ray during a sub-exposure is
 
 .. math::
 
@@ -56,7 +56,7 @@ Where
 - :math:`delta_{pix}` is the `delta_pix`;
 - :math:`N_{pix\, spatial}` is the `spatial_pix`;
 - :math:`N_{pix\, spectral}` is the `spectral_pix`;
-- :math:`t_{int}` is the sub-exposure integration times.
+- :math:`t_{int}` is the sub-exposure integration time.
 
 Then we can estimate how many of these events can saturate our pixel using the pixel saturation rate:
 
@@ -66,7 +66,7 @@ Then we can estimate how many of these events can saturate our pixel using the p
 where :math:`rate_{saturation}` is the `saturation_rate`.
 
 Then for each of these events, at least one pixel is saturated.
-If the `cosmic_rays_randomise` is set to `True`, the task randomise the number of hits following a Poisson distribution.
+If `cosmic_rays_randomise` is set to `True`, the task randomises the number of hits following a Poisson distribution.
 
 Interaction Shapes
 ------------------

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+from typing import TYPE_CHECKING
 
 import astropy.units as u
 import numpy as np
@@ -8,9 +9,11 @@ import numpy as np
 import exosim.log as log
 import exosim.utils.binning as binning
 import exosim.utils.checks as checks
-from exosim.models.utils.cachedData import CachedData
-from exosim.output.output import Output
-from exosim.utils.types import ArrayType, UnitType, ValueType
+from exosim.models.utils.cached_data import CachedData
+
+if TYPE_CHECKING:
+    from exosim.output.output import Output
+    from exosim.utils.types import ArrayType, UnitType, ValueType
 
 _invalid_units = "invalid units"
 
@@ -52,7 +55,7 @@ class Signal(log.Logger):
 
     Notes
     -----
-    To understand caching mode, please look to :class:`~exosim.models.utils.cachedData.CachedData`
+    To understand caching mode, please look to :class:`~exosim.models.utils.cached_data.CachedData`
     """
 
     def __init__(
@@ -62,12 +65,12 @@ class Signal(log.Logger):
         time: ArrayType = [0] * u.hr,
         data_units: UnitType = None,
         spatial: ArrayType = [0] * u.um,
-        shape: tuple[int, int, int] = None,
+        shape: tuple[int, int, int] | None = None,
         cached: bool = False,
-        output: str = None,
-        output_path: str = None,
-        dataset_name: str = None,
-        metadata: dict = None,
+        output: str | None = None,
+        output_path: str | None = None,
+        dataset_name: str | None = None,
+        metadata: dict | None = None,
         dtype: np.dtype = np.float64,
     ) -> None:
         """
@@ -76,7 +79,7 @@ class Signal(log.Logger):
         spectral: :class:`~numpy.ndarray` or :class:`~astropy.units.Quantity` (optional)
             wavelength grid. Must have a single axes. Default is [0] um.
             If the input data is a not :class:`~astropy.units.Quantity`, it's assumed to be expressed in microns,
-            otherwhise is converted into microns or pixels.
+            otherwise is converted into microns or pixels.
         data: :class:`~numpy.ndarray` or :class:`~astropy.units.Quantity`
             data table. It must have 3 axes: 0. time axis, 1. spatial axis, 2. spectral axis.
             If data is :class:`~astropy.units.Quantity`, data_units are parsed automatically.
@@ -96,7 +99,7 @@ class Signal(log.Logger):
         output: str or :class:`~exosim.output.hdf5.hdf5.HDF5Output` (optional)
             h5 file to use for caching. If `None` a temporary file will be generated. Default is `None`.
         output_path: str (optional)
-            path where to store the dataset inside the output file. Deafault is `None`.
+            path where to store the dataset inside the output file. Default is `None`.
         dataset_name: str (optional)
             name to use to store the Dataset into the h5 file named after 'output'. If `None` a random name will be generated. Default is `None`.
         metadata: dict (optional)
@@ -107,9 +110,7 @@ class Signal(log.Logger):
         """
         self.set_log_name()
         try:
-            self.spectral = checks.check_units(
-                spectral, "um", self, force=True
-            ).value
+            self.spectral = checks.check_units(spectral, "um", self, force=True).value
             self.spectral_units = self._normalize_units(u.um)
         except u.UnitConversionError:
             self.spectral = checks.check_units(spectral, "pix", self).value
@@ -119,9 +120,7 @@ class Signal(log.Logger):
         self.time_units = self._normalize_units(u.hr)
 
         try:
-            self.spatial = checks.check_units(
-                spatial, "um", self, force=True
-            ).value
+            self.spatial = checks.check_units(spatial, "um", self, force=True).value
             self.spatial_units = self._normalize_units(u.um)
         except u.UnitConversionError:
             self.spatial = checks.check_units(spatial, "pix", self).value
@@ -142,21 +141,19 @@ class Signal(log.Logger):
         else:
             self.data_units = self._normalize_units(u.Unit(""))
 
-        if cached:
+        if cached and output is not None:
             if shape is not None:
                 self._data = self._prepare_cached_dataset(
-                    fname=output,
+                    output_obj=output,
                     def_name=dataset_name,
                     data=data,
                     shape=shape,
                     dtype=dtype,
                 )
             elif data is not None:
-                data = checks.check_units(
-                    data, self.data_units, self, force=True
-                ).value
+                data = checks.check_units(data, self.data_units, self, force=True).value
                 self._data = self._prepare_cached_dataset(
-                    fname=output,
+                    output_obj=output,
                     def_name=dataset_name,
                     data=data,
                     shape=data.shape,
@@ -164,16 +161,23 @@ class Signal(log.Logger):
                 )
         else:
             self._data = self._check_data_size(data)
-            self._data = checks.check_units(
-                self._data, self.data_units, self, force=True
-            ).value
+            if self._data is not None:
+                self._data = checks.check_units(
+                    self._data, self.data_units, self, force=True
+                ).value
         if metadata:
             self.metadata = metadata
         else:
             self.metadata = {}
 
-        self.data = self._data.chunked_dataset[:] if cached else self._data
-        self.dataset = self._data.chunked_dataset if cached else None
+        self.data = (
+            self._data.chunked_dataset[:]
+            if (cached and output is not None)
+            else self._data
+        )
+        self.dataset = (
+            self._data.chunked_dataset if (cached and output is not None) else None
+        )
 
     def to(self, units: u.Unit) -> None:
         """
@@ -191,36 +195,38 @@ class Signal(log.Logger):
         >>> from exosim.models.signal import Signal
         >>> wl = np.linspace(0.1, 1, 10) * u.m
         >>> time_grid = np.linspace(1, 5, 10) * u.s
-        >>> data = np.random.random_sample((10, 1, 10))*u.m**2
+        >>> data = np.random.random_sample((10, 1, 10)) * u.m**2
         >>> signal = Signal(spectral=wl, data=data, time=time_grid)
         >>> signal.to(u.cm**2)
         """
 
         self.data *= self.data_units.to(units)
-        self.debug("converted data: {}".format(self.data))
+        self.debug(f"converted data: {self.data}")
         self.data_units = units
 
     def _check_data_size(self, data: ArrayType) -> ArrayType:
+        if data is None:
+            return data
         while data.ndim < 3:
             data = np.expand_dims(data, axis=0)
         return data
 
     def _prepare_cached_dataset(
         self,
-        fname: str,
+        output_obj,
         def_name: str,
         data: ArrayType,
         shape: tuple[int, int, int],
         dtype,
-    ) -> CachedData:  # type: ignore # noqa: F821
+    ) -> CachedData:  # type: ignore
         """
-        If cached option is enable, this function initializes a :class:`~exosim.modules.utils.cachedData.CachedData` class.
+        If cached option is enable, this function initializes a :class:`~exosim.modules.utils.cached_data.CachedData` class.
         """
         cached_data = CachedData(
             axis0=shape[0],
             axis1=shape[1],
             axis2=shape[2],
-            output=fname,
+            output=output_obj,
             output_path=self.output_path,
             dataset_name=def_name,
             dtype=dtype,
@@ -230,10 +236,57 @@ class Signal(log.Logger):
 
         return cached_data
 
-    @staticmethod
-    def _normalize_units(unit: u.Unit) -> u.Unit:
-        """Normalize units to a canonical form for consistent comparison."""
-        return u.Unit(unit.to_string(format="console"))
+    def _normalize_units(self, unit):
+        """
+        Normalize units to ensure consistency across operations.
+
+        This method handles problematic unit representations, particularly
+        fractional powers that may not round-trip through string conversion.
+
+        Parameters
+        ----------
+        unit : astropy.units.Unit or astropy.units.Quantity.unit
+            The unit to normalize
+
+        Returns
+        -------
+        astropy.units.Unit
+            The normalized unit
+        """
+        if unit is None:
+            return u.dimensionless_unscaled
+
+        # Special handling for known problematic units
+        unit_str = unit.to_string(format="console")
+
+        # Map of problematic unit strings to their proper representations
+        unit_fixes = {
+            "h^1/2": u.hr ** (0.5),
+            "h^0.5": u.hr ** (0.5),
+            "s^1/2": u.s ** (0.5),
+            "s^0.5": u.s ** (0.5),
+            "m^1/2": u.m ** (0.5),
+            "m^0.5": u.m ** (0.5),
+        }
+
+        # Check if we have a known problematic unit
+        if unit_str in unit_fixes:
+            return unit_fixes[unit_str]
+
+        # Try different string formats
+        formats_to_try = ["console", "generic", "latex", "unicode"]
+
+        for fmt in formats_to_try:
+            try:
+                test_str = unit.to_string(format=fmt)
+                return u.Unit(test_str)
+            except (ValueError, TypeError):
+                continue
+
+        # If all string conversions fail, return the original unit object
+        # This preserves functionality even if serialization is problematic
+        self.debug(f"Could not normalize unit '{unit}', using original unit object")
+        return unit
 
     def spectral_rebin(
         self, new_wavelength: ArrayType, fill_value: ValueType = 0.0, **kwargs
@@ -247,7 +300,7 @@ class Signal(log.Logger):
         new_wavelength: :class:`~numpy.ndarray` or :class:`~astropy.units.Quantity`
             new wavelength grid. If no units are attached is considered expressed in 'um'
         fill_value: float or :class:`~astropy.units.Quantity`
-            filla value for empry bins. If no units are attached is considered expressed in 'um'.
+            fills value for empty bins. If no units are attached is considered expressed in 'um'.
 
         Examples
         ----------
@@ -260,7 +313,9 @@ class Signal(log.Logger):
         >>> wavelength = np.linspace(0.1, 1, 10) * u.um
         >>> data = np.ones((10, 1, 10))
         >>> time_grid = np.linspace(1, 5, 10) * u.hr
-        >>> signal = Signal(spectral=wavelength, data=data, time=time_grid)
+        >>> signal = Signal(
+        ...     spectral=wavelength, data=data, time=time_grid
+        ... )
         >>> print(signal.data.shape)
         (10,1,10)
 
@@ -273,7 +328,9 @@ class Signal(log.Logger):
 
         We now bin down the to a new wavelength grid:
 
-        >>> signal = Signal(spectral=wavelength, data=data, time=time_grid)
+        >>> signal = Signal(
+        ...     spectral=wavelength, data=data, time=time_grid
+        ... )
         >>> new_wl = np.linspace(0.1, 1, 5) * u.um
         >>> signal.spectral_rebin(new_wl)
         >>> print(signal.data.shape)
@@ -319,7 +376,9 @@ class Signal(log.Logger):
         >>> wavelength = np.linspace(0.1, 1, 10) * u.um
         >>> data = np.ones((10, 1, 10))
         >>> time_grid = np.linspace(1, 5, 10) * u.hr
-        >>> signal = Signal(spectral=wavelength, data=data, time=time_grid)
+        >>> signal = Signal(
+        ...     spectral=wavelength, data=data, time=time_grid
+        ... )
         >>> print(signal.data.shape)
         (10,1,10)
 
@@ -332,7 +391,9 @@ class Signal(log.Logger):
 
         We now bin down the to a new wavelength grid:
 
-        >>> signal = Signal(spectral=wavelength, data=data, time=time_grid)
+        >>> signal = Signal(
+        ...     spectral=wavelength, data=data, time=time_grid
+        ... )
         >>> new_time = np.linspace(1, 5, 5) * u.hr
         >>> signal.temporal_rebin(new_time)
         >>> print(signal.data.shape)
@@ -363,7 +424,7 @@ class Signal(log.Logger):
         self.time = new_time_
 
     # TODO if cached just rename or move. Do not write it again!
-    def write(self, output: Output = None, name: str = None) -> None:
+    def write(self, output: Output | None = None, name: str | None = None) -> None:
         """
         It writes the Signal class into an :class:`~exosim.output.output.Output`.
         The signal class is stored as a dictionary.
@@ -387,12 +448,14 @@ class Signal(log.Logger):
         >>> wavelength = np.linspace(0.1, 1, 10) * u.um
         >>> data = np.ones((10, 1, 10))
         >>> time_grid = np.linspace(1, 5, 10) * u.hr
-        >>> signal = Signal(spectral=wavelength, data=data, time=time_grid)
+        >>> signal = Signal(
+        ...     spectral=wavelength, data=data, time=time_grid
+        ... )
 
         Then we store it in a test output HDF5 file
 
         >>> from exosim.output.hdf5.hdf5 import HDF5Output
-        >>> output = os.path.join(test_dir, 'output_test.h5')
+        >>> output = os.path.join(test_dir, "output_test.h5")
         >>> with HDF5Output(output) as o:
         >>>     signal.write(o, 'test_signal')
 
@@ -414,7 +477,7 @@ class Signal(log.Logger):
             to_store.pop("data", None)
         to_store["datatype"] = str(self.__class__)
         output.store_dictionary(to_store, group_name=name)
-        self.debug("{} saved".format(name))
+        self.debug(f"{name} saved")
 
     def _find_slice(
         self, start_time: ValueType, end_time: ValueType
@@ -432,11 +495,9 @@ class Signal(log.Logger):
         stop = np.argmin(np.abs(self.time - end_time.value))
         return start, stop
 
-    def get_slice(
-        self, start_time: ValueType, end_time: ValueType
-    ) -> np.ndarray:
+    def get_slice(self, start_time: ValueType, end_time: ValueType) -> np.ndarray:
         """
-        It returnes the data relative to a time slice:
+        It returns the data relative to a time slice:
 
         Parameters
         ----------
@@ -476,7 +537,7 @@ class Signal(log.Logger):
         # else:
         self.data[start:end, :, :] = data
 
-    # Here we define the class iterators. These are usefull to write data
+    # Here we define the class iterators. These are useful to write data
 
     def __iter__(self):
         for a in ["data", "time", "spectral", "spatial", "metadata", "cached"]:
@@ -515,22 +576,21 @@ class Signal(log.Logger):
         """extracts value and units from the other element"""
         if hasattr(other, "unit"):
             return other.value, other.unit
-        elif hasattr(other, "data_units"):
+        if hasattr(other, "data_units"):
             return other.data, other.data_units
-        else:
-            units = u.Unit("")
-            val = other
-            return val, units
+        units = u.Unit("")
+        val = other
+        return val, units
 
     def _create_new_instance(
         self,
-        unit: UnitType = None,
-        cached: bool = None,
-        shape: tuple[int, int, int] = None,
+        unit: UnitType | None = None,
+        cached: bool | None = None,
+        shape: tuple[int, int, int] | None = None,
         output: str | Output = None,
-        output_path: str = None,
-        metadata: dict = None,
-        dataset_name: str = None,
+        output_path: str | None = None,
+        metadata: dict | None = None,
+        dataset_name: str | None = None,
     ) -> Signal:
         # check if overwrite data
         if not cached:
@@ -590,7 +650,7 @@ class Signal(log.Logger):
         Parameters
         ----------
         kwargs: dict
-            Dictionary of parameters to overwrite. The paramaters that can be included in the list are `cached`, `metadata`, `dataset_name`, 'output`, `output_path`.
+            Dictionary of parameters to overwrite. The parameters that can be included in the list are `cached`, `metadata`, `dataset_name`, 'output`, `output_path`.
 
         Returns
         -------
@@ -615,7 +675,7 @@ class Signal(log.Logger):
         val = self._check_other_val_sum(other)
         out_class = self._create_new_instance()
         out_class.data = self.data + val
-        if isinstance(out_class.data, CachedData):  # type: ignore # noqa: F821
+        if isinstance(out_class.data, CachedData):  # type: ignore
             out_class.cached = True
         return out_class
 
@@ -626,7 +686,7 @@ class Signal(log.Logger):
         val = self._check_other_val_sum(other)
         out_class = self._create_new_instance()
         out_class.data = self.data - val
-        if isinstance(out_class.data, CachedData):  # type: ignore # noqa: F821
+        if isinstance(out_class.data, CachedData):  # type: ignore
             out_class.cached = True
         return out_class
 
@@ -688,7 +748,6 @@ class Sed(Signal):
         data: ArrayType = None,
         time: ArrayType = [0] * u.hr,
         spatial: ArrayType = [0] * u.um,
-        *args,
         **kwargs,
     ) -> None:
         self.set_log_name()
@@ -700,7 +759,7 @@ class Sed(Signal):
                 data = data.to(u.W / u.m**2 / u.um)
             except u.UnitConversionError:
                 self.error(_invalid_units)
-                raise u.UnitsError(_invalid_units)
+                raise u.UnitsError(_invalid_units) from None
         kwargs.pop("data_units", None)
 
         super().__init__(
@@ -709,7 +768,6 @@ class Sed(Signal):
             time,
             data_units=u.W / u.m**2 / u.um,
             spatial=spatial,
-            *args,
             **kwargs,
         )
 
@@ -725,7 +783,6 @@ class Radiance(Signal):
         data: ArrayType = None,
         time: ArrayType = [0] * u.hr,
         spatial: ArrayType = [0] * u.um,
-        *args,
         **kwargs,
     ) -> None:
         self.set_log_name()
@@ -737,7 +794,7 @@ class Radiance(Signal):
                 data = data.to(u.W / u.m**2 / u.um / u.sr)
             except u.UnitConversionError:
                 self.error(_invalid_units)
-                raise u.UnitsError(_invalid_units)
+                raise u.UnitsError(_invalid_units) from None
         kwargs.pop("data_units", None)
 
         super().__init__(
@@ -746,7 +803,6 @@ class Radiance(Signal):
             time,
             data_units=u.W / u.m**2 / u.um / u.sr,
             spatial=spatial,
-            *args,
             **kwargs,
         )
 
@@ -762,7 +818,6 @@ class CountsPerSecond(Signal):
         data: ArrayType = None,
         time: ArrayType = [0] * u.hr,
         spatial: ArrayType = [0] * u.um,
-        *args,
         **kwargs,
     ) -> None:
         self.set_log_name()
@@ -774,7 +829,7 @@ class CountsPerSecond(Signal):
                 data = data.to(u.ct / u.s)
             except u.UnitConversionError:
                 self.error(_invalid_units)
-                raise u.UnitsError(_invalid_units)
+                raise u.UnitsError(_invalid_units) from None
         kwargs.pop("data_units", None)
 
         super().__init__(
@@ -783,7 +838,6 @@ class CountsPerSecond(Signal):
             time,
             data_units=u.ct / u.s,
             spatial=spatial,
-            *args,
             **kwargs,
         )
 
@@ -799,7 +853,6 @@ class Counts(Signal):
         data: ArrayType = None,
         time: ArrayType = [0] * u.hr,
         spatial: ArrayType = [0] * u.um,
-        *args,
         **kwargs,
     ) -> None:
         self.set_log_name()
@@ -811,7 +864,7 @@ class Counts(Signal):
                 data = data.to(u.ct)
             except u.UnitConversionError:
                 self.error(_invalid_units)
-                raise u.UnitsError(_invalid_units)
+                raise u.UnitsError(_invalid_units) from None
         kwargs.pop("data_units", None)
 
         super().__init__(
@@ -820,7 +873,6 @@ class Counts(Signal):
             time,
             data_units=u.ct,
             spatial=spatial,
-            *args,
             **kwargs,
         )
 
@@ -836,7 +888,6 @@ class Adu(Signal):
         data: ArrayType = None,
         time: ArrayType = [0] * u.hr,
         spatial: ArrayType = [0] * u.um,
-        *args,
         **kwargs,
     ) -> None:
         self.set_log_name()
@@ -848,7 +899,7 @@ class Adu(Signal):
                 data = data.to(u.adu)
             except u.UnitConversionError:
                 self.error(_invalid_units)
-                raise u.UnitsError(_invalid_units)
+                raise u.UnitsError(_invalid_units) from None
         kwargs.pop("data_units", None)
 
         super().__init__(
@@ -857,7 +908,6 @@ class Adu(Signal):
             time,
             data_units=u.adu,
             spatial=spatial,
-            *args,
             **kwargs,
         )
 
@@ -873,7 +923,6 @@ class Dimensionless(Signal):
         data: ArrayType = None,
         time: ArrayType = [0] * u.hr,
         spatial: ArrayType = [0] * u.um,
-        *args,
         **kwargs,
     ) -> None:
         self.set_log_name()
@@ -884,6 +933,4 @@ class Dimensionless(Signal):
             data.to(u.Unit(""))
         kwargs.pop("data_units", None)
 
-        super().__init__(
-            spectral, data, time, u.Unit(""), spatial=spatial, *args, **kwargs
-        )
+        super().__init__(spectral, data, time, u.Unit(""), spatial=spatial, **kwargs)

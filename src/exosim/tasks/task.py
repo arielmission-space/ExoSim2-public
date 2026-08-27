@@ -1,7 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from typing import Any
 
-import exosim.log as log
 from exosim.utils.timed_class import TimedClass
 
 
@@ -18,12 +17,14 @@ class Task(TimedClass):
     _task_input = None
     _task_params = None
 
-    @abstractmethod
     def __init__(self):
         """
         Class initialisation, needed to prepare the task inputs reader
         """
-        pass
+        super().__init__()
+        self._output = None
+        self._task_input = None
+        self._task_params = None
 
     @abstractmethod
     def execute(self) -> None:
@@ -31,7 +32,6 @@ class Task(TimedClass):
         Class execution. It runs on call and executes all the task actions returning the outputs.
         It requires the input with correct keywords
         """
-        pass
 
     def __call__(self, **kwargs):
         self.set_log_name()
@@ -44,14 +44,14 @@ class Task(TimedClass):
         return self.get_output()
 
     def _validate_input_params(self) -> None:
-        for key in self._task_input.keys():
-            if key not in self._task_params.keys():
-                self.error("Unexpected Task input parameter: {}".format(key))
-                raise ValueError
+        for key in self._task_input:
+            if key not in self._task_params:
+                self.error(f"Unexpected Task input parameter: {key}")
+                raise ValueError(f"{key} is not a valid parameter")
 
     def _populate_empty_param(self) -> None:
-        for key in self._task_params.keys():
-            if key not in self._task_input.keys():
+        for key in self._task_params:
+            if key not in self._task_input:
                 self._task_input[key] = self._task_params[key]["default"]
 
     def get_output(self) -> Any:

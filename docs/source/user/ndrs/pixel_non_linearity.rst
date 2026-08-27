@@ -23,9 +23,8 @@ where :math:`Q_{det}` is the charge read by the detector, and :math:`Q` is the i
 as :math:`Q = \phi_t`, with :math:`\phi` being the number of electrons generated and :math:`t` being the elapsed time.
 
 To implement this non-linearity, the :class:`~exosim.tasks.detector.applyPixelsNonLinearity.ApplyPixelsNonLinearity` task is used.
-This Task needs as input a map of the coefficients of the polynomial for each pixel.
 The task requires a map of polynomial coefficients for each pixel.
-You can load this map using the :class:`~exosim.tasks.detector.loadPixelsNonLinearityMap.LoadPixelsNonLinearityMap` task and specify the file in your configuration..
+You can load this map using the :class:`~exosim.tasks.detector.loadPixelsNonLinearityMap.LoadPixelsNonLinearityMap` task and specify the file in your configuration.
 
 As usual, the user can replace the default Task with a custom one.
 In this example, we use the `pnl_map.h5` file which is produced using one of the methods described in :ref:`pixel_non_linearity`.
@@ -41,7 +40,7 @@ In this example, we use the `pnl_map.h5` file which is produced using one of the
         <detector>
     </channel>
 
-Alternatively, the coefficients map can be provided as a numpy array (see `numpy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_),
+Alternatively, the coefficients map can be provided as a NumPy array (see `NumPy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_),
 and loaded using :class:`~exosim.tasks.detector.loadPixelsNonLinearityMapNumpy.LoadPixelsNonLinearityMapNumpy`:
 
 .. code-block:: xml
@@ -59,7 +58,7 @@ and loaded using :class:`~exosim.tasks.detector.loadPixelsNonLinearityMapNumpy.L
 Saturation
 =====================
 
-After undergoing non-linear adjustments, a pixel may reach its saturation point, or "full well capacity."
+After undergoing non-linear adjustments, a pixel may reach its saturation point, or "full well capacity".
 The :class:`~exosim.tasks.detector.applySimpleSaturation.ApplySimpleSaturation` handles pixel saturation.
 It sets the value of each pixel exceeding the full well capacity to the maximum allowable counts.
 

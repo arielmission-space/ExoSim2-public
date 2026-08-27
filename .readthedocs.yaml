@@ -9,12 +9,13 @@ build:
   tools:
     python: "3.12"
   jobs:
-    post_create_environment:
-      # Install poetry
-      - pip install poetry
+    post_checkout:
+      # setuptools-scm needs the tags (and full history) to resolve the version;
+      # Read the Docs checks out a shallow clone by default.
+      - git fetch --tags --unshallow || git fetch --tags || true
     post_install:
-      # Install dependencies with dev group (includes docs)
-      - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --with dev
+      # Install all needed extras including docs (which contains sphinx-design)
+      - pip install -e ".[dev,docs]"
 
 sphinx:
   configuration: docs/source/conf.py

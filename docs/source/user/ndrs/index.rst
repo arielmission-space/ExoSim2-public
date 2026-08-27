@@ -6,20 +6,20 @@ NDRS
 
 Finally, we can produce the NDRs.
 
-The steps flow is summarised in the following figure.
-The Tasks are divided here into blocks to help the reader.
+The step flow is summarised in the following figure.
+The tasks are divided here into blocks to help the reader.
 
 
 .. image:: _static/ndrs.png
     :align: center
 
-In the following, we discuss each step, one per time.
+In the following, we discuss each step one at a time.
 
 .. note::
     Be careful. All of these actions operate on cached data.
     The result of each step is not a new dataset, but the input one with overwritten values.
 
-The NDRs creation is automatized by a recipe: :class:`~exosim.recipes.createNDRs.CreateNDRs`.
+The NDRs creation is automated by a recipe: :class:`~exosim.recipes.createNDRs.CreateNDRs`.
 
 
 `ExoSim` also includes a dedicated Plotter, called :class:`~exosim.plots.ndrsPlotter.NDRsPlotter`,

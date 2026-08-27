@@ -4,7 +4,7 @@
 Accumulate NDRs
 ===================================
 
-So far we have worked with sub-exposures. Each sub-exposures collects the signal incoming after the end of the collection of the previous sub-exposure,
+So far we have worked with sub-exposures. Each sub-exposure collects the signal arriving after the previous sub-exposure has finished collecting,
 as indicated in the following figure from :ref:`sub-exposures creation`:
 
 .. image:: ../sub-exposures/_static/reding_ramp_se_explained.png
@@ -12,8 +12,8 @@ as indicated in the following figure from :ref:`sub-exposures creation`:
     :align: center
 
 Now we want to accumulate the subsequent sub-exposures of the same exposure, building the ramp.
-This means that, starting from the first sub-exposure of the ramp, all the successive are equal of themselves plus the previous one.
-If an exposure is made of :math:`N` sub-exposure, we have
+This means that, starting from the first sub-exposure of the ramp, all successive sub-exposures equal themselves plus the previous one.
+If an exposure is made of :math:`N` sub-exposures, we have
 
 .. math::
 

@@ -17,9 +17,9 @@ In the following example we simulate HD 209458:
 .. code-block:: xml
 
         <source> HD 209458
-        <source>
+        </source>
 
-This file will be parsed by :class:`~exosim.tasks.load.loadOptions.LoadOptions` into a dictionary,
+This file will be parsed by :class:`~exosim.tasks.load.load_options.LoadOptions` into a dictionary,
 and the star name is stored under the keyword `value`.
 
 .. code-block:: python
@@ -28,9 +28,9 @@ and the star name is stored under the keyword `value`.
     options = loadOptions(filename = 'path/to/file.xml')
     options['value'] = 'HD 209458'
 
-The dictionary is then feeded to the :class:`~exosim.tasks.parse.parseSource.ParseSource` task, that returs the source :class:`~exosim.models.signal.Sed`.
+The dictionary is then fed to the :class:`~exosim.tasks.parse.parseSource.ParseSource` task, which returns the source :class:`~exosim.models.signal.Sed`.
 
-ExoSim supports three different sources type:
+ExoSim supports three different source types:
 
 + :ref:`planck`
 + :ref:`phoenix`
@@ -50,7 +50,7 @@ According to the indicated type, :class:`~exosim.tasks.parse.parseSource.ParseSo
 
 Planck star
 ^^^^^^^^^^^^^^
-If `planck` star is used, then other information are needed to simulate the source:
+If `planck` star is used, then other information is needed to simulate the source:
 
 .. code-block:: xml
 
@@ -61,12 +61,12 @@ If `planck` star is used, then other information are needed to simulate the sour
             <D unit="pc"> 47 </D>
         </source>
 
-The planck star sed is created by :class:`~exosim.tasks.sed.createPlanckStar.CreatePlanckStar`:
+The Planck star SED is created by :class:`~exosim.tasks.sed.createPlanckStar.CreatePlanckStar`:
 
 The star emission is simulated by :class:`astropy.modeling.physical_models.BlackBody`.
-The resulting sed is then converted into :math:`W/m^2/sr/\mu m` and scaled by the solid angle :math:`\pi \left( \frac{R}{D} \right)^2`.
+The resulting SED is then converted into :math:`W/m^2/sr/\mu m` and scaled by the solid angle :math:`\pi \left( \frac{R}{D} \right)^2`.
 
-Here we report and example:
+Here we report an example:
 
 .. code-block:: python
 
@@ -106,7 +106,7 @@ In this case we can either point to a specific Phoenix file using the `filename`
             <D unit="pc"> 47 </D>
         </source>
 
-or we can point `ExoSim` to a path containing all the Phoenix spectra and provide it with all the information to select the best spectra to use:
+or we can point `ExoSim` to a path containing all the Phoenix spectra and provide it with all the information needed to select the best spectrum to use:
 
 .. code-block:: xml
 
@@ -121,7 +121,61 @@ or we can point `ExoSim` to a path containing all the Phoenix spectra and provid
             <z unit=""> 0.0 </z>
         </source>
 
-The Phoenix star sed is created by :class:`~exosim.tasks.sed.loadPhoenix.LoadPhoenix`: the Phoenix sed has units of :math:`W/m^2/\mu m` and is scaled by :math:`\left( \frac{R}{D} \right)^2`.
+The Phoenix star SED is created by :class:`~exosim.tasks.sed.loadPhoenix.LoadPhoenix`: the Phoenix SED has units of :math:`W/m^2/\mu m` and is scaled by :math:`\left( \frac{R}{D} \right)^2`.
+
+.. _download_sed:
+
+Download SED (online)
+^^^^^^^^^^^^^^^^^^^^^^
+
+The :class:`~exosim.tasks.sed.download_sed.DownloadSed` task fetches stellar
+SEDs from online model repositories. It supports two backends:
+
+- **Göttingen PHOENIX-ACES**: high-resolution FITS files served by the
+    Göttingen server (use ``model_name='phoenix-aces'``).
+- **SVO models**: the Spanish Virtual Observatory provides a range of pre-
+    computed model grids (e.g. ``bt-settl``, ``bt-settl-cifist``).
+
+By default the task uses the SVO BT-Settl CIFIST models (``bt-settl-cifist``).
+Files are downloaded via :func:`astropy.utils.data.download_file` and are
+cached in the Astropy download cache, so repeated calls avoid re-downloading
+identical files. The task logs the URL of the file being downloaded (info)
+and additional selection details in debug mode.
+
+Example
+-------
+
+.. code-block:: python
+
+        from exosim.tasks.sed import DownloadSed
+        import astropy.units as u
+
+        downloader = DownloadSed()
+        sed = downloader(
+                T=3016 * u.K,
+                R=0.218 * u.R_sun,
+                D=12.975 * u.pc,
+                logg=4.5,
+                model_name='bt-settl-cifist',
+        )
+
+Use the ``model_name`` parameter to select a different backend or SVO grid.
+
+.. note::
+
+    You can retrieve the list of models available on the Spanish Virtual
+    Observatory dynamically using :func:`get_svo_models`::
+
+        >>> from exosim.tasks.sed.download_sed import get_svo_models
+        >>> get_svo_models()
+
+    Or from the shell (prints one model per line)::
+
+        python -c "from exosim.tasks.sed.download_sed import get_svo_models; print('\n'.join(get_svo_models()))"
+
+    The ``DownloadSed`` task will attempt an SVO lookup for any ``model_name``
+    that is not ``phoenix-aces``; if the requested model is not present on
+    SVO a ``ValueError`` is raised explaining how to list available models.
 
 
 .. _custom:
@@ -129,7 +183,7 @@ The Phoenix star sed is created by :class:`~exosim.tasks.sed.loadPhoenix.LoadPho
 Custom star
 ^^^^^^^^^^^^^
 If `custom` is indicated, then `ExoSim` will either look for a custom :class:`~exosim.tasks.task.Task` (see :ref:`Custom Tasks`), if `source_task` is present in the configuration file, or by default it uses :class:`~exosim.tasks.sed.loadCustom.LoadCustom`.
-The :class:`~exosim.tasks.task.Task` loads a custom SED from a file and scaled it by the solid angle :math:`\pi \left( \frac{R}{D} \right)^2`.
+The :class:`~exosim.tasks.task.Task` loads a custom SED from a file and scales it by the solid angle :math:`\pi \left( \frac{R}{D} \right)^2`.
 
 The default :class:`~exosim.tasks.sed.loadCustom.LoadCustom` needs a filename containing the :class:`~exosim.models.signal.Sed` to use.
 
@@ -143,12 +197,12 @@ The default :class:`~exosim.tasks.sed.loadCustom.LoadCustom` needs a filename co
             <D unit="pc"> 47 </D>
         </source>
 
-The custom sed file must be a `.ecsv` file with two columns: `Wavelength` and `Sed`, where the sed has units of :math:`W/m^2/sr/\mu m`.
+The custom SED file must be a `.ecsv` file with two columns: `Wavelength` and `Sed`, where the SED has units of :math:`W/m^2/sr/\mu m`.
 
 
 
 .. note::
-    Depending on the computing power available, the user can decide to use a different number of wavelength and temporal points to simulate the source, incrementing the simulation accuracy.
+Depending on the computing power available, the user can decide to use a different number of wavelength and temporal points to simulate the source, increasing the simulation accuracy.
 
 
 .. _sed_units_note:
@@ -168,7 +222,7 @@ Load star parameters from online databases
 `ExoSim` can load star parameters from online databases.
 At the moment only exodb_ is supported.
 
-In this case, instead of the stellar parameter, the online database must be indicated:
+In this case, instead of the stellar parameters, the online database must be indicated:
 
 .. code-block:: xml
 
@@ -185,12 +239,12 @@ In this case, instead of the stellar parameter, the online database must be indi
 
 Create your own source
 ^^^^^^^^^^^^^^^^^^^^^^^
-Otherwise, in `Exosim` you can create your own source by using a customizable :class:`~exosim.tasks.task.Task`.
+Otherwise, in `ExoSim` you can create your own source by using a customizable :class:`~exosim.tasks.task.Task`.
 To learn more about customizing tasks, please refer to :ref:`Custom Tasks`.
 To create a custom source, use :class:`~exosim.tasks.sed.createCustomSource.CreateCustomSource`.
 
 As an example, we report here the default :class:`~exosim.tasks.sed.createCustomSource.CreateCustomSource` task.
-To enable it, write the following in your xml file:
+To enable it, write the following in your `.xml` file:
 
 .. code-block:: xml
 
@@ -204,9 +258,9 @@ To enable it, write the following in your xml file:
         <n_points >1000</n_points>
     </source>
 
-The `source_task` keyword will guide the code to the :class:`~exosim.tasks.task.Task` to use. In this case is the default tasks.
+The `source_task` keyword will guide the code to the :class:`~exosim.tasks.task.Task` to use. In this case it is the default task.
 If you write your own version, please write there the file containing your script.
-The default :class:`~exosim.tasks.sed.createCustomSource.CreateCustomSource` task will simply create a planck star using the input parameters.
+The default :class:`~exosim.tasks.sed.createCustomSource.CreateCustomSource` task will simply create a Planck star using the input parameters.
 
 Outputs: prepare the sources
 -------------------------------
@@ -214,8 +268,8 @@ Outputs: prepare the sources
 Single source
 ^^^^^^^^^^^^^^
 
-As mentioned, the `.xml` file parsed by :class:`~exosim.tasks.load.loadOptions.LoadOptions`,
-for the planck case it will return a dictionary similar to
+As mentioned, the `.xml` file parsed by :class:`~exosim.tasks.load.load_options.LoadOptions`,
+for the Planck case it will return a dictionary similar to
 
 .. code-block:: python
 
@@ -229,8 +283,8 @@ for the planck case it will return a dictionary similar to
 
 The wavelength grid to use is provided by the :ref:`wavelength grid`.
 
-Then, we can use :class:`~exosim.tasks.parse.parseSource.ParseSource` task to produce the :class:`~exosim.models.signal.Sed`.
-The result will be a dictionary with the star name as keys and :class:`~exosim.models.signal.Sed` as key content.
+Then, we can use the :class:`~exosim.tasks.parse.parseSource.ParseSource` task to produce the :class:`~exosim.models.signal.Sed`.
+The result will be a dictionary with the star name as keys and :class:`~exosim.models.signal.Sed` as values.
 
 .. code-block:: python
 
@@ -257,7 +311,7 @@ The result will be a dictionary with the star name as keys and :class:`~exosim.m
 More sources
 ^^^^^^^^^^^^^^^
 
-If more sources are listed, the xml file will look like this:
+If more sources are listed, the `.xml` file will look like this:
 
 .. code-block:: xml
 
@@ -322,15 +376,15 @@ And this dictionary is fed into :class:`~exosim.tasks.parse.parseSource.ParseSou
 .. plot:: mpl_examples/parseSources.py
 
 .. note::
-    In this example the sources are superimposed. If the sources have different position in the sky, see :ref:`pointing`.
-    In that section is explained how to simulate multiple sources and the telescope pointing.
+In this example the sources are superimposed. If the sources have different positions in the sky, see :ref:`pointing`.
+    In that section it is explained how to simulate multiple sources and the telescope pointing.
 
 .. _sky from xml:
 
 Parse from xml
 ^^^^^^^^^^^^^^^
 
-Assuming the wavelength and temporal grids have already produced as described in :ref:`wavelength grid` and :ref:`temporal grid`,
+Assuming the wavelength and temporal grids have already been produced as described in :ref:`wavelength grid` and :ref:`temporal grid`,
 you can parse the configuration file to produce a dictionary of sources as
 
 .. code-block:: python

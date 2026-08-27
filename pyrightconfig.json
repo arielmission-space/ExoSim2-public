@@ -1,0 +1,7 @@
+{
+  "targetVersion": "3.12",
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "off",
+  "exclude": ["tests", "build", "docs/_build"]
+
+}

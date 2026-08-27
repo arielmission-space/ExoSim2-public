@@ -1,74 +1,345 @@
 [build-system]
-requires = ["setuptools", "wheel", "poetry-core>=1.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry]
+# ============================================================================
+# Project Metadata (PEP 621) - Modern Python standard
+# ============================================================================
+
+[project]
 name = "exosim"
-version = "2.1.1"
+dynamic = ["version"]
 description = "ExoSim 2 is the next generation of the Exoplanet Observation Simulator (ExoSim) tailored for spectro-photometric observations of transiting exoplanets from space, ground, and sub-orbital platforms. This software is a complete rewrite implemented in Python 3, embracing object-oriented design principles."
-authors = ["L. V. Mugnai <lorenzo.mugnai@uniroma1.it>", "E. Pascale", "A. Bocchieri", "A. Lorenzani", "A. Papageorgiou"]
-license = "BSD-3-Clause"
-homepage = "https://github.com/arielmission-space/ExoSim2-public"
-repository = "https://github.com/arielmission-space/ExoSim2-public"
-documentation = "https://exosim2-public.readthedocs.io/en/latest/"
+authors = [
+    {name = "L. V. Mugnai", email = "mugnail@cardiff.ac.uk"},
+    {name = "E. Pascale"},
+    {name = "A. Bocchieri"},
+    {name = "A. Lorenzani"},
+    {name = "A. Papageorgiou"}
+]
+license = {text = "BSD-3-Clause"}
 readme = "README.md"
+requires-python = ">=3.12"
 keywords = ["exoplanets", "simulation", "astronomy"]
 classifiers = [
-  "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: BSD License",
-  "Operating System :: OS Independent",
-  "Development Status :: 5 - Production/Stable",
-  "Environment :: Console",
-  "Intended Audience :: Developers",
-  "Intended Audience :: Science/Research",
-  "Topic :: Scientific/Engineering",
-  "Topic :: Software Development :: Libraries"
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Software Development :: Libraries",
 ]
-packages = [{ include = "exosim", from = "src" }]
 
+# Runtime dependencies
+dependencies = [
+    "astropy>=7.1.0",
+    "matplotlib>=3.7.5",
+    "mpmath",
+    "numpy>=2.0.0",
+    "scipy>=1.9.3",
+    "decorator",
+    "h5py>=3.11",
+    "joblib>=1.4.2",
+    "numba>=0.61.0",
+    "photutils>=2.2.0",
+    "requests",
+    "pyyaml>=6.0.1",
+    "tqdm",
+    "pandas",
+    "batman-package>=2.5.3",
+    "rich-click>=1.8.5",
+    "structlog>=24.4.0",
+    "tomli>=1.2.0; python_version<'3.11'", # TOML parsing for Python < 3.11
+    "openpyxl>=3.1.5",
+]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-astropy = "^7.1.0"
-matplotlib = "^3.7.5"
-mpmath = "*"
-numpy = "^2.0.0"
-scipy = "^1.9.3"
-decorator = "*"
-h5py = "^3.11"
-joblib = "^1.4.2"
-numba = "^0.61.0"
-photutils = "^2.2.0"
-requests = "*"
-pyyaml = "^6.0.1"
-tqdm = "*"
-batman-package = "^2.5.3"
-rich-click = "^1.8.5"
+# Optional dependencies for different use cases
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=8.4.1",
+    "pytest-cov>=7.0.0",
+    "pytest-xdist>=3.6.1",
+    "pytest-mock>=3.14.0",
+    "pytest-benchmark>=4.0.0",
 
-[tool.poetry.group.dev.dependencies]
-sphinx = "*"
-sphinxcontrib-napoleon = "*"
-sphinxcontrib-jsmath = "*"
-nbsphinx = "*"
-sphinx_rtd_theme = "*"
-sphinx-panels = "*"
-sphinx-autoapi = "*"
-sphinx-autobuild = "*"
-sphinx-design = "*"
-sphinxcontrib_serializinghtml = "*"
-docutils = "*"
-astroid = "*"
-codecov = "*"
-coverage = "^7.5.3"
-flake8 = "^7.1.0"
-flake8-bugbear = "^24.4.26"
-pytest = "^8.4.1"
-pydata-sphinx-theme = "*"
+    # Code quality
+    "ruff>=0.12.12",
+    "mypy>=1.11.2",
+    "pre-commit>=4.0.1",
 
-[tool.poetry.scripts]
+    # Release tooling
+    "scriv>=1.5.0",
+    "nox>=2024.4.15",
+
+    # Security
+    "safety>=3.2.11",
+    "bandit>=1.8.0",
+]
+
+docs = [
+    "sphinx>=8.1.3",
+    "sphinx-rtd-theme>=3.0.2",
+    "sphinxcontrib-napoleon",
+    "sphinxcontrib-jsmath",
+    "nbsphinx",
+    "sphinx-panels",
+    "sphinx-autoapi",
+    "sphinx-autobuild",
+    "sphinx-design",
+    "sphinxcontrib-serializinghtml",
+    "docutils",
+    "pydata-sphinx-theme",
+    "myst-parser>=4.0.0",
+]
+
+jupyter = [
+    "pyzmq>=26,<27",
+    "notebook",
+    "jupyter",
+]
+
+all = [
+    "exosim[dev,docs,jupyter]"
+]
+
+# Console scripts
+[project.scripts]
 exosim = "exosim.exosim:cli"
 exosim-focalplane = "exosim.exosim:focalplane"
 exosim-radiometric = "exosim.exosim:radiometric"
 exosim-sub-exposures = "exosim.exosim:subexposures"
 exosim-ndrs = "exosim.exosim:ndrs"
 exosim-plot = "exosim.plots.plotter:main"
+
+# Project URLs
+[project.urls]
+Homepage = "https://github.com/arielmission-space/ExoSim2-public"
+Repository = "https://github.com/arielmission-space/ExoSim2-public"
+Documentation = "https://exosim2-public.readthedocs.io/en/latest/"
+"Bug Tracker" = "https://github.com/arielmission-space/ExoSim2-public/issues"
+
+# ============================================================================
+# Setuptools Configuration
+# ============================================================================
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+exosim = ["py.typed"]
+
+# ============================================================================
+# Version Management - setuptools-scm (git-tag driven, PEP 440)
+# ============================================================================
+# The version is derived from git:
+#   - on a release tag  vX.Y.Z          -> X.Y.Z
+#   - N commits after a tag on develop  -> X.Y.(Z+1).devN   (unique per commit)
+# No version string is stored in the repo; `_version.py` is generated at build
+# time and git-ignored. See docs/source/contributing/releasing.rst.
+[tool.setuptools_scm]
+version_file = "src/exosim/_version.py"
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"   # required: PyPI rejects +local segments
+fallback_version = "0.0.0"          # used when building without git metadata
+# Only ever describe from clean vX.Y.Z release tags: the repo also carries
+# historical pre-release tags (vX.Y.Z-devN, -rcN, -alpha.N) and archive/* tags
+# that must not be picked up as the base version.
+git_describe_command = [
+    "git", "describe", "--dirty", "--tags", "--long",
+    "--match", "v[0-9]*.[0-9]*.[0-9]*",
+    "--exclude", "*.*.*.*",
+    "--exclude", "*-*",
+]
+
+# ============================================================================
+# Changelog - scriv (hand-written fragments in changelog.d/, collected at release)
+# ============================================================================
+[tool.scriv]
+format = "rst"
+output_file = "CHANGELOG.rst"
+fragment_directory = "changelog.d"
+insert_marker = "scriv-insert-here"
+categories = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
+entry_title_template = "[{{ version }}_] - {{ date.strftime('%Y-%m-%d') }}"
+rst_header_chars = "=-"
+
+# ============================================================================
+# Ruff Configuration - replaces flake8, black, isort, pyupgrade
+# ============================================================================
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+src = ["src"]
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "build",
+    "dist",
+    "site-packages",
+    "docs/_build",
+    "*.ipynb",
+    "src/exosim/_version.py",   # generated by setuptools-scm
+]
+extend-exclude = ["*.ipynb", "src/exosim/_version.py"]
+
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # import order (isort)
+    "UP",   # pyupgrade
+    "B",    # bugbear
+    "C4",   # comprehensions
+    "PIE",  # flake8-pie
+    "SIM",  # simplify
+    "RET",  # return
+    "C90",  # mccabe complexity
+    "N",    # pep8-naming
+    "T20",  # print detector
+    "RUF",  # ruff extras (RUF100 no-unused-noqa, ecc.)
+    "TID",  # tidy-imports (es. TID251 ban relative imports)
+    "PT",   # pytest style
+    "PERF", # performance anti-patterns
+    "FURB", # refurb (modernization suggestions)
+    "LOG",  # logging best practices
+    "ICN",  # import conventions
+    "TCH",  # type checking imports
+    # "ANN", # type hints (abilitare gradualmente)
+    # "ARG", # unused arguments (utile ma può essere rumoroso)
+]
+
+ignore = [
+    "E501",   # line too long, handled by formatter
+    "E203",  # compat slicing
+    "C901",   # too complex (keep if you have intentionally complex functions)
+    "N806",   # variable in function should be lowercase (astropy uses different conventions)
+    "N803",   # argument name should be lowercase (for astropy compatibility)
+    "ARG",   # unused arguments (often used in overridden methods)
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["exosim"]
+combine-as-imports = true
+force-wrap-aliases = true
+split-on-trailing-comma = true
+order-by-type = true
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+
+[tool.ruff.lint.mccabe]
+max-complexity = 12  # Slightly increased for scientific code
+
+[tool.ruff.lint.per-file-ignores]
+# File-specific permissions
+"src/exosim/**/__init__.py" = ["F401"]  # unused imports ok in __init__ files
+"examples/**" = ["T20"]  # print statements ok in examples
+"scripts/**" = ["T20", "S603", "S607"]  # CLI scripts: prints and subprocess calls
+"docs/**" = ["ALL"]  # ignore everything in documentation
+
+[tool.ruff.format]
+# Replaces black
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+docstring-code-format = true
+docstring-code-line-length = 60
+
+# ============================================================================
+# Codespell configuration
+# ============================================================================
+[tool.codespell]
+ignore-words-list = "astroid"
+
+# ============================================================================
+# Pytest configuration
+# ============================================================================
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+addopts = [
+    "--cov=src/exosim",
+    "--cov-report=html",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+    "--cov-config=pyproject.toml",
+    "--basetemp=/tmp/pytest-temp",
+]
+testpaths = ["tests", "test_suite"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "benchmark: marks tests as performance benchmarks",
+    "unit: marks tests as unit tests",
+]
+filterwarnings = [
+    "ignore::astropy.units.UnitsWarning",
+    "ignore::scipy.optimize.OptimizeWarning",
+    "ignore::UserWarning:astropy.io.fits",
+]
+
+# ============================================================================
+# Coverage configuration for pytest-cov
+# ============================================================================
+[tool.coverage.run]
+source = ["src/exosim"]
+omit = [
+    "tests/*",
+    "*/tests/*",
+    "test_*.py",
+    "*_test.py",
+    "*/site-packages/*",
+    "*/__pycache__/*",
+    "src/exosim/version.py",
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self\\.debug:",
+    "if settings\\.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == \\.__main__\\.",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+ignore_errors = true
+show_missing = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# ============================================================================
+# UV Configuration - Ultra-fast Python package manager
+# ============================================================================
+[tool.uv]
+# Package index configuration
+index-url = "https://pypi.org/simple"
+extra-index-url = []
+
+# Resolution strategy
+resolution = "highest"  # Always use the highest compatible version
+
+# uv reads dependencies from [project] and [project.optional-dependencies]
+# Development workflow: uv sync --extra dev

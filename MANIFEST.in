@@ -1,0 +1,23 @@
+# The sdist must stay lean: setuptools-scm would otherwise pull in every
+# git-tracked file (test fixtures, docs assets, notebooks -> tens of MB).
+
+graft src/exosim
+include README.md LICENSE CHANGELOG.rst CITATION.cff codemeta.json
+include pyproject.toml
+
+prune tests
+prune test_suite
+prune docs
+prune examples
+prune .github
+prune changelog.d
+prune .benchmarks
+
+exclude noxfile.py run_tests.py setup.cfg pyrightconfig.json
+exclude uv.lock coverage.yml coverage.xml codecov
+exclude .pre-commit-config.yaml .readthedocs.yaml .python-version .flake8
+exclude .bumpversion.cfg .secrets.baseline .buildinfo .nojekyll
+exclude src/exosim/_version.py
+
+global-exclude *.py[cod] __pycache__ *.so *.dylib
+global-exclude .DS_Store *.swp *~

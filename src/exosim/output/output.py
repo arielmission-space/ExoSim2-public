@@ -122,7 +122,7 @@ class OutputGroup(Output, ABC):
         """
         raise NotImplementedError
 
-    def write_list(self, list_name, list_array, metadata=None):
+    def write_list(self, list_name, list_array):
         """
         Method to store lists.
 

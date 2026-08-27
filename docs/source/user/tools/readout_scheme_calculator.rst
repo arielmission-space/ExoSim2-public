@@ -20,7 +20,7 @@ Each group consists of 2 NDRs separated the time needed to read a NDR.
 
 To produce the reading scheme, we need to know the time spent between groups
 (which is reported in the bottom part of the figure expressed as time from the start of the simulation).
-But we also need to translate our human-readable units into the simulation clock unis needed for :class:`~exosim.tasks.subexposures.computeReadingScheme.ComputeReadingScheme`,
+But we also need to translate our human-readable units into the simulation clock unis needed for :class:`~exosim.tasks.subexposures.compute_reading_scheme.ComputeReadingScheme`,
 as described in :ref:`reading_scheme`.
 Finally, we want to make good use of the ramp sampling, and therefore we don't want to saturate the detector.
 All of this is handled by :class:`~exosim.tools.readoutSchemeCalculator.ReadoutSchemeCalculator`.
@@ -70,7 +70,7 @@ In this case, according to the figure, the results will be
         </readout>
     </channel>
 
-Which will results in the following scheme
+Which will result in the following scheme
 
 .. image:: _static/reading_ramp_nclock.png
    :width: 600
