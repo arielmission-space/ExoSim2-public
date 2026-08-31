@@ -1,31 +1,31 @@
 .. _cosmic_rays:
 
-===================================
-Cosmic Rays
-===================================
+===========
+Cosmic rays
+===========
 
-The :class:`~exosim.tasks.detector.addCosmicRays.AddCosmicRays` task is part of the ExoSim simulation package.
-It models the impact of cosmic rays on a detector during its exposure time.
-Cosmic rays are high-energy particles originating from space, which can introduce noise into the captured data.
-This class provides a simulation of this effect by adding cosmic ray events to the detector's sub-exposures.
+The :class:`~exosim.tasks.detector.addCosmicRays.AddCosmicRays` task models the
+effect of cosmic rays on the detector during the exposure. Cosmic rays are
+high-energy particles from space that add noise to the data; this task simulates
+that effect by adding cosmic-ray events to the sub-exposures.
 
-Phenomenon Overview
--------------------
+How it works
+------------
 
-Cosmic rays can interact with the detector pixels in various predefined shapes such as crosses, rectangles, or isolated pixels.
-These interactions can saturate the affected pixels, setting their value to the detector's full well depth.
-The class provides flexibility in specifying these interaction shapes and their associated probabilities.
+A cosmic ray can hit the detector in one of several predefined shapes (a cross,
+a rectangle, a single pixel, and so on) and can saturate the pixels it touches,
+setting them to the detector full-well depth. You can specify the shapes and
+their probabilities.
 
-The number of cosmic ray events is calculated based on several parameters:
+The number of cosmic-ray events is computed from:
 
-- Cosmic ray flux rate (in ct/s/cm\ :sup:`2`)
-- Pixel size
-- Saturation rate due to cosmic rays
-- Number of spatial and spectral pixels in the detector
-- Integration times for the sub-exposures
+- the cosmic-ray flux rate (in ct/s/cm\ :sup:`2`);
+- the pixel size;
+- the saturation rate due to cosmic rays;
+- the number of spatial and spectral pixels;
+- the sub-exposure integration times.
 
-
-These parameters should be specified in the configuration XML file as shown below:
+Set these in the configuration file:
 
 .. code-block:: xml
 
@@ -44,50 +44,51 @@ These parameters should be specified in the configuration XML file as shown belo
         </detector>
     </channel>
 
-So the number of pixels hit by a cosmic ray during a sub-exposure is
+The number of pixels hit by a cosmic ray during a sub-exposure is
 
 .. math::
 
     hits = rate_{cosmic \, rays} * delta_{pix}^2 * N_{pix\, spatial} * N_{pix\, spectral} * t_{int}
 
-Where
+where
 
-- :math:`rate_{cosmic \, rays}` is the `cosmic_rays_rate`;
-- :math:`delta_{pix}` is the `delta_pix`;
-- :math:`N_{pix\, spatial}` is the `spatial_pix`;
-- :math:`N_{pix\, spectral}` is the `spectral_pix`;
+- :math:`rate_{cosmic \, rays}` is `cosmic_rays_rate`;
+- :math:`delta_{pix}` is `delta_pix`;
+- :math:`N_{pix\, spatial}` is `spatial_pix`;
+- :math:`N_{pix\, spectral}` is `spectral_pix`;
 - :math:`t_{int}` is the sub-exposure integration time.
 
-Then we can estimate how many of these events can saturate our pixel using the pixel saturation rate:
+The number of events that saturate a pixel is
 
 .. math::
     saturated = hits * rate_{saturation}
 
-where :math:`rate_{saturation}` is the `saturation_rate`.
+where :math:`rate_{saturation}` is `saturation_rate`.
 
-Then for each of these events, at least one pixel is saturated.
-If `cosmic_rays_randomise` is set to `True`, the task randomises the number of hits following a Poisson distribution.
+Each of these events saturates at least one pixel. If `cosmic_rays_randomise` is
+`True`, the number of hits is drawn from a Poisson distribution.
 
-Interaction Shapes
+Interaction shapes
 ------------------
 
-The class includes predefined interaction shapes that describe the group of pixels saturated by each cosmic ray event. These are:
+The predefined shapes, each describing the group of pixels saturated by one
+event, are:
 
-- Single pixel (``single``)
-- Vertical line (``line_v``)
-- Horizontal line (``line_h``)
-- Square (``square``)
-- Cross (``cross``)
-- Vertical rectangle (``rect_v``)
-- Horizontal rectangle (``rect_h``)
+- single pixel (``single``);
+- vertical line (``line_v``);
+- horizontal line (``line_h``);
+- square (``square``);
+- cross (``cross``);
+- vertical rectangle (``rect_v``);
+- horizontal rectangle (``rect_h``).
 
 .. image:: _static/cosmicrays_shapes.png
     :align: center
 
-Specifying Probabilities
+Specifying probabilities
 ------------------------
 
-The user can specify the probability for each of these shapes in the XML configuration file:
+Set the probability of each shape in the configuration file:
 
 .. code-block:: xml
 
@@ -100,17 +101,19 @@ The user can specify the probability for each of these shapes in the XML configu
         </detector>
     </channel>
 
-If the sum of the specified probabilities is not equal to 1, the task will automatically use the ``single`` shape as a contingency to balance the probabilities.
+If the probabilities do not sum to 1, the task fills the gap with the ``single``
+shape.
 
 
 Output
---------
+------
 
 .. image:: _static/Spectrometer_cosmic_rays.png
     :align: center
 
-If an output group is provided, the default task will save all the pixels saturated by cosmic rays in a table, for reproducibility.
+If an output group is provided, the default task saves every pixel saturated by
+a cosmic ray in a table, for reproducibility.
 
 
 .. note::
-    Other custom realizations of this Task can be developed by the user (see :ref:`Custom Tasks`).
+    You can develop custom versions of this task (see :ref:`Custom Tasks`).

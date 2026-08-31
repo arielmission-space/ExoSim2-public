@@ -1,19 +1,25 @@
 .. _Custom Tasks:
 
-===================================
-Custom Tasks
-===================================
+============
+Custom tasks
+============
 
-`ExoSim` allows the user to replace some of the default :class:`~exosim.tasks.task.Task` tasks with custom versions of the same process.
-Before writing a custom task, make sure to read :ref:`tasks`.
+`ExoSim` lets you replace some of the default :class:`~exosim.tasks.task.Task`
+implementations with your own version of the same step. Before writing one, read
+:ref:`tasks`.
 
-To write a custom :class:`~exosim.tasks.task.Task`, we need to create a class that first inherits from the default one,
-and then we can overwrite the `model` method.
+A custom task is a class that inherits from the default one and overrides its
+``model`` method.
 
-Let's do an example. Suppose we want to write our own version of :class:`~exosim.tasks.instrument.load_responsivity.LoadResponsivity`.
-This task estimates the detector responsivity and shall be indicated in the channel description, as described in :ref:`responsivity`.
+An example
+----------
 
-The default task simply reads the right column from the file:
+Suppose we want our own version of
+:class:`~exosim.tasks.instrument.load_responsivity.LoadResponsivity`. This task
+estimates the detector responsivity and is named in the channel description, as
+described in :ref:`responsivity`.
+
+The default task just reads the right column from a file:
 
 .. code-block:: xml
 
@@ -24,7 +30,8 @@ The default task simply reads the right column from the file:
             <datafile>__ConfigPath__/qe.ecsv</datafile>
         </qe>
 
-Using the :func:`~exosim.tasks.instrument.load_responsivity.LoadResponsivity.model` method:
+through its
+:func:`~exosim.tasks.instrument.load_responsivity.LoadResponsivity.model` method:
 
 .. code-block:: python
 
@@ -57,18 +64,19 @@ Using the :func:`~exosim.tasks.instrument.load_responsivity.LoadResponsivity.mod
                                          u.m) / const.c / const.h * u.count)
         return responsivity
 
-The input of the model is the `parameter` dictionary that contains the description of the full channel.
-So, let's imagine that instead of reading the data from a file, we want to estimate the quantum efficiency from a quadratic equation:
+The input to ``model`` is the ``parameters`` dictionary, which holds the full
+channel description. Suppose that instead of reading the data from a file we want
+to estimate the quantum efficiency from a quadratic law:
 
 .. math::
 
     qe(\lambda) = A \cdot (\frac{\lambda}{\lambda_0})^2 + B \cdot \frac{\lambda}{\lambda_0} + C
 
-where :math:`\lambda_0` is a reference wavelength.
-This equation for the quantum efficiency obviously has no physical justification.
-This example has been chosen specifically because it is not representative of any physical process, just to focus attention on the code capabilities.
+where :math:`\lambda_0` is a reference wavelength. This law has no physical
+justification; it is chosen precisely because it does not represent any real
+process, so the example stays focused on the code.
 
-Then we need to include these model parameters in the channel description:
+We add the model parameters to the channel description:
 
 .. code-block:: xml
 
@@ -78,10 +86,10 @@ Then we need to include these model parameters in the channel description:
             <A> 1 </A>
             <B> 2 </B>
             <C> 3 </C>
-            <wl_0 unit=`micron`> 3.0 </wl_0>
+            <wl_0 unit="micron"> 3.0 </wl_0>
         </qe>
 
-and then we can write our own :class:`~exosim.tasks.task.Task` as:
+and write the task:
 
 .. code-block:: python
 
@@ -122,9 +130,11 @@ and then we can write our own :class:`~exosim.tasks.task.Task` as:
                                              u.m) / const.c / const.h * u.count)
             return responsivity
 
-It is important that the custom model returns an object of the same kind as the default one, or an error will be raised.
+The custom ``model`` must return an object of the same type as the default one,
+or `ExoSim` raises an error.
 
-Now we need to store this class in a dedicated file. Assume the file is `your/path/customResponsivity.py`; then you have to indicate it in the `.xml` description as:
+Save the class in its own file, say ``your/path/customResponsivity.py``, and
+point the description at it:
 
 .. code-block:: xml
 
@@ -135,7 +145,7 @@ Now we need to store this class in a dedicated file. Assume the file is `your/pa
             <A> 1 </A>
             <B> 2 </B>
             <C> 3 </C>
-            <wl_0 unit=`micron`> 3.0 </wl_0>
+            <wl_0 unit="micron"> 3.0 </wl_0>
         </qe>
 
-Now `ExoSim` will run your task instead of the default one.
+`ExoSim` now runs your task instead of the default one.

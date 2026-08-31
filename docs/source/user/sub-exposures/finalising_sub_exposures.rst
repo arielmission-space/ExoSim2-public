@@ -3,20 +3,22 @@
 
 .. _finalising readout:
 
-===========================================
-Finalising the Sub-Exposures
-===========================================
+============================
+Finalising the sub-exposures
+============================
 
 Add background sub-exposures
-===========================================
+============================
 
-Because more sources can be in the field of view (see :ref:`multiple_sources`), ExoSim allows to include the background in the sub-exposures.
-The background stars are read using the same procedure described in :ref:`Instantaneous readout`,
-with the same readout parameters used for the target star.
+Because there can be more than one source in the field of view (see
+:ref:`multiple_sources`), ExoSim can add the background to the sub-exposures.
+The background stars are read with the same procedure and the same readout
+parameters as the target star (see :ref:`Instantaneous readout`).
 
-The resulting sub-exposures are added to the focal plane sub-exposures, and stored back in the output.
+The resulting sub-exposures are added to the focal-plane sub-exposures and
+stored back in the output.
 
-To include the background to the produced sub-exposures just enable it on the configuration file, setting the option to `True`.
+To include the background, enable it in the configuration file:
 
 .. code-block:: xml
 
@@ -27,12 +29,13 @@ To include the background to the produced sub-exposures just enable it on the co
     </channel>
 
 
-Add foregrounds sub-exposures
-===========================================
+Add foreground sub-exposures
+============================
 
-Similarly to what has been done for the focal planes, once the sub-exposure are completed, we operate on the diffused light foregrounds.
+As with the focal planes, once the sub-exposures are complete we handle the
+diffuse-light foregrounds.
 
-To include the foregrounds to the produced sub-exposures just enable it on the configuration file, setting the option to `True`.
+To include the foregrounds, enable it in the configuration file:
 
 .. code-block:: xml
 
@@ -44,10 +47,13 @@ To include the foregrounds to the produced sub-exposures just enable it on the c
 
 If the keyword is missing, the foregrounds are included by default.
 
-For each of the sub-exposures in the output we select the foreground focal plane corresponding to the acquisition time, and we multiplied it by the integration time.
-The resulting foreground sub-exposure is added to the focal plane sub-exposure and stored back in the output.
+For each sub-exposure in the output, ExoSim selects the foreground focal plane
+matching its acquisition time and multiplies it by the integration time. The
+resulting foreground sub-exposure is added to the focal-plane sub-exposure and
+stored back in the output.
 
-This is handled by :class:`~exosim.tasks.subexposures.addForegrounds.AddForegrounds` task.
+This is handled by the
+:class:`~exosim.tasks.subexposures.addForegrounds.AddForegrounds` task:
 
 .. code-block:: python
 
@@ -57,13 +63,13 @@ This is handled by :class:`~exosim.tasks.subexposures.addForegrounds.AddForegrou
         se_out = addForegrounds(subexposures=se_out, frg_focal_plane=frg_fp,
                                 integration_time=integration_times)
 
-With clear reference to the quantities defined above.
+using the quantities defined above.
 
 
 Resulting sub-exposure
-===========================================
+======================
 
-The resulting sub-exposures will look similar to the following:
+The resulting sub-exposures look similar to this:
 
 .. image:: _static/subexposures_plotter-Page-1.png
     :width: 600
@@ -73,25 +79,28 @@ The resulting sub-exposures will look similar to the following:
     :width: 600
     :align: center
 
-These examples have been produced with the procedure described in :ref:`sub-exposures plotter`.
+These examples were produced with the procedure in :ref:`sub-exposures plotter`.
 
 .. _qe_map:
 
-Quantum efficiency variation
---------------------------------
+Quantum-efficiency variation
+============================
 
-Each pixel in the focal plane has a slightly different Quantum Efficiency (QE) from the others.
-This behaviour can be simulated in `ExoSim` by editing the normalisation of the pixel QEs
+Each pixel of the focal plane has a slightly different quantum efficiency (QE).
+`ExoSim` can simulate this by varying the normalisation of the pixel QEs.
 
-This can be set with a custom :class:`~exosim.tasks.task.Task`, as described in :ref:`Custom Tasks`,
-or by using the default :class:`~exosim.tasks.subexposures.loadQeMap.LoadQeMap` task.
-This task loads the QE variation map pre-computed from and `.h5` file.
-If the user has its own map, can write a custom task load this map into a :class:`~exosim.models.signal.Signal` class.
-Otherwise, `ExoSim` includes a tool (:ref:`tools`) which allow the creation of a quantum efficiency variation map (see :ref:`quantum_efficiency_map`),
-which can be stored and used in successive simulations.
+You can do this with a custom :class:`~exosim.tasks.task.Task` (see
+:ref:`Custom Tasks`) or with the default
+:class:`~exosim.tasks.subexposures.loadQeMap.LoadQeMap` task, which loads a
+pre-computed QE variation map from an `.h5` file. If you have your own map, a
+custom task can load it into a :class:`~exosim.models.signal.Signal`.
+Otherwise, `ExoSim` includes a tool (:ref:`tools`) that creates a QE variation
+map (see :ref:`quantum_efficiency_map`), which can be stored and reused in later
+simulations.
 
-The :class:`~exosim.tasks.task.Task` to use to load the QE variation map should be indicated under the channel detector configuration using the `qe_map_task` keyword.
-In the following we report the example using the default :class:`~exosim.tasks.subexposures.loadQeMap.LoadQeMap` task:
+Name the task that loads the QE variation map under the channel detector
+configuration, with the `qe_map_task` keyword. Here is the example with the
+default :class:`~exosim.tasks.subexposures.loadQeMap.LoadQeMap` task:
 
 .. code-block:: xml
 
@@ -102,9 +111,12 @@ In the following we report the example using the default :class:`~exosim.tasks.s
         </detector>
     </channel>
 
-where the `qe_map_filename` keyword indicates the quantum efficiency variation map to use for every channel of the payload.
+The `qe_map_filename` keyword gives the QE variation map to use for every
+channel of the payload.
 
-Alternatively, the map can be provided as a simple numpy array (see `numpy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_) and parsed by the :class:`~exosim.tasks.subexposures.loadQeMapNumpy.LoadQeMapNumpy` task:
+The map can also be a plain NumPy array (see the `NumPy documentation
+<https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_), parsed
+by the :class:`~exosim.tasks.subexposures.loadQeMapNumpy.LoadQeMapNumpy` task:
 
 .. code-block:: xml
 
@@ -115,11 +127,13 @@ Alternatively, the map can be provided as a simple numpy array (see `numpy docum
         </detector>
     </channel>
 
-The resulting map is then applied to all the focal planes in the channel by the :class:`~exosim.tasks.subexposures.applyQeMap.ApplyQeMap` tasks.
-Because the quantum efficiency variation map can be time dependent, but sampled at a different cadence than the Sub-Exposure,
-in the Sub-Exposure signal is included a new key in the metadata: `qe_variation_map_index`.
-This array contains the indexes of the quantum efficiency realisation used for each of the sub-exposure:
-the array is as long as the sub-exposure temporal axis, and for each time step is reported
-the time index of the quantum efficiency variation map applied to that sub-exposure.
+The map is applied to every focal plane in the channel by the
+:class:`~exosim.tasks.subexposures.applyQeMap.ApplyQeMap` task. Because the QE
+variation map can be time-dependent but sampled at a different cadence from the
+sub-exposures, the sub-exposure signal carries a new metadata key,
+`qe_variation_map_index`. This array is as long as the sub-exposure time axis
+and gives, for each time step, the index of the QE variation map realisation
+applied to that sub-exposure.
 
-If no quantum efficiency variation map is provide, the code skip this step raising a Warning.
+If no QE variation map is provided, the code skips this step and raises a
+warning.

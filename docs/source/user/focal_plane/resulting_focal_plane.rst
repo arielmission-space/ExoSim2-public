@@ -1,62 +1,65 @@
-===================================
+======================
 Resulting focal planes
-===================================
+======================
 
-In the previous sections we saw how to produce the focal planes for different channels.
-Here we will explain how these focal planes look.
+The previous sections showed how to build the focal planes for each channel.
+This section shows what they look like.
 
-Note that so far we have built three different focal planes, which can be considered as three layers:
+So far we have built three focal planes, which can be thought of as three
+layers:
 
-    - ``focal_plane``: containing the signal from the target star
-    - ``bkg_focal_plane``: containing the stars in the field of view
-    - ``frg_focal_plane``: containing the signal from the foreground
+- ``focal_plane``: the signal from the target star;
+- ``bkg_focal_plane``: the other stars in the field of view;
+- ``frg_focal_plane``: the signal from the foreground.
 
 .. image:: _static/layers.png
     :align: center
 
-The reason for this separation becomes clear when the astronomical signal (see :ref:`Astronomical signals`) needs to be added to the target star.
+The reason for keeping them separate becomes clear when the astronomical signal
+(see :ref:`Astronomical signals`) has to be added to the target star.
 
-We recall here that in the previous sections we mentioned the possibility of oversampling the pixel array.
-In that case, the resulting focal plane will be oversampled.
-
-In the following, we report examples for both the oversampled focal plane and the real focal plane.
-To move from the oversampled focal plane to the original one, one can use the following script
+As mentioned earlier, the pixel array can be oversampled; in that case the
+resulting focal plane is oversampled too. The examples below show both the
+oversampled focal plane and the real one. To go from the oversampled focal
+plane back to the real one:
 
 .. code-block:: python
 
     osf = 4
     original = focal_plane.data[:, osf//2::osf, osf//2::osf]
 
-where we assumed `focal_plane` to be the produced oversampled focal plane with an oversampling factor `osf=3`.
+where `focal_plane` is the oversampled focal plane and `osf` is its oversampling
+factor.
 
 Photometers
--------------------------
+-----------
 
-Here we report both the oversampled focal plane and the original one.
-In this example we used an oversampling factor of 4.
+The oversampled focal plane and the real one, for an oversampling factor of 4:
 
 .. image:: _static/focal_planes-phot.png
     :align: center
 
-The focal planes look like data cubes because we recall here that the first axis is for time evolution.
+The focal planes look like data cubes because the first axis is time.
 
 Spectrometers
--------------------------
-Here we report again both the oversampled focal plane and the original one.
-We still used an oversampling factor of 4.
+-------------
+
+Again, the oversampled focal plane and the real one, with an oversampling factor
+of 4:
 
 .. image:: _static/focal_planes-spec.png
     :align: center
 
 Foregrounds
--------------------------
-In this example, we first report the case of a non-dispersed foreground focal plane,
-which results in a constant value over the full oversampled array.
+-----------
+
+First, a non-dispersed foreground focal plane, which is a constant value over
+the whole oversampled array:
 
 .. image:: _static/focal_planes-fore.png
     :align: center
 
-Then we include the example of a dispersed foreground focal plane:
+Then a dispersed foreground focal plane:
 
 .. image:: _static/focal_planes-fore_disp.png
     :align: center
@@ -64,22 +67,27 @@ Then we include the example of a dispersed foreground focal plane:
 
 
 Store and load the focal planes
---------------------------------------------
-To store the focal plane in the output file, simply use the :func:`~exosim.models.signal.Signal.write` method of the :class:`~exosim.models.signal.Signal` class:
+-------------------------------
+
+To store a focal plane in the output file, use the
+:func:`~exosim.models.signal.Signal.write` method of
+:class:`~exosim.models.signal.Signal`:
 
 .. code-block:: python
 
         channel.focal_plane.write()
         channel.frg_focal_plane.write()
 
-The sub-focal planes, if generated, can be stored as
+The sub-focal planes, if generated, are stored with:
 
 .. code-block:: python
 
         for key, value in channel.frg_sub_focal_planes.items():
             value.write()
 
-If the output format is the default HDF5_, refer to :ref:`loadHDF5` in the :ref:`FAQs` section for how to use the data,
-and see :ref:`load signal table` in particular to cast the focal plane into a :class:`~exosim.models.signal.Signal` class.
+If the output format is the default HDF5_, see :ref:`loadHDF5` in the
+:ref:`FAQs` section for how to use the data, and :ref:`load signal table` in
+particular for casting a focal plane back into a
+:class:`~exosim.models.signal.Signal`.
 
 .. _HDF5: https://www.hdfgroup.org/solutions/hdf5/

@@ -258,7 +258,7 @@ class RadiometricModel(CreateFocalPlane):
 
                 if i == 0:
                     self.table = utils.create_table(self.payloadConfig)
-                    self.rebin_efficiencies()
+                    self.rebin_efficiencies(channels_path="targets/" + source_name)
 
                     self.info("Computing apertures signals for the first source")
                     self.compute_apertures(target_name=source_name)
@@ -658,7 +658,7 @@ class RadiometricModel(CreateFocalPlane):
                         ch_name=ch,
                         input_file=self.output,
                         channels_path=channels_path,
-                        parameters=self.payloadConfig["channel"],
+                        parameters=self.payloadConfig["channel"][ch],
                     )
                 ]
         else:
@@ -681,6 +681,8 @@ class RadiometricModel(CreateFocalPlane):
                     table=self.table,
                     ch_name=self.payloadConfig["channel"]["value"],
                     input_file=out if out is not None else self.output,
+                    channels_path=channels_path,
+                    parameters=self.payloadConfig["channel"],
                 )
             ]
 
@@ -701,10 +703,14 @@ class RadiometricModel(CreateFocalPlane):
         self.info("Rebinning efficiencies to match wavelength bins")
         tr = np.array([])
         qe = np.array([])
+        channels = self.payloadConfig["channel"]
+        ch_names = (
+            list(channels) if isinstance(channels, OrderedDict) else [channels["value"]]
+        )
         with self.output.open() as f:
             if channels_path is not None:
                 f = f[channels_path]
-            for ch in self.payloadConfig["channel"]:
+            for ch in ch_names:
                 eff_path = f"channels/{ch}/efficiency"
                 eff = load_signal(f[eff_path])
 
@@ -841,7 +847,7 @@ class RadiometricModel(CreateFocalPlane):
 
                 total_phot_ = self.compute_total_signals(
                     table=self.table[self.table["ch_name"] == ch],
-                    parameters=self.payloadConfig["channel"][ch],
+                    parameters=self.payloadConfig["channel"],
                     focal_plane=focal_plane,
                     computeSignalsChannel=computeSignalsChannel,
                 )
@@ -947,7 +953,7 @@ class RadiometricModel(CreateFocalPlane):
 
                 total_phot_ = self.compute_total_signals(
                     table=self.table[self.table["ch_name"] == ch],
-                    parameters=self.payloadConfig["channel"][ch],
+                    parameters=self.payloadConfig["channel"],
                     focal_plane=focal_plane,
                     computeSignalsChannel=computeSignalsChannel,
                 )

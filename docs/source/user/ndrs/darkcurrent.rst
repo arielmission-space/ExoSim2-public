@@ -1,25 +1,24 @@
 .. _darkcurrent:
 
-==============
-Dark Current
-==============
+============
+Dark current
+============
 
-The dark current signal can be added to each sub-exposure using the `dark_current` keyword
+The dark current is added to each sub-exposure with the `dark_current` keyword:
 
 .. code-block:: xml
 
     <channel> channel
         <detector>
             <dark_current> True </dark_current>
-        <detector>
+        </detector>
     </channel>
 
-or disabled by setting the `dark_current` keyword to `False`.
+or disabled by setting `dark_current` to `False`.
 
-By default, this :class:`~exosim.tasks.task.Task` used to add the dark current is :class:`~exosim.tasks.detector.addConstantDarkCurrent.AddConstantDarkCurrent`,
-which, as the name suggests, adds a constant flux to each pixel.
-
-It can be set as
+By default the dark current is added by
+:class:`~exosim.tasks.detector.addConstantDarkCurrent.AddConstantDarkCurrent`,
+which, as the name says, adds a constant flux to every pixel:
 
 .. code-block:: xml
 
@@ -28,16 +27,22 @@ It can be set as
             <dark_current> True </dark_current>
             <dc_task> AddConstantDarkCurrent </dc_task>
             <dc_mean unit="ct/s"> 5 </dc_mean>
-        <detector>
+        </detector>
     </channel>
 
-Using the configuration reported in the example, the code adds to each pixel
-:math:`5 \, ct/s \times t_{s, \,int}` where :math:`t_{s, \,int}` is the sub-exposure integration time.
+With this configuration, the code adds
+:math:`5 \, ct/s \times t_{s, \,int}` to each pixel, where
+:math:`t_{s, \,int}` is the sub-exposure integration time.
 
-It is always possible to replace this function with one using a dark current map, to add a different dark current to each pixel which can also evolve in time.
-A custom task can be used to replace :class:`~exosim.tasks.detector.addConstantDarkCurrent.AddConstantDarkCurrent` (see :ref:`Custom Tasks`).
+You can replace this with a dark current map, to give each pixel a different
+dark current that can also evolve in time. A custom task can replace
+:class:`~exosim.tasks.detector.addConstantDarkCurrent.AddConstantDarkCurrent`
+(see :ref:`Custom Tasks`).
 
-An implementation of dark current map has been prepared assuming NumPy array (see `NumPy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_) as input (:class:`~exosim.tasks.detector.addDarkCurrentMapNumpy.AddDarkCurrentMapNumpy`). It can be used as
+A map-based implementation is provided for NumPy array input (see the `NumPy
+documentation
+<https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_),
+:class:`~exosim.tasks.detector.addDarkCurrentMapNumpy.AddDarkCurrentMapNumpy`:
 
 .. code-block:: xml
 
@@ -46,8 +51,8 @@ An implementation of dark current map has been prepared assuming NumPy array (se
             <dark_current> True </dark_current>
             <dc_task> AddDarkCurrentMapNumpy </dc_task>
             <dc_map_filename> dark_map.npy </dc_map_filename>
-        <detector>
+        </detector>
     </channel>
 
 .. note::
-    Other custom realizations of this Task can be developed by the user (see :ref:`Custom Tasks`).
+    You can develop custom versions of this task (see :ref:`Custom Tasks`).

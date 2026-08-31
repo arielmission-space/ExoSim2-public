@@ -1,13 +1,13 @@
-===========================================
-Preparing the Pointing Jitter
-===========================================
-
-Instrument Pointing Jitter
+=============================
+Preparing the pointing jitter
 =============================
 
-First, we need to simulate the instrument pointing jitter.
-As mentioned in :ref:`sub-exposures creation`, the jitter is sampled to the mid frequencies time scale,
-so the first step is to define this quantity:
+Instrument pointing jitter
+==========================
+
+First, simulate the instrument pointing jitter. As explained in
+:ref:`sub-exposures creation`, the jitter is sampled on the mid-frequency time
+scale, so the first step is to define that time grid:
 
 .. code-block:: xml
 
@@ -19,10 +19,11 @@ so the first step is to define this quantity:
         </time_grid>
     </root>
 
-With this configuration we are simulating 10 hours of observation, with low frequencies variation sampled at 1 minute cadence,
-and mid frequencies effects sampled at 0.01 seconds cadence.
+This simulates 10 hours of observation, with low-frequency variations sampled
+every minute and mid-frequency effects sampled every 0.01 seconds.
 
-Then, still in the main configuration file, we need to describe the jitter under the `jitter` keyword:
+Then, still in the main configuration file, describe the jitter under the
+`jitter` keyword:
 
 .. code-block:: xml
 
@@ -32,10 +33,12 @@ Then, still in the main configuration file, we need to describe the jitter under
         </jitter>
     </root>
 
-Here the first key to define is the `jitter_task`, which specify which jitter :class:`~exosim.tasks.task.Task` we want to use.
-To learn about how to customised :class:`~exosim.tasks.task.Task`, please refer to :ref:`Custom Tasks`.
-By default, we use :class:`~exosim.tasks.subexposures.estimatePointingJitter.EstimatePointingJitter`.
-This class randomly build the jitter in the spectral and spatial directions expressed as :math:`deg`, starting from the input standard deviations:
+The first key to set is `jitter_task`, which selects the jitter
+:class:`~exosim.tasks.task.Task` (see :ref:`Custom Tasks` on customising tasks).
+The default is
+:class:`~exosim.tasks.subexposures.estimatePointingJitter.EstimatePointingJitter`,
+which builds a random jitter in the spectral and spatial directions, in
+:math:`deg`, from the input standard deviations:
 
 .. code-block:: xml
 
@@ -46,7 +49,7 @@ This class randomly build the jitter in the spectral and spatial directions expr
         <frequency_resolution unit="Hz"> 100 </frequency_resolution>
     </jitter>
 
-Using this configuration the resulting jittered positions will result as:
+With this configuration, the jittered positions are computed as:
 
 .. code-block:: python
 
@@ -54,14 +57,14 @@ Using this configuration the resulting jittered positions will result as:
     estimatePointingJitter = subexposures.EstimatePointingJitter()
     jitter_spa, jitter_spe, jitter_time = estimatePointingJitter(parameters=main_parameters)
 
-where `main_parameters` is the parameter dictionary from the main configuration file.
+where `main_parameters` is the parameter dictionary from the main configuration
+file.
 
 .. note::
-
-    For long observations with a small low frequiencies variation and high oversampling factor the total
-    RAM memory needed to compute the jitter variation could be very high. It is possible to make this computation,
-    without a large amount of RAM memory, at cost of a larger computation time, switching the `slicing` parameter
-    in the `jitter` section, e.g:
+    For a long observation with a small low-frequency variation and a high
+    oversampling factor, the RAM needed to compute the jitter variation can be
+    very large. You can trade memory for computation time by switching on the
+    `slicing` parameter in the `jitter` section:
 
     .. code-block:: xml
 
@@ -73,28 +76,29 @@ where `main_parameters` is the parameter dictionary from the main configuration 
     :width: 600
     :align: center
 
-Which are distributed as
+The positions are distributed as:
 
 .. image:: _static/random_histo_jitter.png
     :width: 600
     :align: center
 
-This is the same as run the class with the configuration
+This is equivalent to running the class with the configuration shown above.
 
 
 .. _ch_jitter:
 
-Channel Pointing Jitter
-=============================
+Channel pointing jitter
+=======================
 
-Once the instrument pointing jitter is computed, it is shared between all the channels.
-Because each channel has a different plate scale (see also :ref:`pointing`),
-we now need to rescale the pointing jitter to the channel pixel.
-This is handled by :class:`~exosim.tasks.subexposures.estimate_ch_jitter.EstimateChJitter`,
-which computes the angle of view of each sub-pixel of the focal plane and convert the instrument pointing jitter,
-expressed as :math:`deg`, to units of sub-pixels.
+The instrument pointing jitter is shared by all the channels. Because each
+channel has a different plate scale (see also :ref:`pointing`), the jitter must
+be rescaled to the channel pixel. This is handled by
+:class:`~exosim.tasks.subexposures.estimate_ch_jitter.EstimateChJitter`, which
+computes the angular size of each sub-pixel of the focal plane and converts the
+instrument pointing jitter from :math:`deg` into sub-pixels.
 
-Assuming the instrument jitter has been already computed, and the channels plate scales are in the parameter dictionary
+Assuming the instrument jitter has already been computed, and the channel plate
+scales are in the parameter dictionary:
 
 .. code-block:: xml
 
@@ -102,7 +106,7 @@ Assuming the instrument jitter has been already computed, and the channels plate
         <type> photometer </type>
         <detector>
             <plate_scale unit="arcsec/micron"> 0.01 </plate_scale>
-        <detector>
+        </detector>
         <readout>
             <readout_frequency unit="Hz">100</readout_frequency>
         </readout>
@@ -115,13 +119,14 @@ Assuming the instrument jitter has been already computed, and the channels plate
                 <spatial unit="arcsec/micron"> 0.01 </spatial>
                 <spectral unit="arcsec/micron"> 0.05 </spectral>
             </plate_scale>
-        <detector>
+        </detector>
         <readout>
             <readout_frequency unit="Hz">100</readout_frequency>
         </readout>
     </channel>
 
-Than :class:`~exosim.tasks.subexposures.estimate_ch_jitter.EstimateChJitter` can be run as
+:class:`~exosim.tasks.subexposures.estimate_ch_jitter.EstimateChJitter` is then
+run as:
 
 .. code-block:: python
 
@@ -132,10 +137,11 @@ Than :class:`~exosim.tasks.subexposures.estimate_ch_jitter.EstimateChJitter` can
                                                                jitter_spe,
                                                                jitter_time))
 
-This will results in a list of jitter offsets in pixel units sampled at a multiple of the channel
-`readout_frequency` cadence, for the ful length of the observation.
+The result is a list of jitter offsets, in pixel units, sampled at a multiple of
+the channel `readout_frequency` cadence, for the full length of the observation.
 
-The new jitter time line, `jit_time` might be different from the previous `jitter_time`,
-and different from channel to channel. The new time line is estimated using the lowest multiple shared between the channel `readout_frequency`
-and the frequency used to sample the input jitter.
-This will result in `ExoSim` oversampling in frequency the detector readout to ensure that the input jitter is well represented and aligned to the detector readout scheme.
+The new jitter timeline, `jit_time`, may differ from `jitter_time` and from
+channel to channel. It is built from the lowest common multiple of the channel
+`readout_frequency` and the frequency used to sample the input jitter. In
+effect, `ExoSim` oversamples the detector readout in frequency so that the input
+jitter is well represented and aligned with the detector readout scheme.

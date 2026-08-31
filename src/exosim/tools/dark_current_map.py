@@ -161,27 +161,29 @@ class DarkCurrentMap(Task):
         return dc_map
 
     def compute_dc_mean(self, detector):
-        """
-        Computes the mean of the dark current (dc_mean) from the log-normal distributon.
+        r"""
+        Computes the mean of the dark current (dc_mean) from the log-normal distribution.
 
         Notes
         -----
-        The probability density function for the log-normal distributon is:
+        The probability density function for the log-normal distribution is:
 
         .. math::
-            pdf(x) = \frac{1}{\\sigma x \\sqrt{2\\pi}}
-                      \\exp\\left(-\frac{(\\log(x) - \\mu)^2}{2 \\sigma^2}\right)
+
+            pdf(x) = \frac{1}{\sigma x \sqrt{2\pi}}
+                     \exp\left(-\frac{(\log(x) - \mu)^2}{2 \sigma^2}\right)
 
         The mean of the pdf can be computed as:
 
         .. math::
-            mean = \\exp(\\mu + \frac{s^2}{2})
+
+            mean = \exp\left(\mu + \frac{s^2}{2}\right)
 
         where s is the pdf standard deviation, computed by taking the sqrt of the variance, defined as:
 
         .. math::
 
-            var = \\left(\\exp(\\sigma^2) - 1\right) \\exp(2 \\mu + \\sigma^2)
+            var = \left(\exp(\sigma^2) - 1\right) \exp(2 \mu + \sigma^2)
 
 
         Parameters

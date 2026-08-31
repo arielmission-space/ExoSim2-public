@@ -1,11 +1,11 @@
 .. _ndrs recipe:
 
-==============================
-NDRs automatic Recipe
-==============================
+=====================
+NDRs automatic recipe
+=====================
 
-All the steps needed for the production of sub-exposures are already collected in a pre-made pipeline.
-This is under the :py:mod:`~exosim.recipes` of `ExoSim`.
+All the steps needed to produce the NDRs are collected in a ready-made pipeline,
+under :py:mod:`~exosim.recipes`:
 
 .. code-block:: python
 
@@ -14,24 +14,23 @@ This is under the :py:mod:`~exosim.recipes` of `ExoSim`.
                        output_file='./output_file.h5',
                        options_file='your_config_file.xml')
 
-The :class:`~exosim.recipes.createNDRs.CreateNDRs` can also be run from console as
+:class:`~exosim.recipes.createNDRs.CreateNDRs` can also be run from the console:
 
 .. code-block:: console
 
     exosim-ndrs -c your_config_file.xml -i input_file.h5 -o output_file.h5
 
-or
+Add ``-P`` to also run :class:`~exosim.plots.ndrsPlotter.NDRsPlotter` (documented
+in :ref:`ndrs plotter`):
 
 .. code-block:: console
 
     exosim-ndrs -c your_config_file.xml -i input_file.h5 -o output_file.h5 -P
 
-to also run ExoSim :class:`~exosim.plots.ndrsPlotter.NDRsPlotter`, which is documented in :ref:`ndrs plotter`.
-
-The user can also set the chunk size (see :ref:`Instantaneous readout`) using
+You can also set the chunk size (see :ref:`Instantaneous readout`):
 
 .. code-block:: console
 
     exosim-ndrs -c your_config_file.xml -i input_file.h5 -o output_file.h5 --chunk_size N
 
-where `N` is the desired size expressed in Mbs.
+where `N` is the size in MB.

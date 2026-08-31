@@ -136,13 +136,17 @@ class TestTimedClass:
     def test_logger(self, caplog):
         """Test logging functionality in TimedClass."""
 
-        # Use standard logging for testing caplog compatibility
+        # Use standard logging for testing caplog compatibility. The "exosim"
+        # logger keeps whatever level an earlier test left it at, so force it to
+        # DEBUG (and restore it) rather than relying on suite ordering.
         root_logger = logging.getLogger("exosim")
         original_propagate = root_logger.propagate
+        original_level = root_logger.level
         root_logger.propagate = True
+        root_logger.setLevel(logging.DEBUG)
 
         try:
-            with caplog.at_level(logging.DEBUG):
+            with caplog.at_level(logging.DEBUG, logger="exosim"):
                 test_timed = self.TimedForTesting()
                 test_timed.log_runtime_complete("", "info")
                 assert len(caplog.records) == 1
@@ -159,6 +163,7 @@ class TestTimedClass:
                 assert ": 00h00m00s" in caplog.records[0].message
         finally:
             root_logger.propagate = original_propagate
+            root_logger.setLevel(original_level)
 
     def test_timing_attributes_initialization(self):
         """Test that TimedClass initializes timing attributes correctly."""

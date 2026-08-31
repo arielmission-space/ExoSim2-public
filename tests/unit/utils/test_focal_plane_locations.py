@@ -4,6 +4,7 @@
 from unittest import TestCase
 
 import numpy as np
+import pytest
 
 from exosim.utils.focal_plane_locations import locate_wavelength_windows
 
@@ -56,6 +57,56 @@ class TestFocalPlaneLocations(TestCase):
         assert len(i0) == focal_plane.spectral.size
         assert isinstance(j0, np.ndarray)
         assert isinstance(i0, np.ndarray)
+
+    def test_3d_psf_spectrometer_returns_spectral_offsets_only(self):
+        focal_plane = MockFocalPlane(
+            shape=self.shape,
+            spectral_size=self.spectral_size,
+            is_cached=True,
+            has_data=False,
+            spatial_data=np.zeros(5),
+        )
+        psf = np.zeros((5, 3, 3))  # 3D PSF -> spectral dimension only
+        i0, j0 = locate_wavelength_windows(psf, focal_plane, {"type": "spectrometer"})
+        assert i0 is None
+        assert j0.shape[0] == self.shape[2]
+
+    def test_3d_psf_photometer_returns_spectral_offsets_only(self):
+        focal_plane = MockFocalPlane(
+            shape=self.shape,
+            spectral_size=self.spectral_size,
+            is_cached=True,
+            has_data=False,
+            spatial_data=np.zeros(5),
+        )
+        psf = np.zeros((5, 3, 3))
+        i0, j0 = locate_wavelength_windows(psf, focal_plane, {"type": "photometer"})
+        assert i0 is None
+        assert len(j0) == focal_plane.spectral.size
+
+    def test_2d_psf_raises(self):
+        focal_plane = MockFocalPlane(
+            shape=self.shape,
+            spectral_size=self.spectral_size,
+            is_cached=True,
+            has_data=False,
+            spatial_data=np.zeros(5),
+        )
+        with pytest.raises(ValueError, match="must be 3D or 4D"):
+            locate_wavelength_windows(
+                np.zeros((3, 3)), focal_plane, {"type": "photometer"}
+            )
+
+    def test_unknown_channel_type_raises(self):
+        focal_plane = MockFocalPlane(
+            shape=self.shape,
+            spectral_size=self.spectral_size,
+            is_cached=True,
+            has_data=False,
+            spatial_data=np.zeros(5),
+        )
+        with pytest.raises(ValueError, match="unsupported channel type"):
+            locate_wavelength_windows(self.psf, focal_plane, {"type": "camera"})
 
     def test_with_focal_plane_data(self):
         """Test when focal plane has existing data."""

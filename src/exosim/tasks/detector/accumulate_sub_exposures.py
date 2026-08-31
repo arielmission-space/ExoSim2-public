@@ -32,10 +32,14 @@ class AccumulateSubExposures(Task):
         for chunk in iterate_over_chunks(
             subexposures.dataset, desc="accumulating sub-exposures"
         ):
-            if state_machine[chunk[0].start - 1] == state_machine[chunk[0].start]:
-                offset = subexposures.dataset[chunk[0].start - 1]
+            start = chunk[0].start
+            # the first chunk has no preceding sub-exposure; carrying an offset
+            # over from ``start - 1`` (which wraps to the last frame) would
+            # corrupt the ramp, e.g. for a single-exposure state machine.
+            if start > 0 and state_machine[start - 1] == state_machine[start]:
+                offset = subexposures.dataset[start - 1]
             else:
-                offset = np.zeros_like(subexposures.dataset[chunk[0].start - 1])
+                offset = np.zeros_like(subexposures.dataset[start])
 
             subexposures.dataset[chunk] = self.sub_exposures_cumsum(
                 subexposures.dataset[chunk], state_machine[chunk[0]], offset

@@ -11,11 +11,21 @@ class ComputeSourcesPointingOffset(Task):
 
     Returns
     -------
-     int
-       offset in the spatial direction
-     int
-       offset in the spectral direction
+    int
+        offset to add to the spectral pixel index
+    int
+        offset to add to the spatial pixel index
 
+    Notes
+    -----
+    The two returned values are consumed by
+    :class:`~exosim.tasks.instrument.populate_focal_plane.PopulateFocalPlane`
+    and :class:`~exosim.tasks.astrosignal.apply_astronomical_signal.ApplyAstronomicalSignal`
+    as ``offset_spectral, offset_spatial = compute_offset(...)``: the first value
+    shifts the source along the detector spectral axis, the second along the
+    spatial axis. Which celestial coordinate (RA or Dec) corresponds to which
+    detector axis depends on the instrument orientation on the sky; this task
+    keeps the historical assignment (RA drives the first value, Dec the second).
     """
 
     def __init__(self):
@@ -75,15 +85,28 @@ class ComputeSourcesPointingOffset(Task):
                 source["parsed_parameters"]["dec"],
                 frame="icrs",
             )
-            offset_spatial = (c_tel.ra.deg - c_source.ra.deg) / aov_spatial.value
-            offset_spectral = (c_tel.dec.deg - c_source.dec.deg) / aov_spectral.value
-            self.debug(f"offset estimated:{offset_spectral} {offset_spatial}")
+            # true angular offsets from the source to the pointing direction:
+            # this handles the RA 0/360 wrap and the cos(dec) foreshortening,
+            # unlike a plain difference of the RA/Dec values.
+            d_ra, d_dec = c_source.spherical_offsets_to(c_tel)
+            # historical assignment: the RA offset drives the first returned
+            # value (used as the spectral-axis shift), the Dec offset the second
+            # (spatial-axis shift). See the class docstring.
+            offset_along_spectral_axis = d_ra.to(u.deg).value / aov_spatial.value
+            offset_along_spatial_axis = d_dec.to(u.deg).value / aov_spectral.value
+            self.debug(
+                f"offset estimated: {offset_along_spectral_axis} "
+                f"{offset_along_spatial_axis}"
+            )
 
         else:
             self.debug("Angle of View computation skipped: missing information")
-            offset_spectral = offset_spatial = 0
+            offset_along_spectral_axis = offset_along_spatial_axis = 0
 
-        self.set_output([int(offset_spatial), int(offset_spectral)])
+        # the offset is a whole number of sub-pixels: round to the nearest one
+        self.set_output(
+            [round(offset_along_spectral_axis), round(offset_along_spatial_axis)]
+        )
 
 
 def angle_of_view(plate_scale, delta_pix, ovs):

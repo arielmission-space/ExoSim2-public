@@ -1,117 +1,130 @@
 .. _FAQs:
 
+====
 FAQs
-=====
+====
 
 .. _noVirtualEnv:
 
 What if I don't want to create a Python virtual environment?
----------------------------------------------------------------
-You can certainly avoid using a virtual environment if you wish.
-In this case, follow all the steps described in :ref:`installation`
-except those related to the environment.
+------------------------------------------------------------
 
-Note that if you are installing ExoSim in your standard Python environment,
-the system may ask you for administrator privileges.
+You can skip the virtual environment if you prefer. In that case, follow every
+step in :ref:`installation` except the ones that create or activate the
+environment.
+
+Note that installing ExoSim into your system Python may require administrator
+privileges.
 
 .. _failedCheck:
 
 ExoSim is installed but not working: what can I do?
------------------------------------------------------
+---------------------------------------------------
 
-In our experience, most errors raised after a failed run are of three different kinds:
+In our experience, most errors raised after a failed run fall into three groups:
 
-1. Python raises an :code:`ImportError: No module named ####`, because it cannot import the module used.
+1. Python raises :code:`ImportError: No module named ####` because it cannot
+   import a module ExoSim depends on.
 
-    Generally, you can fix this by installing the missing dependency, as:
+    You can usually fix this by installing the missing dependency:
 
     .. code-block:: console
 
         pip install ####
 
-    If the installation returns errors, you may need to use administrator privileges. For a Unix system, you can use:
+    If the installation reports errors, you may need administrator privileges.
+    On a Unix system:
 
     .. code-block:: console
 
         sudo pip install ####
 
 
-2. Python raises an :code:`ImportError: No module named ExoSim`.
+2. Python raises :code:`ImportError: No module named exosim`.
 
-    This means that ExoSim is not installed in the environment you are using.
-    Try the installation procedure again, or see the solution offered in :ref:`noVirtualEnv`.
+    This means ExoSim is not installed in the environment you are using. Run the
+    installation procedure again, or see the solution in :ref:`noVirtualEnv`.
 
 
 .. _ver:
 
 What versioning system is used?
---------------------------------
+-------------------------------
 
-We are using a versioning system compliant with PEP440_ standards.
-Given a version number as X.Y.Z:
+We use a versioning scheme compliant with the PEP440_ standard. Given a version
+number ``X.Y.Z``:
 
-- X is the major modification identifier. Changing this number means that we have refactored a large part of the code. It is not compatible with previous versions.
-- Y is the minor modification identifier. This number changes when we add functionalities or change how part of the code works. A user will notice these variations and should check the documentation if some errors occur.
-- Z is the patch identifier. We fixed some problems or optimised something. Probably the user will not notice the difference.
+- **X** is the major identifier. A change here means a large part of the code has
+  been refactored, and the release is not compatible with previous versions.
+- **Y** is the minor identifier. It changes when we add features or change how
+  part of the code works. Users will notice these changes and should check the
+  documentation if errors occur.
+- **Z** is the patch identifier. We fixed a bug or optimised something, and users
+  will probably not notice the difference.
 
-Other versioning used is in the form X.YbZ. The only difference is that *b* stands for *beta*.
-You may also find *c*, meaning *release candidate*, or simply *r*, meaning *release* (this might be omitted), to indicate stable, distributable versions.
+You may also see versions of the form ``X.YbZ``, where *b* stands for *beta*.
+Other suffixes are *c* (release candidate) and *r* (release, usually omitted),
+which mark stable, distributable versions.
 
 .. _PEP440: https://www.python.org/dev/peps/pep-0440/
 
 How can I check which ExoSim version I'm using?
--------------------------------------------------
+-----------------------------------------------
 
-You can do this in multiple ways.
-The easiest way is to open the documentation (you already did) and look under the logo on the left panel, or go to the :doc:`changelog <CHANGELOG>`:
-there you will find all the versions listed.
-But this actually only refers to the directory you downloaded. To be sure that the version you are using is the same as the one you downloaded,
-run from the ExoSim Virtual Environment:
+There are several ways.
+
+The quickest is to open this documentation and look under the logo in the
+left-hand panel, or to open the :doc:`changelog <CHANGELOG>`, which lists every
+release. This tells you the version the documentation describes, not necessarily
+the one you have installed.
+
+To check the installed version, run this from the ExoSim virtual environment:
 
 .. code-block:: console
 
-    pip show ExoSim
+    pip show exosim
 
-you will see all the installation details for ExoSim, including a *Version* line.
-Or you can check it from your Python Virtual Environment:
+The output includes a *Version* line. From a Python session you can instead run:
 
 .. code-block:: python
 
-    import ExoSim
-    ExoSim.__version__
+    import exosim
+    exosim.__version__
 
-or you can find it into the output files of an ExoSim module, looking for the ``ExoSim version`` metadata.
-Finally, you can even find that information inside the ``ExoSim.log`` file.
+The version is also recorded in the output files of every ExoSim module, in the
+``ExoSim version`` metadata, and in the ``exosim.log`` file.
 
-Be sure that version is the same reported in the documentation.
-If not, upgrade your installation with
+Make sure the installed version matches the one in the documentation. If it does
+not, upgrade your installation.
+
+If you installed `ExoSim` with pip (see :ref:`install from PyPI <install pip>`):
 
 .. code-block:: console
 
     pip install exosim --upgrade
 
-if you installed `ExoSim` using pip (see :ref:`install pip`).
-If you used the source code from GitHub (see :ref:`install git`), go to your `ExoSim` directory,
-pull the latest changes, and update your installation:
+If you installed from the GitHub source (see :ref:`install from Git <install git>`), go to your
+`ExoSim` directory, pull the latest changes, and update the environment:
 
 .. code-block:: console
 
-    cd /your_path/ExoSim
+    cd /your_path/ExoSim2.0
     git pull
-    pip install . --upgrade
+    uv sync --extra dev
 
-and check again.
+Then check the version again.
 
 .. tip::
-    If you are using Anaconda Python, there must be an IDE listing all the installed packages for your Virtual Environments and their versions.
+    If you use Anaconda Python, its IDE can list every package installed in each
+    virtual environment together with its version.
 
 .. _loadHDF5:
 
 How can I load HDF5 data into my code?
--------------------------------------------------
-Once you have produced your dataset and it is stored in an `.h5` file,
-you can use the data with the Python package h5py_.
-Assuming your data file is called `data_file.h5`, you can include it in your code as:
+--------------------------------------
+
+Once your dataset is stored in an `.h5` file, you can read it with the h5py_
+package. Assuming the file is called `data_file.h5`:
 
 .. code-block:: python
 
@@ -120,9 +133,10 @@ Assuming your data file is called `data_file.h5`, you can include it in your cod
     with h5py.File('data_file.h5', 'r+') as input_file:
         ...
 
-Now the file can be navigated as a Python dictionary.
-To read and use the data, the user can refer to the documentation (https://docs.h5py.org/en/stable/high/dataset.html#reading-writing-data),
-but here is an example:
+The file can now be navigated like a Python dictionary. The h5py documentation
+covers reading and writing data
+(https://docs.h5py.org/en/stable/high/dataset.html#reading-writing-data); here is
+a short example:
 
 
 .. code-block:: python
@@ -132,15 +146,17 @@ but here is an example:
     with h5py.File('data_file.h5', 'r+') as input_file:
         data = input_file['first_level']['second_level']['dataset_name'][()]
 
-This script navigates the file looking for the dataset called `dataset_name` that is under `first_level/second_level`,
-and loads all the dataset content into the `data` variable.
+This navigates the file to the dataset `dataset_name` under
+`first_level/second_level` and loads its full content into the `data` variable.
 
 .. _load signal table:
 
 Load signals and tables
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-You can load the data stored in an HDF5 file into their original Python classes.
-In particular, you can cast a stored table into an :class:`~astropy.table.QTable` using :func:`astropy.io.misc.hdf5.read_table_hdf5`:
+^^^^^^^^^^^^^^^^^^^^^^^
+
+You can also load stored data back into its original Python class. For example,
+you can cast a stored table into an :class:`~astropy.table.QTable` with
+:func:`astropy.io.misc.hdf5.read_table_hdf5`:
 
 .. code-block:: python
 
@@ -151,10 +167,11 @@ In particular, you can cast a stored table into an :class:`~astropy.table.QTable
         table_data = input_file['first_level']['table_group']
         table = read_table_hdf5(table_data)
 
-where `table_data` is a dictionary loaded from the HDF5 file that contains both the table and the table metadata,
-stored in the file as `.__table_column_meta__`.
+Here `table_data` is the group loaded from the HDF5 file; it holds both the table
+and its metadata, stored as `.__table_column_meta__`.
 
-In the case of :class:`~exosim.models.signal.Signal` class, you can use the :func:`exosim.output.hdf5.utils.load_signal`:
+For the :class:`~exosim.models.signal.Signal` class, use
+:func:`exosim.output.hdf5.utils.load_signal`:
 
 .. code-block:: python
 

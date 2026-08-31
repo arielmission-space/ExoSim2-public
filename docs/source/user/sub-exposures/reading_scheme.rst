@@ -1,42 +1,46 @@
 .. _reading_scheme:
 
-===========================================
-Reading Scheme
-===========================================
+==============
+Reading scheme
+==============
 
-Once the jitter time lines are ready, we need to define the reading scheme for the detector.
+Once the jitter timelines are ready, define the detector reading scheme.
 
-.. note:: In this model we are only considering *instantaneous read out* of the detector.
+.. note::
+    This model considers only *instantaneous readout* of the detector.
 
-Assuming we want to reproduce the following reading scheme, which is the same of :ref:`sub-exposures creation`,
-where a :math:`60.3 \,s` exposure time is sampled by 6 NDRs divided in 3 groups.
+Suppose we want to reproduce the reading scheme from
+:ref:`sub-exposures creation`, where a :math:`60.3 \,s` exposure time is sampled
+by 6 NDRs in 3 groups.
 
 .. image:: ../tools/_static/reading_ramp_nclock.png
     :width: 600
     :align: center
 
 
-The ramp is sampled at the readout_frequency cadence, defined in :ref:sub-exposures creation.
-In this example, we assume:
+The ramp is sampled at the ``readout_frequency`` cadence defined in
+:ref:`sub-exposures creation`. In this example we assume:
 
-+ Ground (GND) state lasts :math:`0.2\,s`, i.e. 2 simulation clocks at :math:`10\,Hz`;
-+ The first NDR is read after 1 clock (:math:`0.1\,s`);
++ the ground (GND) state lasts :math:`0.2\,s`, i.e. 2 simulation clocks at
+  :math:`10\,Hz`;
++ the first NDR is read after 1 clock (:math:`0.1\,s`);
 + NDRs within a group are spaced by 1 clock;
-+ Groups are spaced by 296 simulation clocks;
-+ Reset (RST) state lasts 2 clocks (:math:`0.2\,s`).
++ groups are spaced by 296 simulation clocks;
++ the reset (RST) state lasts 2 clocks (:math:`0.2\,s`).
 
-Given these parameters, the NDRs occur at the following clock indices:
+With these parameters, the NDRs fall at the following clock indices:
 
-+ First NDR: starts at clock 2 (after GND), ends at 3
-+ Second NDR: starts at 4, ends at 5
-+ Third NDR: starts at 300 (= 4 + 296), ends at 301
-+ Fourth NDR: starts at 302, ends at 303
-+ Fifth NDR: starts at 598 (= 302 + 296), ends at 599
-+ Sixth NDR: starts at 600, ends at 601
++ first NDR: starts at clock 2 (after GND), ends at 3;
++ second NDR: starts at 4, ends at 5;
++ third NDR: starts at 300 (= 4 + 296), ends at 301;
++ fourth NDR: starts at 302, ends at 303;
++ fifth NDR: starts at 598 (= 302 + 296), ends at 599;
++ sixth NDR: starts at 600, ends at 601.
 
-Then the RST state completes the ramp at clocks 602–603
+The RST state then completes the ramp at clocks 602–603.
 
-This amounts to a total of 603 simulation clocks at :math:`0.1\,s` resolution, i.e. exactly :math:`60.3\,s.`
+That is 603 simulation clocks at :math:`0.1\,s` resolution, i.e. exactly
+:math:`60.3\,s`.
 
 .. code-block:: xml
 
@@ -52,35 +56,42 @@ This amounts to a total of 603 simulation clocks at :math:`0.1\,s` resolution, i
         </readout>
     </channel>
 
-The user can also set the `readout_frequency` in units of :math:`Hz` instead of :math:`s`.
+You can also give `readout_frequency` in :math:`Hz` instead of :math:`s`.
 
-The reading scheme is computed by :class:`~exosim.tasks.subexposures.compute_reading_scheme.ComputeReadingScheme`
+The reading scheme is computed by
+:class:`~exosim.tasks.subexposures.compute_reading_scheme.ComputeReadingScheme`:
 
 .. code-block:: python
 
         import exosim.tasks.subexposures as subexposures
         computeReadingScheme = subexposures.ComputeReadingScheme()
-        clock, base_mask, base_group_end, base_group_start, number_of_exposures = computeReadingScheme(
+        clock, base_mask, frame_sequence, number_of_exposures = computeReadingScheme(
             parameters=parameters,
             main_parameters=main_parameters,
             focal_plane=focal_plane,
             frg_focal_plane=frg_focal_plane)
 
-The outputs of this :class:`~exosim.tasks.task.Task` can be confusing, because is written to optimise the next step in the sub-exposures procedure.
-In the following we discuss each of them.
+The outputs of this :class:`~exosim.tasks.task.Task` can look cryptic, because
+they are shaped to optimise the next step of the sub-exposures procedure. Each
+one is:
 
-+ ``clock``: this is the simulation frequency, which is the inverse of `high_frequencies_resolution` defined in :ref:`sub-exposures creation`;
-+ ``base_mask``: this is state machine for the reading operation on the ramp.
-  In fact, a ramp is made of different states: ground state (GNS), reset state (RTS) and read states (NDR).
-  This mask is a list of of 0 and 1, where 1 is for the steps indicating a read operation:
-  Referring to the previous image, the base will look like [0, 1, 1, 1, 1, 1, 1, 0].
-+ ``frame_sequence``: this is the full list of simulation stapes for each steps on the ramp repeated by the number of ramps. E.g. [2, 1, 1, 296, 1, 296, 1, 2].
-+ ``number_of_exposures``: this is the number of exposures needed to sample the full observation using ramps of the exposure time size.
-  To estimate this quantity, the :class:`~exosim.tasks.task.Task` compute the saturation time using :class:`~exosim.tasks.instrument.compute_saturation.ComputeSaturation`,
-  which is why it need the focal planes.
++ ``clock``: the simulation frequency, the inverse of the
+  `high_frequencies_resolution` defined in :ref:`sub-exposures creation`;
++ ``base_mask``: the state machine for reading the ramp. A ramp is made of three
+  states: ground (GND), reset (RST) and read (NDR). This mask is a list of 0s and
+  1s, with 1 marking a read operation. For the image above, the base is
+  ``[0, 1, 1, 1, 1, 1, 1, 0]``;
++ ``frame_sequence``: the full list of simulation steps for each step on the
+  ramp, repeated for every ramp, e.g. ``[2, 1, 1, 296, 1, 296, 1, 2]``;
++ ``number_of_exposures``: the number of exposures needed to sample the whole
+  observation with ramps of the exposure-time length. To get this, the
+  :class:`~exosim.tasks.task.Task` computes the saturation time with
+  :class:`~exosim.tasks.instrument.compute_saturation.ComputeSaturation`, which
+  is why it needs the focal planes.
 
 
-The exposure time is computed from the configuration using a logic equivalent to hardware implementations (e.g. FPGA), counting clocks for each operation:
+The exposure time is computed from the configuration with logic equivalent to a
+hardware implementation (an FPGA, say), counting clocks for each operation:
 
 .. code-block:: python
 
@@ -93,9 +104,11 @@ The exposure time is computed from the configuration using a logic equivalent to
         + n_clk_RST                        # Reset state
     ) * clock                              # Convert to seconds
 
-This structure mirrors how readout operations would be sequenced in a detector control system or programmable logic, giving full transparency on timing and event spacing.
+This mirrors how readout operations are sequenced in a detector control system
+or in programmable logic, making the timing and event spacing fully transparent.
 
-For testing reasons, because sampling the full observation can be long and produce a lot of sub-exposure, the user can force the number of exposure to use by
+For testing, since sampling the whole observation can be slow and produce many
+sub-exposures, you can force the number of exposures:
 
 .. code-block:: xml
 
@@ -107,7 +120,9 @@ For testing reasons, because sampling the full observation can be long and produ
     </channel>
 
 .. note::
-    To help the user in defining the detector reading scheme, `ExoSim` include a dedicated tool: :ref:`readout_scheme_calculator`.
+    To help you design the detector reading scheme, `ExoSim` includes a
+    dedicated tool: :ref:`readout_scheme_calculator`.
 
-The readout scheme along with all the information needed for the instantaneous readout
-is computed by :class:`~exosim.tasks.subexposures.PrepareInstantaneousReadOut.PrepareInstantaneousReadOut`.
+The readout scheme, together with everything needed for the instantaneous
+readout, is computed by
+:class:`~exosim.tasks.subexposures.PrepareInstantaneousReadOut.PrepareInstantaneousReadOut`.

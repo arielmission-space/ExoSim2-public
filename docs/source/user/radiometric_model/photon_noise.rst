@@ -1,23 +1,29 @@
 .. _photon noise:
 
-=======================
-Photon Noise
-=======================
+============
+Photon noise
+============
 
-For each signal in the radiometric table, it is possible to compute the photon noise.
-The photon noise is computed by :class:`~exosim.tasks.radiometric.computePhotonNoise.ComputePhotonNoise`
+For every signal in the radiometric table, `ExoSim` can compute the photon
+noise. This is done by
+:class:`~exosim.tasks.radiometric.computePhotonNoise.ComputePhotonNoise`.
 
-Before computing the photon noise, the incoming signal :math:`S` is first multiplied by the duty cycle efficiency :math:`\eta_{duty}`
-to account for observing time losses due to shutters, choppers, or other mechanisms that interrupt the observation
-(see :ref:`timing_model` for details on duty cycle and timing calculations).
+First the incoming signal :math:`S` is scaled by the duty-cycle efficiency
+:math:`\eta_{duty}`, to account for the observing time lost to shutters,
+choppers, or other mechanisms that interrupt the observation (see
+:ref:`timing_model` for the duty cycle and the timing calculations). The
+effective signal is
 
-The effective signal is then: :math:`S_{eff} = \eta_{duty} \cdot S`
+.. math:: S_{eff} = \eta_{duty} \cdot S
 
-Given the effective signal :math:`S_{eff}`, the resulting photon noise variance is :math:`Var[S_{eff}]=S_{eff}`.
+The photon noise is Poisson, so the variance of the effective signal is
+:math:`Var[S_{eff}] = S_{eff}`.
 
-If photon gain factor :math:`gain_{phot}` has been computed with multiaccum equation (see :ref:`multiaccum`), then  :math:`Var[S_{eff}]= gain_{phot} \cdot Var[S_{eff}]`.
+If the photon gain factor :math:`gain_{phot}` has been computed with the
+multiaccum equation (see :ref:`multiaccum`), the variance is scaled by it:
+:math:`Var[S_{eff}] = gain_{phot} \cdot Var[S_{eff}]`.
 
-The user can also add a margin to the photon noise as
+You can also add a margin to the photon noise:
 
 .. code-block:: xml
 
@@ -27,7 +33,11 @@ The user can also add a margin to the photon noise as
         </radiometric>
     </channel>
 
-The duty cycle efficiency can be specified in the radiometric configuration:
+If a photon-noise margin :math:`\chi` is found in the description, the variance
+becomes :math:`Var[S_{eff}] = (1+\chi) \cdot Var[S_{eff}]`. The noise returned is
+:math:`\sigma = \sqrt{Var[S_{eff}]}`.
+
+The duty-cycle efficiency is set in the radiometric configuration:
 
 .. code-block:: xml
 
@@ -37,12 +47,10 @@ The duty cycle efficiency can be specified in the radiometric configuration:
         </radiometric>
     </channel>
 
-If not specified, the duty cycle defaults to 1.0 (100% observing efficiency).
+If it is not specified, the duty cycle defaults to 1.0, that is 100% observing
+efficiency.
 
-If photon noise margin, :math:`\chi`, is found in the description, then  :math:`Var[S_{eff}]= (1+\chi) \cdot Var[S_{eff}]`.
-The noise returned is :math:`\sigma = \sqrt{Var[S_{eff}]}`
-
-For each channel, it can be run in a script as
+For each channel, the task can be run from a script:
 
 .. code-block:: python
 

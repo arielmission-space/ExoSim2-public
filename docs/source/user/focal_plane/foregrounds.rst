@@ -1,22 +1,24 @@
 .. _foregrounds:
 
-===================================
+===========
 Foregrounds
-===================================
+===========
 
 Defining the foregrounds
----------------------------
+------------------------
 
-The foregrounds are to be listed in the `sky` `.xml` file, along with the `source`,
-but under the keyword `foregrounds`.
+The foregrounds are listed in the `sky` `.xml` file, next to the `source`, under
+the keyword `foregrounds`:
 
 .. code-block:: xml
 
     <foregrounds>
     </foregrounds>
 
-Foregrounds are parsed as optical elements, like the optics in the payload, by :class:`~exosim.tasks.parse.parseOpticalElement.ParseOpticalElement`.
-Multiple foregrounds form an optical path, and therefore are parsed by :class:`~exosim.tasks.parse.parsePath.ParsePath`.
+Foregrounds are parsed as optical elements, just like the optics in the payload,
+by :class:`~exosim.tasks.parse.parseOpticalElement.ParseOpticalElement`. Several
+foregrounds together form an optical path, so they are parsed by
+:class:`~exosim.tasks.parse.parsePath.ParsePath`.
 
 .. code-block:: xml
 
@@ -28,14 +30,15 @@ Multiple foregrounds form an optical path, and therefore are parsed by :class:`~
         </opticalElement>
     </foregrounds>
 
-By default, `ExoSim` supports user-defined foregrounds and zodiacal foregrounds.
+Out of the box, `ExoSim` supports user-defined foregrounds and the zodiacal
+foreground.
 
 .. _user foreground:
 
 User-defined foreground
-^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-An example of a user-defined foreground is reported in the package `examples` directory:
+The package `examples` directory contains a user-defined foreground:
 
 .. code-block:: xml
 
@@ -49,43 +52,55 @@ An example of a user-defined foreground is reported in the package `examples` di
         </opticalElement>
     </foregrounds>
 
-In this case `ExoSim` finds a foreground called `earthsky`, and uses the :class:`~exosim.tasks.task.Task` indicated in `task_model` to load it.
-The indicated :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` is the default :class:`~exosim.tasks.task.Task` included in `ExoSim` to load an optical element.
-An optical element is defined by its radiance and efficiency as a function of the wavelength.
-Hence, this default class looks into the indicated `datafile` to load the three quantities.
-The data file should contain a table such that the three quantities are identified by the keys reported in the `.xml` description.
-In this case the wavelength is reported under a column called `Wavelength`, the radiance under the column `Radiance`, and the efficiency under the column `Transmission`.
+Here `ExoSim` finds a foreground called `earthsky` and loads it with the
+:class:`~exosim.tasks.task.Task` named in `task_model`. The default task,
+:class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement`, loads an
+optical element from a data file. An optical element is defined by its radiance
+and its efficiency as functions of wavelength, so the task reads three columns
+from `datafile`, identified by the keys in the `.xml` description: `Wavelength`
+for the wavelength, `Radiance` for the radiance, and `Transmission` for the
+efficiency.
 
-The user can write a custom :class:`~exosim.tasks.task.Task` to load or estimate the foreground differently.
-This can be done by writing a new class inheriting from the default :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement`
-and indicating in the `task_model` key the Python file containing such a new class.
-The user shall only overwrite the `model` method in the new class.
-The output of a custom model method, as indicated in the :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` documentation,
-shall be a :class:`~exosim.models.signal.Radiance` and a :class:`~exosim.models.signal.Dimensionless`.
-The first contains the foreground radiance, and the second the foreground transmission.
-The two classes should be binned to the general :ref:`wavelength grid` and the :ref:`temporal grid`.
-Notice that the binning can be handled by the :func:`~exosim.models.signal.Signal.spectral_rebin` and :func:`~exosim.models.signal.Signal.temporal_rebin` methods of the :class:`~exosim.models.signal.Signal` class.
-To learn more about customizing tasks, please refer to :ref:`Custom Tasks`.
+You can write a custom :class:`~exosim.tasks.task.Task` to load or estimate the
+foreground differently. Write a new class that inherits from the default
+:class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement`, and point
+the `task_model` key at the Python file that contains it. You only need to
+override the `model` method. As described in the
+:class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement`
+documentation, `model` must return a :class:`~exosim.models.signal.Radiance`
+(the foreground radiance) and a :class:`~exosim.models.signal.Dimensionless`
+(the foreground transmission). Both must be binned to the :ref:`wavelength grid`
+and the :ref:`temporal grid`; the
+:func:`~exosim.models.signal.Signal.spectral_rebin` and
+:func:`~exosim.models.signal.Signal.temporal_rebin` methods of
+:class:`~exosim.models.signal.Signal` can do this for you. See :ref:`Custom
+Tasks` for more on customizing tasks.
 
 .. caution::
-    If the user doesn't include the `task_model` keyword in the optical element description,
-    the default :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` task is used.
+    If you omit the `task_model` keyword from an optical-element description,
+    the default
+    :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` task is
+    used.
 
 Zodiacal foreground
-^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
-If the foreground name is `zodi` or `zodiacal`, the code will parse the element using :class:`~exosim.tasks.foregrounds.estimateZodi.EstimateZodi` instead of :class:`~exosim.tasks.parse.parseOpticalElement.ParseOpticalElement`.
+If the foreground is named `zodi` or `zodiacal`, the code parses it with
+:class:`~exosim.tasks.foregrounds.estimateZodi.EstimateZodi` instead of
+:class:`~exosim.tasks.parse.parseOpticalElement.ParseOpticalElement`.
 
-The zodiacal foreground radiance is estimated using a modified version of the JWST-MIRI Zodiacal model (Glasse et al., 2010),
-scaled according to the target position in the sky and the Zodi model of Kelsall et al. (1998):
+The zodiacal radiance is estimated from a modified version of the JWST-MIRI
+zodiacal model (Glasse et al., 2010), scaled to the target position in the sky
+using the zodiacal model of Kelsall et al. (1998):
 
 .. math::
 
     I_{zodi}(\lambda) = A \left( 3.5 \cdot 10^{-14} BB(\lambda, 5500 \, K) + 3.52 \cdot 10^{-8} BB(\lambda, 270 \, K) \right)
 
-where :math:`BB(\lambda, T)` is the Planck black body law and :math:`A` is the fitted coefficient.
+where :math:`BB(\lambda, T)` is the Planck black-body law and :math:`A` is the
+fitted coefficient.
 
-The user can either specify the coefficient to use, as in the example:
+You can either set the coefficient explicitly,
 
 .. code-block:: xml
 
@@ -95,7 +110,7 @@ The user can either specify the coefficient to use, as in the example:
         </opticalElement>
     </foregrounds>
 
-or can specify the coordinates in RA and Dec:
+or give the target coordinates in RA and Dec:
 
 .. code-block:: xml
 
@@ -105,30 +120,37 @@ or can specify the coordinates in RA and Dec:
         </opticalElement>
     </foregrounds>
 
-In this case the :math:`A` coefficient is selected from a precompiled grid.
-The grid has been estimated by fitting our model with Kelsall et al. (1998) data.
-A custom map can be provided to replace the default one, as long as it matches the format, by adding the keyword `zodi_map`.
+In the second case :math:`A` is read from a pre-computed grid, obtained by
+fitting our model to the Kelsall et al. (1998) data. You can replace the default
+grid with your own by adding the `zodi_map` keyword, as long as it matches the
+expected format.
 
 .. _foreground propagation:
 
 Foreground propagation
--------------------------
+----------------------
 
-Each parsed foreground contains a radiance in units of :math:`W/m^2/\mu m/sr`, contained in a :class:`~exosim.models.signal.Radiance` class,
-and a transmission, contained in a :class:`~exosim.models.signal.Dimensionless` class. Both classes are children of the :class:`~exosim.models.signal.Signal` class.
+Each parsed foreground carries a radiance in units of :math:`W/m^2/\mu m/sr`, in
+a :class:`~exosim.models.signal.Radiance` object, and a transmission, in a
+:class:`~exosim.models.signal.Dimensionless` object. Both are subclasses of
+:class:`~exosim.models.signal.Signal`.
 
-If more than one foreground is listed, the :class:`~exosim.tasks.parse.parsePath.ParsePath` class orders them in the same order used by the user in the `.xml` file
-and propagates their light top to bottom. So the first element radiance is multiplied by the second element transmission, then the second element radiance is summed.
-The obtained radiance is then multiplied by the third element transmission and the third element radiance is summed to the result.
-The final transmission is the product of all transmissions. At the end of the pipeline we have a resulting radiance, still expressed in units of :math:`W/m^2/\mu m/sr`,
-and still contained in a :class:`~exosim.models.signal.Radiance` class, which is the resulting radiance at the end of the chain, and a transmission that is the equivalent transmission of the full chain.
-This can be considered as a foreground equivalent to the full foregrounds chain.
+When several foregrounds are listed,
+:class:`~exosim.tasks.parse.parsePath.ParsePath` keeps them in the order they
+appear in the `.xml` file and propagates the light from top to bottom: the
+radiance of the first element is multiplied by the transmission of the second,
+then the radiance of the second is added; that result is multiplied by the
+transmission of the third, and the radiance of the third is added; and so on.
+The final transmission is the product of all the individual transmissions. The
+result is a single radiance (still in :math:`W/m^2/\mu m/sr`, still a
+:class:`~exosim.models.signal.Radiance`) and a single transmission, together
+equivalent to the whole foreground chain.
 
 .. image:: _static/foregrounds.png
     :width: 600
     :align: center
 
-The problem can be expressed with the recursive equation
+This is the recursive relation:
 
 .. math::
 
@@ -138,13 +160,17 @@ The problem can be expressed with the recursive equation
 
     \Phi_{for,i+1} = \Phi_{for,i+1} \cdot \Phi_{for,i}
 
-Where :math:`I_{for, i}` is the radiance of :math:`i` foreground and :math:`\Phi_{for,i}` is its transmission.
+where :math:`I_{for, i}` is the radiance of foreground :math:`i` and
+:math:`\Phi_{for,i}` is its transmission.
 
 .. note::
 
-    Because of the way the light path is parsed, it is important to be careful with the order of writing for the optical elements. Optical elements further from the detector should be written first in the `.xml` file.
+    Because of how the light path is parsed, the order of the optical elements
+    matters. Elements further from the detector must be written first in the
+    `.xml` file.
 
-Following the process presented in :ref:`sky from xml`, we can parse the foregrounds as
+Following the process shown in :ref:`sky from xml`, the foregrounds are parsed
+as:
 
 .. code-block:: python
 
@@ -160,6 +186,8 @@ Following the process presented in :ref:`sky from xml`, we can parse the foregro
                                 output=out_sky,
                                 group_name='foregrounds')
 
-In this case, thanks to the `group_name` keyword, the contributions are saved in a dedicated folder called `foregrounds`.
+The `group_name` keyword stores the contributions in a dedicated group called
+`foregrounds`.
 
-The `for_contrib` element shall be propagated now through the telescope. `ExoSim 2` handles this as the first optical element of the telescope optical chain.
+The `for_contrib` element is then propagated through the telescope: `ExoSim 2`
+treats it as the first optical element of the telescope optical chain.

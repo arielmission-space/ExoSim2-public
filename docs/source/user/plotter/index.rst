@@ -1,50 +1,53 @@
 .. _plotter:
 
-===================================
+========
 Plotters
-===================================
+========
 
-`ExoSim 2` includes some plotters which allow a fast evaluation of the produced data.
-The default plotter can be run from console as ``exosim-plot``.
+`ExoSim 2` includes a few plotters for a quick look at the data it produces. The
+default plotter is run from the console as ``exosim-plot``.
 
-The script includes two plotters: :class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter` and
-:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter`.
+It bundles four plotters, one per pipeline product:
+:class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter`,
+:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter`,
+:class:`~exosim.plots.subExposuresPlotter.SubExposuresPlotter` and
+:class:`~exosim.plots.ndrsPlotter.NDRsPlotter`.
 
 .. _focal plane plotter:
 
-Focal plane Plotter
-===================================
+Focal plane plotter
+===================
 
-:class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter`
-handles the methods to plot the focal planes produced by `exosim`.
+:class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter` plots the focal planes
+produced by `ExoSim`.
 
-It plots the focal planes of each channel at a specific time.
-For each channel it adds a :class:`~matplotlib.axes.Axes` to a figure.
-It returns a :class:`~matplotlib.figure.Figure` with two rows:
-on the first row are reported the oversampled focal planes.
-In the second row are reported the extracted focal plane,
-where the oversampling is removed.
-The focal plane plotted is the combination of the source focal plane
-plus the foreground focal plane.
+It plots the focal plane of each channel at a chosen time. For each channel it
+adds a :class:`~matplotlib.axes.Axes` to the figure and returns a
+:class:`~matplotlib.figure.Figure` with two rows: the first row shows the
+oversampled focal planes, the second row the extracted focal planes, with the
+oversampling removed. Each focal plane is the sum of the source focal plane and
+the foreground focal plane.
 
-Given the `test_file.h5` produced by Exosim, to plot the focal plane at the first time step,
-run from console
+Given a ``test_file.h5`` produced by `ExoSim`, to plot the focal plane at the
+first time step run:
 
 .. code-block:: console
 
     exosim-plot -i test_file.h5 -o plots/ -f -t 0 --plot-scale linear
 
-where ``-o`` is the output directory, ``-f`` is to run the focal plane plotter (:class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter`)
-and ``-t`` is to select the time step, ``--plot-scale`` indicates the image scale to use.
-By default the plot scale is `linear`, but another possible option is `dB`, and the image is plotted as :math:`10 \cdot log_{10} \left( ima/ max(ima) \right)`.
+where ``-o`` is the output directory, ``-f`` selects the focal plane plotter
+(:class:`~exosim.plots.focalPlanePlotter.FocalPlanePlotter`), ``-t`` selects the
+time step, and ``--plot-scale`` sets the image scale. The default scale is
+``linear``; the other option is ``dB``, which plots the image as
+:math:`10 \cdot log_{10} \left( ima / max(ima) \right)`.
 
-The result will be similar to
+The result looks like this:
 
 .. image:: _static/focal_plane.png
     :width: 600
     :align: center
 
-The same result can be obtained by using the plotter in a Python script:
+The same plot can be produced from a Python script:
 
 .. code-block:: python
 
@@ -53,13 +56,13 @@ The same result can be obtained by using the plotter in a Python script:
     focalPlanePlotter.plot_focal_plane(time_step=0, scale='linear')
     focalPlanePlotter.save_fig('focal_plane.png')
 
-If ``-plot-scale`` is set to `dB`, the result will be
+With ``--plot-scale dB`` the result is:
 
 .. image:: _static/focal_plane_dB.png
     :width: 600
     :align: center
 
-Inside the focal plane plotter, a functionality to plot the total efficiency can be found:
+The focal plane plotter can also plot the total efficiency:
 
 .. code-block:: python
 
@@ -74,28 +77,28 @@ Inside the focal plane plotter, a functionality to plot the total efficiency can
 
 .. _radiometric plotter:
 
-Radiometric Plotter
-===================================
+Radiometric plotter
+===================
 
-:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter`
-handles the methods to plot the radiometric table produced by `exosim`.
+:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter` plots the
+radiometric table produced by `ExoSim`.
 
-Given the `test_file.h5` produced by Exosim and which includes a radiometric table,
-to plot the table run from console
+Given a ``test_file.h5`` that contains a radiometric table, to plot it run:
 
 .. code-block:: console
 
     exosim-plot -i test_file.h5 -o plots/ -r
 
-where ``-o`` is the output directory and ``-r`` is to run the radiometric plotter (:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter`).
+where ``-o`` is the output directory and ``-r`` selects the radiometric plotter
+(:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter`).
 
-The result will be similar to
+The result looks like this:
 
 .. image:: _static/radiometric.png
     :width: 600
     :align: center
 
-The same result can be obtained by using the plotter in a Python script:
+The same plot can be produced from a Python script:
 
 .. code-block:: python
 
@@ -104,8 +107,7 @@ The same result can be obtained by using the plotter in a Python script:
     radiometricPlotter.plot_table()
     radiometricPlotter.save_fig('radiometric.png')
 
-
-The radiometric plotter can also plot the apertures superimposed onto the focal planes with
+The radiometric plotter can also overlay the apertures on the focal planes:
 
 .. code-block:: python
 
@@ -120,15 +122,15 @@ The radiometric plotter can also plot the apertures superimposed onto the focal 
 
 .. _sub-exposures plotter:
 
-Sub-Exposures Plotter
-===================================
+Sub-exposures plotter
+=====================
 
-:class:`~exosim.plots.subExposuresPlotter.SubExposuresPlotter`
-handles the methods to plot the sub-exposures produced by :class:`~exosim.recipes.createSubExposures.CreateSubExposures`,
-as described in :ref:`sub-exposures creation`.
+:class:`~exosim.plots.subExposuresPlotter.SubExposuresPlotter` plots the
+sub-exposures produced by
+:class:`~exosim.recipes.createSubExposures.CreateSubExposures`, as described in
+:ref:`sub-exposures creation`.
 
-Given the `test_se.h5` produced by `ExoSim` and which includes the sub-exposures,
-to plot them, run from console
+Given a ``test_se.h5`` that contains the sub-exposures, to plot them run:
 
 .. code-block:: console
 
@@ -140,10 +142,12 @@ or
 
     exosim-plot -i test_se.h5 -o plots/ -s
 
-:class:`~exosim.plots.subExposuresPlotter.SubExposuresPlotter` iteratively stores the images of the sub-exposures in the output folder,
-along with the sub-exposure time (which is the time where the sub-exposure integration ends) and the integration time.
+The plotter writes the sub-exposure images into the output folder, each labelled
+with the sub-exposure time (the time when the sub-exposure integration ends) and
+the integration time.
 
-Here we report for example the first and the second sub-exposures, collected using a CDS reading scheme, for both the channels
+Below are the first and second sub-exposures for both channels, collected with a
+CDS reading scheme:
 
 .. image:: _static/subexposures_plotter-Page-1.png
     :width: 600
@@ -154,20 +158,19 @@ Here we report for example the first and the second sub-exposures, collected usi
     :align: center
 
 .. note::
-Because the ExoSim output may contain a lot of sub-exposures, this plotter only produces images of the sub-exposures of the first exposure (the first ramp).
-
+    An `ExoSim` output can contain a large number of sub-exposures, so this
+    plotter only produces images for the first exposure, that is the first ramp.
 
 .. _ndrs plotter:
 
-NDRs Plotter
-===================================
+NDRs plotter
+============
 
-:class:`~exosim.plots.ndrsPlotter.NDRsPlotter`
-handles the methods to plot the NDRs produced by :class:`~exosim.recipes.createNDRs.CreateNDRs`,
-as described in :ref:`ndrs creation`.
+:class:`~exosim.plots.ndrsPlotter.NDRsPlotter` plots the NDRs produced by
+:class:`~exosim.recipes.createNDRs.CreateNDRs`, as described in
+:ref:`ndrs creation`.
 
-Given the `test_ndrs.h5` produced by `ExoSim` and which includes the NDRs,
-to plot them, run from console
+Given a ``test_ndrs.h5`` that contains the NDRs, to plot them run:
 
 .. code-block:: console
 
@@ -179,8 +182,8 @@ or
 
     exosim-plot -i test_ndrs.h5 -o plots/ -n
 
-:class:`~exosim.plots.ndrsPlotter.NDRsPlotter` iteratively stores the images of the NDRs in the output folder,
-along with the NDR exposure time.
+The plotter writes the NDR images into the output folder, each labelled with the
+NDR exposure time.
 
 .. image:: ../ndrs/_static/Photometer_ndrs_1.png
     :width: 600

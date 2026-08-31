@@ -1,21 +1,25 @@
 .. _installation:
 
-=======================
+======================
 Installation & updates
-=======================
+======================
 
-The following notes guide you toward the installation of `ExoSim` using a Python virtual environment.
-You must have Python and `pip` installed already. Ask your computer administrator in case you need to install these components.
+These notes walk you through installing `ExoSim` inside a Python virtual
+environment. You need Python and `pip` already installed; ask your system
+administrator if you have to add them.
 
 .. note::
-    The current implementation of ExoSim 2 is compatible with Python >3.12.
+    ExoSim 2 requires Python 3.12 or newer.
 
-Create the Virtual Environment
-====================================
-You can either create a Python Virtual Environment in your anaconda python or in a standard Python installation.
+Create the virtual environment
+==============================
+
+You can create the virtual environment either with Anaconda or with a standard
+Python installation.
 
 .. tip::
-    The Anaconda solution is cross-platform: the following instructions should work for Windows, macOS, and Linux.
+    The Anaconda solution is cross-platform: the instructions below work on
+    Windows, macOS, and Linux.
 
 .. tab-set::
 
@@ -26,18 +30,20 @@ You can either create a Python Virtual Environment in your anaconda python or in
                     :width: 50
                     :class: dark-light
 
-        Assuming you have `Anaconda <https://www.anaconda.com/>`__ installed on your system, you can simply install ExoSimVE following this procedure.
-        Open the Anaconda command shell, or if you are on a Unix system, just open the console.
+        Assuming `Anaconda <https://www.anaconda.com/>`__ is installed on your
+        system, open the Anaconda command shell (on a Unix system, just open a
+        terminal).
 
-        You can create a Virtual Environment as
+        Create the virtual environment with:
 
         .. code-block:: console
 
             conda create --name ExoSimVE python=3.12
 
-        The program will ask if you want to install some standard packages: accept them.
+        The installer asks whether you want to install some standard packages:
+        accept them.
 
-        You can now activate or deactivate the Virtual Environment as
+        You can then activate or deactivate the virtual environment with:
 
         .. code-block:: console
 
@@ -54,32 +60,31 @@ You can either create a Python Virtual Environment in your anaconda python or in
                         :class: dark-light
 
 
-        If you have a standard Python installation, you can still work with a virtual environment.
-        You must have Python `virtualenv` installed.
-        For Linux, you can do that as:
+        With a standard Python installation you can still work in a virtual
+        environment, but you need Python `virtualenv` installed. On Linux:
 
         .. code-block:: console
 
             mkdir ExoSimVE
             virtualenv -p /usr/bin/python3.12 ExoSimVE
 
-        Then activate the virtual environment. If using csh, type
+        Then activate the virtual environment. With csh, type:
 
         .. code-block:: console
 
             source ExoSimVE/bin/activate.csh
 
-        (check the virtual environment documentation when using a different shell)
+        (see the ``virtualenv`` documentation for other shells).
 
-If you don't want to use a virtual environment, check :ref:`noVirtualEnv`
+If you would rather not use a virtual environment, see :ref:`noVirtualEnv`.
 
 .. _raw_installation:
 
-ExoSim package installation
-====================================
+Install the ExoSim package
+==========================
 
 Install ExoSim
-----------------
+--------------
 
 .. _install pip:
 .. _install git:
@@ -93,7 +98,7 @@ Install ExoSim
                         :width: 50
                         :class: dark-light
 
-        The ExoSim package is hosted on the PyPI repository. You can install it by:
+        ExoSim is published on PyPI. Install it with:
 
         .. code-block:: console
 
@@ -106,7 +111,7 @@ Install ExoSim
                         :width: 50
                         :class: dark-light
 
-        You can clone ExoSim from our main Git repository:
+        Clone ExoSim from the main Git repository:
 
         .. code-block:: console
 
@@ -118,20 +123,22 @@ Install ExoSim
 
             cd /your_path/ExoSim2.0
 
-        ExoSim uses **uv** for dependency management and package installation. If you haven't installed uv yet, you can do so by following the `official uv documentation <https://docs.astral.sh/uv/getting-started/installation/>`_.
+        ExoSim uses **uv** for dependency management and package installation.
+        If you do not have uv yet, install it by following the `official uv
+        documentation <https://docs.astral.sh/uv/getting-started/installation/>`_.
 
-        Once uv is installed, you can proceed with installing ExoSim::
+        Once uv is available, install ExoSim with its development dependencies::
 
             uv sync --extra dev
 
-To test for correct setup you can do
+To check that the installation succeeded, run:
 
 .. code-block:: console
 
     python -c "import exosim"
 
-If no errors appeared, then it was successfully installed. Additionally, the `exosim` program
-should now be available on the command line:
+If no error is raised, ExoSim was installed correctly. The `exosim` command is
+now also available on the command line:
 
 .. code-block:: console
 
@@ -139,10 +146,10 @@ should now be available on the command line:
 
 
 Uninstall ExoSim
--------------------
+----------------
 
-ExoSim is installed on your system as a standard Python package:
-you can uninstall it from your environment as:
+ExoSim is installed as a standard Python package, so you can remove it from your
+environment with:
 
 .. code-block:: console
 
@@ -150,7 +157,7 @@ you can uninstall it from your environment as:
 
 
 Upgrade ExoSim
----------------
+--------------
 
 .. tab-set::
 
@@ -159,7 +166,7 @@ Upgrade ExoSim
 
 
 
-        If you have installed ExoSim from PyPI, you can now update the package simply as:
+        If you installed ExoSim from PyPI, update it with:
 
         .. code-block:: console
 
@@ -169,40 +176,26 @@ Upgrade ExoSim
         :sync: git
 
 
-        If you have installed ExoSim from Git, you can download or pull a newer version of ExoSim over the old one, replacing all modified data.
-
-        Then you must place yourself inside the installation directory with the console:
+        If you installed ExoSim from Git, pull the latest version over the old
+        one, then move into the installation directory:
 
         .. code-block:: console
 
             cd /your_path/ExoSim2.0
 
-        Now you can update ExoSim simply as
+        Update the environment with:
 
         .. code-block:: console
 
-            pip install . --upgrade
-
-        or simply
-
-        .. code-block:: console
-
-            pip install .
+            uv sync --extra dev
 
 
 Modify ExoSim
----------------
+-------------
 
-You can modify ExoSim's main code, editing it as you prefer, but in order to make the changes effective:
+You can edit ExoSim's source code as you like. An editable install (``uv sync``,
+or ``pip install -e .``) makes your changes take effect immediately, with no
+reinstall needed.
 
-.. code-block:: console
-
-    pip install . --upgrade
-
-or simply
-
-.. code-block:: console
-
-    pip install .
-
-To produce new `ExoSim` functionalities and contribute to the code, please see :ref:`guidelines`.
+To develop new `ExoSim` features and contribute them back to the project, see
+:ref:`guidelines`.

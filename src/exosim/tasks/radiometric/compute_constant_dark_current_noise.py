@@ -80,7 +80,7 @@ class ComputeConstantDarkCurrentNoise(Task):
         self.set_output([table, model])
 
     def model(self, signal, aperture_table, description, multiaccum_gain):
-        """
+        r"""
         Compute the dark current noise for each aperture using the provided parameters.
 
         This method estimates the dark current noise based on the mean dark current value, the aperture area, and the multiaccum gain.
@@ -92,25 +92,25 @@ class ComputeConstantDarkCurrentNoise(Task):
 
         .. math::
 
-            \\mathrm{dark\\_current\\_variance} = G \\cdot \\mu_\\mathrm{DC} \\cdot A
+            \mathrm{dark\_current\_variance} = G \cdot \mu_\mathrm{DC} \cdot A
 
         where
 
         - :math:`G` is the multiaccum gain,
-        - :math:`\\mu_\\mathrm{DC}` is the mean dark current (in ct/s),
+        - :math:`\mu_\mathrm{DC}` is the mean dark current (in ct/s),
         - :math:`A` is the aperture area (in pixels or consistent units).
 
         The dark current noise for a 1 hour exposure is then:
 
         .. math::
 
-            \\mathrm{dark\\_current\\_noise} = \\sqrt{\frac{\\mathrm{dark\\_current\\_variance}}{3600} \\cdot 3600}
+            \mathrm{dark\_current\_noise} = \sqrt{\frac{\mathrm{dark\_current\_variance}}{3600} \cdot 3600}
 
         The result is normalized by the input signal:
 
         .. math::
 
-            \\mathrm{dark\\_current\\_noise\\_norm} = \frac{\\mathrm{dark\\_current\\_noise}}{S}
+            \mathrm{dark\_current\_noise\_norm} = \frac{\mathrm{dark\_current\_noise}}{S}
 
         where :math:`S` is the signal.
 

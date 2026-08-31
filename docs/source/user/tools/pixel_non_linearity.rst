@@ -1,64 +1,60 @@
 .. _pixel_non_linearity:
 
-===================================
-Pixels Non-Linearity
-===================================
+===================
+Pixel non-linearity
+===================
 
-This tools helps the user to find the pixel non-linearity coefficients to as inputs for ExoSim,
-starting from the measurable pixel non-linearity correction.
+This tool produces the pixel non-linearity coefficients that `ExoSim` needs as
+input, starting either from physical assumptions or from the non-linearity
+correction that is measured in the lab.
 
-In fact, the detector non linearity model, is usually written as polynomial such as
-
-.. math::
-    Q_{det} = Q \cdot (1 + \sum_i a_i \cdot Q^i)
-
-where :math:`Q_{det}` is the charge read by the detector, and :math:`Q` is the ideal count,
-as :math:`Q = \phi_t`, with :math:`\phi` being the number of electrons generated and :math:`t` being the elapsed time.
-
-Pixels Non-Linearity from scratch
-----------------------------------
-
-The :class:`~exosim.tools.pixels_non_linearity.PixelsNonLinearity` tool retrieves the :math:`a_i` coefficients, starting from physical assumptions.
-
-The detector non linearity model, is written as polynomial such as
+The detector non-linearity is usually written as a polynomial,
 
 .. math::
     Q_{det} = Q \cdot (1 + \sum_i a_i \cdot Q^i)
 
-where :math:`Q_{det}` is the charge read by the detector, and :math:`Q` is the ideal count,
-as :math:`Q = \phi_t`, with :math:`\phi` being the number of electrons generated and :math:`t` being the elapsed time.
+where :math:`Q_{det}` is the charge read by the detector and :math:`Q` is the
+ideal count, :math:`Q = \phi t`, with :math:`\phi` the number of electrons
+generated per unit time and :math:`t` the elapsed time. The tool retrieves the
+:math:`a_i` coefficients.
 
-Considering the detector as a capacitor, the charge :math:`Q_{det}` is given by
+From physical assumptions
+-------------------------
+
+The :class:`~exosim.tools.pixels_non_linearity.PixelsNonLinearity` tool derives
+the :math:`a_i` coefficients from a simple physical model of the pixel.
+
+Treating the pixel as a capacitor, the collected charge is
 
 .. math::
     Q_{det} = \phi \tau \cdot \left(1 - e^{-Q/\phi \tau}\right)
 
-where :math:`\phi` is the charge generated in the detector pixel, and :math:`\tau` is the capacitor time constant.
-In fact the product :math:`\phi \tau` is constant
-:math:`Q` is the response of a linear detectror is given by :math:`Q = \phi t`
+where :math:`\tau` is the capacitor time constant, so the product
+:math:`\phi \tau` is constant, and :math:`Q = \phi t` is the response of an ideal
+linear detector.
 
-The detector is considered saturated when the charge :math:`Q_{det}` at the well depth :math:`Q_{det, \, wd}`
-differs from the ideal well depth :math:`Q_{wd}` by 5%.
+The pixel is taken to be saturated when the charge at the well depth,
+:math:`Q_{det, \, wd}`, falls 5% short of the ideal well depth :math:`Q_{wd}`:
 
 .. math::
     Q_{det} = (1-5\%)Q_{wd}
 
-Then
+so that
 
 .. math::
     \phi \tau \cdot \left(1 - e^{-Q_{wd}/\phi \tau}\right) = (1-5\%)Q_{wd}
 
-This equation can be solved numerically and gives
+Solving this numerically gives
 
 .. math::
     \frac{Q_{wd}}{\phi \tau} \sim 0.103479
 
-Therefore the detector collected charge is given by
+and therefore
 
 .. math::
         Q_{det} = \frac{Q_{wd}}{0.103479} \cdot \left(1 - e^\frac{- 0.103479 \, Q}{Q_{wd}}\right)
 
-Which can be approximated by a polynomial of order 4 as
+which a 4th-order Taylor expansion approximates as
 
 .. math::
 
@@ -70,13 +66,12 @@ Which can be approximated by a polynomial of order 4 as
 
         + \frac{1}{5!}\left(\frac{0.103479}{Q_{wd}}\right)^4 Q^4 \right]
 
-
-The results are the coefficients for a 4-th order polynomial:
+The result is the set of coefficients for a 4th-order polynomial:
 
 .. math::
     Q_{det} = Q \cdot (a_1 + a_2 \cdot Q + a_3 \cdot Q^2 + a_4 \cdot Q^3 + a_5 \cdot Q^4)
 
-The user should indicate the expected non-linearity shape, by setting the saturation parameter, called `well_depth`:
+The only input needed is the saturation level, ``well_depth``:
 
 .. code-block:: xml
 
@@ -86,26 +81,25 @@ The user should indicate the expected non-linearity shape, by setting the satura
         </detector>
     </channel>
 
-
-Then the tool can be run as
+Then run the tool:
 
 .. code-block:: python
 
     import exosim.tools as tools
 
     tools.PixelsNonLinearity(options_file='tools_input_example.xml',
-                                output='pnl_map.h5')
+                             output='pnl_map.h5')
 
-
-With the given example, we obtain the following expected non-linearity shape:
+With this example, the expected non-linearity shape is:
 
 .. image:: _static/detector_linearity.png
     :align: center
     :width: 80%
 
-However, each pixel is different, and therefore, this class also produces a map of the coefficient for each pixel.
-Each coefficient is normally distributed around the mean value, with a standard deviation indicated in the configuration.
-If no standard deviation is indicated, the coefficients are assumed to be constant.
+No two pixels are identical, so the tool also produces a map with a set of
+coefficients per pixel. Each coefficient is drawn from a normal distribution
+around its mean value, with the standard deviation given in the configuration; if
+no standard deviation is given, the coefficients are held constant.
 
 .. code-block:: xml
 
@@ -117,45 +111,49 @@ If no standard deviation is indicated, the coefficients are assumed to be consta
         </detector>
     </channel>
 
-To obtain the map we added to the configuration the detector sizes and the standard deviation of the coefficients.
+Here the detector sizes and the coefficient spread have been added to the
+configuration, giving:
 
 .. image:: _static/detector_linearity_map.png
     :align: center
     :width: 80%
 
-The code output is a map of :math:`a_i` coefficients for each pixel, which can be injected into  :class:`~exosim.tasks.detector.applyPixelsNonLinearity.ApplyPixelsNonLinearity`.
+The output is a map of :math:`a_i` coefficients per pixel, which feeds
+:class:`~exosim.tasks.detector.applyPixelsNonLinearity.ApplyPixelsNonLinearity`.
 
-Pixels Non-Linearity from correcting coefficients
-------------------------------------------------------
+From measured correction coefficients
+-------------------------------------
 
-Let's write again the detector non linearity model as
+Write the non-linearity model as
 
 .. math::
     Q_{det} = Q \bigtriangleup (1 + \sum_i a_i \cdot Q^i)
 
-where :math:`Q_{det}` is the charge read by the detector, and :math:`Q` is the ideal count,
-as :math:`Q = \phi_t`, with :math:`\phi` being the number of electrons generated and :math:`t` being the elapsed time.
-In the equation above, :math:`\bigtriangleup` is the operator used to defined the relation between :math:`Q_{det}` and :math:`Q`,
-which depends on the definition of the coefficients :math:`a_i` (see also equation below).
+where :math:`\bigtriangleup` is the operator that relates :math:`Q_{det}` to
+:math:`Q`, and its meaning depends on how the coefficients :math:`a_i` are
+defined.
 
-
-However, it is usually the inverse operation that is known, as it's coefficients are measurable empirically:
+In practice it is the inverse relation that is measured, since its coefficients
+can be found empirically:
 
 .. math::
     Q ={Q_{det}}\bigtriangledown ( b_1 + \sum_{i=2} b_i \cdot Q_{det}^i)
 
-Where :math:`\bigtriangledown` is the inverse operator of :math:`\bigtriangleup`.
-Depending on the way the non linearity is estimated, the operator can either be a division (:math:`\div`)
-or a multiplication (:math:`\times`). If not specified, a division is assumed.
+where :math:`\bigtriangledown` is the inverse of :math:`\bigtriangleup`.
+Depending on how the non-linearity was estimated, this operator is either a
+division (:math:`\div`) or a multiplication (:math:`\times`); if it is not
+specified, a division is assumed.
 
-The :class:`~exosim.tools.pixels_non_linearityFromCorrection.PixelsNonLinearityFromCorrection` can determine the coefficients :math:`b_i` from the measured non linearity correction.
+The
+:class:`~exosim.tools.pixels_non_linearityFromCorrection.PixelsNonLinearityFromCorrection`
+tool converts the measured correction coefficients :math:`b_i` into the
+:math:`a_i` coefficients that `ExoSim` uses.
 
-The :math:`b_i` correction coefficients should be listed in the configuration file using the `pnl_coeff` keyword
-in increasing alphabetical order: `pnl_coeff_a` for :math:`b_1`,
-`pnl_coeff_b` for :math:`b_2`, `pnl_coeff_c` for :math:`b_3`,
-`pnl_coeff_d` for :math:`b_4`, `pnl_coeff_e` for :math:`b_5` and so on.
-The user can list any number of correction coefficients, and they will be automatically parsed.
-Please, note that using this notation, :math:`b_1` is not forced to be the unity.
+List the :math:`b_i` coefficients in the configuration with the ``pnl_coeff``
+keyword, in alphabetical order: ``pnl_coeff_a`` for :math:`b_1`, ``pnl_coeff_b``
+for :math:`b_2`, ``pnl_coeff_c`` for :math:`b_3`, and so on. Any number of
+coefficients can be listed and they are parsed automatically. Note that with this
+notation :math:`b_1` is not forced to be unity.
 
 .. code-block:: xml
 
@@ -173,21 +171,21 @@ Please, note that using this notation, :math:`b_1` is not forced to be the unity
         </detector>
     </channel>
 
-as example of non linearity, we used the parameters from Hilbert 2009: "WFC3 TV3 Testing: IR Channel Nonlinearity Correction" (link_).
+The example coefficients above are taken from Hilbert 2009, "WFC3 TV3 Testing: IR
+Channel Nonlinearity Correction" (link_).
 
-This class will restrieve the :math:`a_i` coefficients, starting from the the indicated :math:`b_i`.
-The results are the coefficients for a 4-th order polynomial:
+The tool retrieves the :math:`a_i` coefficients for a 4th-order polynomial,
 
 .. math::
     Q_{det} = Q \cdot (a_1 + a_2 \cdot Q + a_3 \cdot Q^2 + a_4 \cdot Q^3 + a_5 \cdot Q^4)
 
-With the given example, we obtain the following expected non-linearity shape:
+giving the expected non-linearity shape:
 
 .. image:: _static/detector_linearity_wfc3.png
     :align: center
     :width: 80%
 
-However, each pixel is different, and therefore, this class also produces a map of the coefficient for each pixel as before.
+As before, it also produces a per-pixel map of the coefficients:
 
 .. image:: _static/detector_linearity_map_wfc3.png
     :align: center

@@ -535,6 +535,32 @@ class TestDetectorEffectsOperations:
 
         os.remove(fname)
 
+    def test_single_ramp_accumulation_is_a_plain_cumsum(self, test_data_dir):
+        # regression: a single-exposure state machine [0, 0, 0, 0] must give a
+        # clean cumulative sum. The previous code read state_machine[-1] /
+        # dataset[-1] for the first chunk and added the last frame as an offset.
+        fname = os.path.join(test_data_dir, "output_test_single_ramp.h5")
+        output = SetOutput(fname)
+        data = np.ones((4, 6, 6)).astype(np.float64)
+        with output.use(cache=True) as out:
+            sig = Counts(
+                spectral=np.arange(6),
+                data=data,
+                shape=data.shape,
+                cached=True,
+                output=out,
+                dataset_name="SubExposures",
+                output_path=None,
+                dtype=np.float64,
+            )
+            AccumulateSubExposures()(
+                subexposures=sig, state_machine=np.zeros(4, dtype=int)
+            )
+            np.testing.assert_array_equal(
+                np.asarray(sig.dataset)[:, 0, 0], [1.0, 2.0, 3.0, 4.0]
+            )
+        os.remove(fname)
+
     def test_simple_saturation(self, test_data_dir):
         """
         Test simple saturation clipping at well depth.
@@ -987,6 +1013,121 @@ class TestCosmicRayOperations:
             )
 
         os.remove(fname)
+
+    def test_randomised_events_and_output_group(self):
+        fname = os.path.join(self.test_data_dir, "output_test_cr_rand.h5")
+        output = SetOutput(fname)
+        data = np.zeros((4, 40, 40))
+        parameters = {
+            "detector": {
+                "spatial_pix": 40,
+                "spectral_pix": 40,
+                "well_depth": 10000,
+                "delta_pix": 1 * u.cm,
+                "cosmic_rays_rate": 1 / 40 / 40 * u.ct / u.cm**2 / u.s,
+                "saturation_rate": 1,
+                "cosmic_rays_randomise": True,
+            },
+        }
+        from exosim.utils import RunConfig
+
+        RunConfig.random_seed = 7
+        with output.use(cache=True) as out:
+            se = Counts(
+                spectral=np.arange(4),
+                data=data,
+                shape=data.shape,
+                cached=True,
+                output=out,
+                dataset_name="SubExposures",
+                output_path=None,
+                dtype=np.float64,
+            )
+            AddCosmicRays()(
+                subexposures=se,
+                parameters=parameters,
+                integration_times=np.ones(4),
+                output=out.create_group("run"),
+            )
+        import h5py
+
+        with h5py.File(fname, "r") as f:
+            assert "run/cosmic rays" in f
+            assert "run/cosmic rays/random seed" in f
+        os.remove(fname)
+
+    def test_interaction_shape_probabilities_over_one_raise(self):
+        fname = os.path.join(self.test_data_dir, "output_test_cr_bad.h5")
+        output = SetOutput(fname)
+        data = np.zeros((2, 20, 20))
+        parameters = {
+            "detector": {
+                "spatial_pix": 20,
+                "spectral_pix": 20,
+                "well_depth": 10000,
+                "delta_pix": 1 * u.cm,
+                "cosmic_rays_rate": 1 / 20 / 20 * u.ct / u.cm**2 / u.s,
+                "saturation_rate": 1,
+                "interaction_shapes": {"line_v": 0.7, "line_h": 0.7},
+            },
+        }
+        with output.use(cache=True) as out:
+            se = Counts(
+                spectral=np.arange(2),
+                data=data,
+                shape=data.shape,
+                cached=True,
+                output=out,
+                dataset_name="SubExposures",
+                output_path=None,
+                dtype=np.float64,
+            )
+            with pytest.raises(ValueError, match="probability greater than 1"):
+                AddCosmicRays()(
+                    subexposures=se,
+                    parameters=parameters,
+                    integration_times=np.ones(2),
+                )
+        if os.path.exists(fname):
+            os.remove(fname)
+
+    def test_interaction_shape_probabilities_under_one_do_not_crash(self):
+        # regression: {'single': 0.5} sums to 0.5 and the code did not top it
+        # up, so a cosmic ray with rand > 0.5 hit an unbound 'shape' variable
+        from exosim.utils import RunConfig
+
+        fname = os.path.join(self.test_data_dir, "output_test_cr_under.h5")
+        output = SetOutput(fname)
+        data = np.zeros((3, 40, 40))
+        parameters = {
+            "detector": {
+                "spatial_pix": 40,
+                "spectral_pix": 40,
+                "well_depth": 1000,
+                "delta_pix": 1 * u.cm,
+                "cosmic_rays_rate": 20 / 40 / 40 * u.ct / u.cm**2 / u.s,
+                "saturation_rate": 1,
+                "interaction_shapes": {"single": 0.5},
+            },
+        }
+        RunConfig.random_seed = 3
+        with output.use(cache=True) as out:
+            se = Counts(
+                spectral=np.arange(40),
+                data=data,
+                shape=data.shape,
+                cached=True,
+                output=out,
+                dataset_name="SubExposures",
+                output_path=None,
+                dtype=np.float64,
+            )
+            AddCosmicRays()(
+                subexposures=se, parameters=parameters, integration_times=np.ones(3)
+            )
+            assert np.any(np.asarray(se.dataset) == 1000)
+        if os.path.exists(fname):
+            os.remove(fname)
 
     def shape_test(self, shape, n_pix):
         """

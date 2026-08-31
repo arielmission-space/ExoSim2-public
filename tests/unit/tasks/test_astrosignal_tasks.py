@@ -374,6 +374,17 @@ class TestPlanetarySignalEstimation:
             assert np.all(np.isfinite(model))
             assert np.all(model > 0)
 
+    def test_unparseable_rp_raises_a_clear_error(self):
+        # not a string (would be treated as a file path) and not float-convertible
+        self.main_parameters["planet"]["rp"] = {"unexpected": "mapping"}
+        with pytest.raises(ValueError, match="planet 'rp' must be"):
+            self.estimate_planetary_signal(
+                timeline=self.timeline,
+                wl_grid=self.wl_grid[:5],
+                ch_parameters=self.parameters,
+                source_parameters=self.main_parameters,
+            )
+
 
 class TestSignalValidation:
     """Test suite for astronomical signal validation and consistency checks."""

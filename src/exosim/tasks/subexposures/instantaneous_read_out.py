@@ -118,7 +118,7 @@ class InstantaneousReadOut(Task):
                 """
 
                 if mag != 1:
-                    _xin, _yin, xout, yout = self.getOversampleFactors(
+                    _xin, _yin, xout, yout = self.get_oversample_factors(
                         focal[0, ...], mag
                     )
 

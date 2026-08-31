@@ -86,8 +86,11 @@ class EstimatePlanetarySignal(EstimateAstronomicalSignal):
                 self.debug("rp is a float")
                 rp_ = float(rp_)
                 rp = rp_ * np.ones(wl_grid.size)
-            except ValueError:
+            except (ValueError, TypeError) as exc:
                 self.error("rp must be a string or a float")
+                raise ValueError(
+                    "planet 'rp' must be a string (path to a file) or a float"
+                ) from exc
 
         # load limb darkening coefficients
         ldc_ = planet["limb_darkening_coefficients"]

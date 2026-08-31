@@ -130,20 +130,14 @@ class CreateFocalPlaneArray(Task):
         gc.collect()
 
     def _wav_osr(self, wl_solution, key, parameters, pix_osr):
-        if wl_solution[key].data == np.zeros_like(wl_solution["wavelength"]):
-            # wavelength on each x pixel
+        if np.all(np.asarray(wl_solution[key]) == 0):
+            # no dispersion along this axis: the wavelength is flat
             wav_osr = np.zeros(pix_osr.size) * u.um
         else:
-            # estimate dispersion law
-            par = np.polyfit(
-                wl_solution[key].to(u.um).value,
-                wl_solution["wavelength"].to(u.um).value,
-                2,
-            )
-            # Compute dispersion law (pixel -> wavelength) by fitting
+            # Compute the dispersion law (pixel -> wavelength) by fitting
             # `wl_solution[key]` (pixel positions) -> `wl_solution["wavelength"]`.
-            # To obtain the inverse mapping (wavelength -> pixel) we solve
-            # the polynomial equation p(pixel) = wavelength when needed.
+            # To obtain the inverse mapping (wavelength -> pixel) we solve the
+            # polynomial equation p(pixel) = wavelength when needed.
             par = np.polyfit(
                 wl_solution[key].to(u.um).value,
                 wl_solution["wavelength"].to(u.um).value,

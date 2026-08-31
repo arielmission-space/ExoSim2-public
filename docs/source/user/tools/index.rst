@@ -1,17 +1,20 @@
 .. _tools:
 
-===================================
-ExoSim Tools
-===================================
+============
+ExoSim tools
+============
 
 .. image:: _static/exosim_tools.png
     :width: 300
     :align: center
 
-In this section we present and describe a set of tool we included in ExoSim 2 to help the user to perform its simulations.
+This section describes a set of tools that `ExoSim 2` provides to help you
+prepare a simulation. Each one produces an input that a task then consumes during
+the run: a map, a set of coefficients, or a reading scheme.
 
-All the parameters to run the tools are parsed from and `.xml` file. In these examples, we assume the input file is called `tools_input_example.xml`.
-This file should mimic the general ExoSim input:
+Every tool reads its parameters from an ``.xml`` file. In the examples that
+follow, this file is called ``tools_input_example.xml``. It mirrors the structure
+of a normal `ExoSim` input:
 
 .. code-block:: xml
 
@@ -31,12 +34,13 @@ This file should mimic the general ExoSim input:
 
 
 List of tools
----------------
+-------------
+
 .. toctree::
     :maxdepth: 1
 
-    Quantum efficiency variation map   <qe_map>
-    Pixels Non-Linearity <pixel_non_linearity>
-    Readout Scheme Calculator   <readout_scheme_calculator>
-    Create dead pixels map  <dead_pixels>
-    ADC Gain estimator  <adc_gain>
+    Quantum efficiency variation map <qe_map>
+    Pixel non-linearity <pixel_non_linearity>
+    Readout scheme calculator <readout_scheme_calculator>
+    Create dead pixels map <dead_pixels>
+    ADC gain estimator <adc_gain>

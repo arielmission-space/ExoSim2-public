@@ -1,17 +1,19 @@
 .. _tasks:
 
+==================
+The task structure
+==================
 
-==========================
-The Task structure
-==========================
+Instead of plain functions, `ExoSim` uses a task system. A
+:class:`exosim.tasks.task.Task` is a class that carries out one operation and,
+through :class:`~exosim.log.logger.Logger`, comes with logging built in. Tasks
+have a fixed shape, so they can be swapped for custom versions (see
+:ref:`Custom Tasks`).
 
-Instead of functions, `ExoSim` uses a tasks system.
-The :class:`exosim.tasks.task.Task` is a class with logging properties (from :class:`~exosim.log.logger.Logger`) which executes some operations.
+Write a task
+------------
 
-Write a Task
---------------
-
-To write a task, first we need to create a class that inherits from the :class:`~exosim.tasks.task.Task` class:
+First, create a class that inherits from :class:`~exosim.tasks.task.Task`:
 
 .. code-block:: python
 
@@ -22,8 +24,8 @@ To write a task, first we need to create a class that inherits from the :class:`
         This is an example Task
         """
 
-
-Then we need to define the inputs. This must be done in the class `__init__` using the :func:`~exosim.tasks.task.Task.add_task_param` method:
+Then declare the inputs in ``__init__``, with
+:func:`~exosim.tasks.task.Task.add_task_param`:
 
 .. code-block:: python
 
@@ -43,37 +45,39 @@ Then we need to define the inputs. This must be done in the class `__init__` usi
             self.add_task_param('wavelength', 'wavelength grid')
             self.add_task_param('output', 'output file', None)
 
-In this example, we want the task to have 3 inputs: a dictionary, a wavelength grid, and an output file.
-The latter is optional: in fact, we have set ``None`` as a default value.
+Here the task takes three inputs: a dictionary, a wavelength grid and an output
+file. The last one is optional, since it is given the default value ``None``.
 
-Then we can move to describe the operations that this task is going to do:
+Then describe what the task does, in ``execute``:
 
 .. code-block:: python
 
     def execute(self):
         parameters = self.get_task_param('parameters')
-        parameters = self.get_task_param('wavelength')
-        parameters = self.get_task_param('output')
+        wavelength = self.get_task_param('wavelength')
+        output = self.get_task_param('output')
 
         ...
 
         variable = None
         self.set_output(variable)
 
-The :func:`~exosim.tasks.task.Task.get_task_param` method allows retrieval of the variable associated with the string used as argument.
-Then some operations are done and the output is set with the :func:`~exosim.tasks.task.Task.set_output` method.
-If a list of variables is expected as output, the code will be:
+:func:`~exosim.tasks.task.Task.get_task_param` returns the value associated with
+the input name. After the work is done, the result is handed back with
+:func:`~exosim.tasks.task.Task.set_output`. To return several values, pass a
+list:
 
 .. code-block:: python
 
         variable1 = None
         variable2 = None
-        self.set_output([variable1,variable2])
+        self.set_output([variable1, variable2])
 
 Logging
---------------
-Logging is important when producing a new task, hence we include some logging options into the :class:`~exosim.tasks.task.Task` class.
-Here are some examples of how to use them, but you can have a better understanding by looking at the :class:`~exosim.log.logger.Logger` class.
+-------
+
+The :class:`~exosim.tasks.task.Task` class provides the same logging methods as
+:class:`~exosim.log.logger.Logger`:
 
 .. code-block:: python
 
@@ -83,11 +87,12 @@ Here are some examples of how to use them, but you can have a better understandi
     self.error("error message")
     self.critical("critical message")
 
-These lines can be included in every method inside the :class:`~exosim.tasks.task.Task` class.
+They can be used in any method of the task.
 
-Use a Task
---------------
-To use a :class:`~exosim.tasks.task.Task`, we first need to initialise it, and then call it with its parameters:
+Use a task
+----------
+
+Initialise the task, then call it with its parameters:
 
 .. code-block:: python
 

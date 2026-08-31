@@ -1,24 +1,30 @@
 .. _estimate signals:
 
-=======================
+================
 Estimate signals
-=======================
+================
 
-There are different signals to estimate for the radiometric model, which depend on different focal planes:
+The radiometric model estimates several signals, each from a different focal
+plane:
 
 + source
 + foreground
-+ sub foregrounds
++ sub-foregrounds
 
 
-Source and Foreground signal
--------------------------------
+Source and foreground signal
+----------------------------
 
-Source and foreground signals are estimated using aperture photometry in the same way and on the same apertures starting from their focal planes.
-They are estimated for each channel by using :class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel` task by default.
+The source and foreground signals are estimated with aperture photometry, the
+same way and on the same apertures, starting from their focal planes. By default
+this is done for each channel with the
+:class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel`
+task.
 
-:class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel` needs a radiometric table with apertures listed and a focal plane,
-then it runs :class:`~exosim.tasks.radiometric.aperture_photometry.AperturePhotometry` and returns its results.
+:class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel`
+needs a radiometric table with the apertures listed and a focal plane; it then
+runs :class:`~exosim.tasks.radiometric.aperture_photometry.AperturePhotometry`
+and returns its results.
 
 .. code-block:: xml
 
@@ -32,42 +38,51 @@ then it runs :class:`~exosim.tasks.radiometric.aperture_photometry.AperturePhoto
 
     </channel>
 
-Inside :class:`~exosim.recipes.radiometric_model.RadiometricModel` this task is handled by the :func:`~exosim.recipes.radiometric_model.RadiometricModel.compute_source_signals` method
-for the source focal plane and by the :func:`~exosim.recipes.radiometric_model.RadiometricModel.compute_foreground_signals` method for the foreground.
-To use the default task in a script on a channel the user can write:
+Inside :class:`~exosim.recipes.radiometric_model.RadiometricModel` this task is
+handled by
+:func:`~exosim.recipes.radiometric_model.RadiometricModel.compute_source_signals`
+for the source focal plane and by
+:func:`~exosim.recipes.radiometric_model.RadiometricModel.compute_foreground_signals`
+for the foreground. To use the default task in a script on a channel:
 
 .. code-block:: python
 
-    import exosim.tasks.instrument as instrument
+    import exosim.tasks.radiometric as radiometric
 
-    computeSignalsChannel = instrument.ComputeSignalsChannel()
+    computeSignalsChannel = radiometric.ComputeSignalsChannel()
     photometry = computeSignalsChannel(table=table,
                                        focal_plane=focal_plane)
 
-Where `table` is the wavelength radiometric table with apertures and `focal plane` is the channel source or foreground focal plane array.
+where `table` is the wavelength radiometric table with apertures and
+`focal_plane` is the channel source or foreground focal-plane array.
 
 .. caution::
-    If the user doesn't include the `signal_task` keyword in the channel description,
-    the default :class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel` task is used.
-    To develop a custom :class:`~exosim.tasks.task.Task`, please refer to :ref:`Custom Tasks`.
+    If you omit the `signal_task` keyword from the channel description, the
+    default
+    :class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel`
+    task is used. See :ref:`Custom Tasks` to develop a custom
+    :class:`~exosim.tasks.task.Task`.
 
-The default :class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel` task
-uses the aperture centres, sizes and shapes in the radiometric table to perform aperture photometry
-with the appropriate apertures using :func:`photutils.aperture.aperture_photometry`.
+The default
+:class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel`
+task uses the aperture centres, sizes and shapes in the radiometric table to run
+aperture photometry with the right apertures, via
+:func:`photutils.aperture.aperture_photometry`.
 
 
-Foreground sub focal plane signals
---------------------------------------
+Foreground sub-focal-plane signals
+----------------------------------
 
-If at least one of the foregrounds has the `isolate` option enabled,
-there will be contributions to the focal plane to estimate for the radiometric table.
-As mentioned already in :ref:`sub focal planes`, these focal planes are stored in a dedicated directory.
-To estimate their contribution to the radiometric signal, a default :class:`~exosim.tasks.task.Task` has been developed:
-:class:`~exosim.tasks.radiometric.computeSubFrgSignalsChannel.ComputeSubFrgSignalsChannel`.
-As :class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel` does,
-this task uses :class:`~exosim.tasks.radiometric.aperture_photometry.AperturePhotometry` to perform aperture photometry
-on the same apertures used for source and general foreground focal planes.
-This task should be indicated in the description document as
+If at least one foreground has the `isolate` option enabled, there are extra
+focal-plane contributions to estimate for the radiometric table. As mentioned in
+:ref:`sub focal planes`, these focal planes are stored in a dedicated group. A
+default :class:`~exosim.tasks.task.Task`,
+:class:`~exosim.tasks.radiometric.computeSubFrgSignalsChannel.ComputeSubFrgSignalsChannel`,
+estimates their contribution. Like
+:class:`~exosim.tasks.radiometric.computeSignalsChannel.ComputeSignalsChannel`,
+it uses :class:`~exosim.tasks.radiometric.aperture_photometry.AperturePhotometry`
+on the same apertures used for the source and the general foreground focal
+planes. Name this task in the description document:
 
 .. code-block:: xml
 
@@ -81,9 +96,10 @@ This task should be indicated in the description document as
 
     </channel>
 
-Inside :class:`~exosim.recipes.radiometric_model.RadiometricModel` this task
-is handled by the :func:`~exosim.recipes.radiometric_model.RadiometricModel.compute_sub_foregrounds_signals` method.
-To use the default task in a script on a channel the user can write:
+Inside :class:`~exosim.recipes.radiometric_model.RadiometricModel` this task is
+handled by
+:func:`~exosim.recipes.radiometric_model.RadiometricModel.compute_sub_foregrounds_signals`.
+To use the default task in a script on a channel:
 
 .. code-block:: python
 
@@ -95,11 +111,14 @@ To use the default task in a script on a channel the user can write:
                                             input_file=input,
                                             parameters=description)
 
-Where `table` is the wavelength radiometric table with aperture, `ch_name` is the channel name,
-`input_file` is the input HDF5 file containing the focal planes, and
-`parameters` is the dictionary containing the aperture photometry information from the `xml` file.
+where `table` is the wavelength radiometric table with apertures, `ch_name` is
+the channel name, `input_file` is the input HDF5 file with the focal planes, and
+`parameters` is the dictionary with the aperture-photometry information from the
+`xml` file.
 
 .. caution::
-    If the user doesn't include the `sub_frg_signal_task` keyword in the channel description,
-    the default :class:`~exosim.tasks.radiometric.computeSubFrgSignalsChannel.ComputeSubFrgSignalsChannel` task is used.
-    To develop a custom :class:`~exosim.tasks.task.Task`, please refer to :ref:`Custom Tasks`.
+    If you omit the `sub_frg_signal_task` keyword from the channel description,
+    the default
+    :class:`~exosim.tasks.radiometric.computeSubFrgSignalsChannel.ComputeSubFrgSignalsChannel`
+    task is used. See :ref:`Custom Tasks` to develop a custom
+    :class:`~exosim.tasks.task.Task`.

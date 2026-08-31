@@ -295,13 +295,19 @@ class Channel(log.Logger):
         target = [
             source
             for source, param in self.sources.items()
-            if "source_target" in param.metadata["parsed_parameters"]
-            and param.metadata["parsed_parameters"]["source_target"]
+            if param.metadata.get("parsed_parameters", {}).get("source_target")
         ]
+        if not target:
+            self.error(
+                "Multiple sources are defined but none is flagged as the science "
+                "target. Set 'source_target' on one source in the input file."
+            )
+            raise KeyError("no source is flagged as 'source_target'")
         if len(target) > 1:
             self.error(
                 "More than one target source found. Please check your input file."
             )
+            raise KeyError("more than one source is flagged as 'source_target'")
         self.debug(f"Target source is {target[0]}")
         return target[0]
 

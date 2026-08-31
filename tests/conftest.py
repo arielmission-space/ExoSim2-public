@@ -1,5 +1,12 @@
 import logging
 import os
+
+# HDF5 file locking makes re-opening a just-written file flaky when several
+# tests touch the same product in one session (BlockingIOError). The pipeline
+# products are only ever read back within the test process, so disabling the
+# lock is safe here. Must be set before h5py is imported anywhere.
+os.environ.setdefault("HDF5_USE_FILE_LOCKING", "FALSE")
+
 import pathlib
 import shutil
 import tempfile

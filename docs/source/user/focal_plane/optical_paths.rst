@@ -1,20 +1,26 @@
-===================================
+============
 Optical path
-===================================
+============
 
-After the :ref:`foregrounds`, comes the optical path.
-`ExoSim` considers two different paths: the common optics path and the channel optical path.
+After the :ref:`foregrounds` comes the optical path. `ExoSim` considers two
+optical paths: the **common optics** path and the **channel** optical path.
 
-Both paths are described under the `payload` keyword in the configuration file, as mentioned in :ref:`configuration file`.
+Both are described under the `payload` keyword in the configuration file (see
+:ref:`configuration file`).
 
 .. _optical element:
 
 Optical elements
 ----------------
-As with the :ref:`foregrounds`, each piece of the optical chain is parsed as an optical element by :class:`~exosim.tasks.parse.parseOpticalElement.ParseOpticalElement`.
-Multiple optical elements form an optical path, and therefore are parsed by :class:`~exosim.tasks.parse.parsePath.ParsePath`.
 
-Each optical element in the chain should be clearly defined in the `.xml` configuration file under the `optical_path` keyword.
+As with the :ref:`foregrounds`, every piece of the optical chain is parsed as an
+optical element by
+:class:`~exosim.tasks.parse.parseOpticalElement.ParseOpticalElement`, and
+several optical elements together form a path parsed by
+:class:`~exosim.tasks.parse.parsePath.ParsePath`.
+
+Each optical element is defined in the `.xml` configuration file under the
+`optical_path` keyword:
 
 .. code-block:: xml
 
@@ -26,61 +32,77 @@ Each optical element in the chain should be clearly defined in the `.xml` config
         </opticalElement>
     </optical_path>
 
-Each parsed optical element contains a radiance in units of :math:`W/m^2/\mu m/sr`, contained in a :class:`~exosim.models.signal.Radiance` class,
-and a transmission, contained in a :class:`~exosim.models.signal.Dimensionless` class. Both classes are children of the :class:`~exosim.models.signal.Signal` class.
+Each parsed optical element carries a radiance in units of
+:math:`W/m^2/\mu m/sr`, in a :class:`~exosim.models.signal.Radiance` object, and
+a transmission, in a :class:`~exosim.models.signal.Dimensionless` object. Both
+are subclasses of :class:`~exosim.models.signal.Signal`.
 
 .. note::
-`ExoSim 2` does not include an optical simulator. The optical path here is only used to estimate the system transmission and the instrument self-emission.
-    Any other effect on the performance due to the optical path will be provided to the system in the form of a PSF.
+    `ExoSim 2` does not include an optical simulator. The optical path is used
+    only to estimate the system transmission and the instrument self-emission.
+    Any other effect of the optics on performance is fed to the system as a PSF.
 
-As already discussed in :ref:`user foreground`, :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` is the default :class:`~exosim.tasks.task.Task` included in `ExoSim` to load an optical element.
-An optical element is defined by its radiance, which shall be expressed in units of :math:`W/m^2/\mu m/sr` and contained in a :class:`~exosim.models.signal.Radiance` class,
-and an efficiency, contained in a :class:`~exosim.models.signal.Dimensionless` class, both expressed as a function of wavelength.
-Hence, this default class looks into the indicated `datafile` to load the three quantities.
-The data file should contain a table such that the three quantities are identified by the keys reported in the `.xml` description.
-In this case the wavelength is reported under a column called `Wavelength`, the radiance under the column `Radiance`, and the efficiency under the column `Transmission`.
+As already discussed in :ref:`user foreground`,
+:class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` is the
+default :class:`~exosim.tasks.task.Task` for loading an optical element. An
+optical element is defined by its radiance (in :math:`W/m^2/\mu m/sr`, a
+:class:`~exosim.models.signal.Radiance`) and its efficiency (a
+:class:`~exosim.models.signal.Dimensionless`), both as functions of wavelength.
+The default task reads three columns from `datafile`, identified by the keys in
+the `.xml` description: `Wavelength` for the wavelength, `Radiance` for the
+radiance, and `Transmission` for the efficiency.
 
-We recall here that the user can write a custom :class:`~exosim.tasks.task.Task` to load or estimate the optical element differently.
-Each optical element can have its own dedicated class.
-This can be done by writing a new class inheriting from the default :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement`
-and indicating in the `task_model` key the Python file containing such a new class.
-The user shall only overwrite the `model` method in the new class.
-The output of a custom model method, as indicated in the :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` documentation,
-shall be a :class:`~exosim.models.signal.Radiance` and a :class:`~exosim.models.signal.Dimensionless`.
-The first contains the optical element radiance, and the second the optical element transmission.
-The two classes should be binned to the general :ref:`wavelength grid` and the :ref:`temporal grid`.
-Notice that the binning can be handled by the :func:`~exosim.models.signal.Signal.spectral_rebin` and :func:`~exosim.models.signal.Signal.temporal_rebin` methods of the :class:`~exosim.models.signal.Signal` class.
-To learn more about customizing tasks, please refer to :ref:`Custom Tasks`.
+As with the foregrounds, you can write a custom
+:class:`~exosim.tasks.task.Task` to load or estimate an optical element
+differently, and each optical element can have its own task. Write a new class
+that inherits from
+:class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement`, point the
+`task_model` key at the Python file that contains it, and override only the
+`model` method. As described in the
+:class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement`
+documentation, `model` must return a :class:`~exosim.models.signal.Radiance`
+(the element radiance) and a :class:`~exosim.models.signal.Dimensionless` (the
+element transmission), both binned to the :ref:`wavelength grid` and the
+:ref:`temporal grid`. The
+:func:`~exosim.models.signal.Signal.spectral_rebin` and
+:func:`~exosim.models.signal.Signal.temporal_rebin` methods of
+:class:`~exosim.models.signal.Signal` can do the binning. See :ref:`Custom
+Tasks` for more.
 
 .. caution::
-    If the user doesn't include the `task_model` keyword in the optical element description,
-    the default :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` task is used.
+    If you omit the `task_model` keyword from an optical-element description,
+    the default
+    :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` task is
+    used.
 
 .. _supported optical elements:
 
 Supported optical elements
----------------------------
-The optical element type is indicated in the keyword `type`.
-The supported types are listed in the following image and discussed below.
+--------------------------
+
+The optical-element type is set with the `type` keyword. The supported types are
+shown in the figure and described below.
 
 .. image:: _static/optical_path.png
     :align: center
 
 
 Surface & filter
-^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
-By default, optical elements labelled as surfaces or filters are parsed by :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement`
-to estimate the radiance and transmission.
-While the transmission can be read directly from the indicated data file, the radiance can either be provided by the user in the same data file
-or estimated by the code. In the latter case, the user can provide an emissivity column in the data file and a temperature.
-Then the resulting radiance will be estimated as
+By default, optical elements of type `surface` or `filter` are parsed by
+:class:`~exosim.tasks.load.load_optical_element.LoadOpticalElement` to estimate
+their radiance and transmission. The transmission is read directly from the data
+file. The radiance is either given in the same data file or computed by the
+code: in the latter case, provide an emissivity column and a temperature, and
+the radiance is estimated as
 
 .. math::
 
     I_{surf}(\lambda) = \epsilon (\lambda) \cdot BB(\lambda, T)
 
-where :math:`\epsilon` is the indicated emissivity and :math:`BB(\lambda, T)` is the Planck black body law.
+where :math:`\epsilon` is the emissivity and :math:`BB(\lambda, T)` is the
+Planck black-body law.
 
 .. code-block:: xml
 
@@ -107,23 +129,28 @@ where :math:`\epsilon` is the indicated emissivity and :math:`BB(\lambda, T)` is
     </optical_path>
 
 
-In `ExoSim`, surfaces, filters, dichroics, lenses and prisms are handled in the same way by default.
-However, because dichroics are used as beam splitters, they may appear multiple times in the payload description.
-In this case, the user should be careful in indicating the correct efficiency data column (transmission or reflectivity),
-according to the optical path branch in which the element is located.
+By default, `ExoSim` handles surfaces, filters, dichroics, lenses and prisms in
+the same way. Because dichroics are used as beam splitters, they may appear more
+than once in the payload description; in that case, choose the correct
+efficiency column (transmission or reflectivity) for the branch of the optical
+path where the element sits.
 
-slit
-^^^^^^^^
+Slit
+^^^^
 
-`ExoSim` allows the introduction of slits into the payload configuration to be used as field stops.
-The user must indicate the slit size on the focal plane in physical units.
+`ExoSim` lets you add slits to the payload configuration as field stops. You
+give the slit size on the focal plane in physical units.
 
-The slit acts as a geometric filter for the optical path. In particular, it completely diffuses contributions that are fully extended or diffuse,
-such as the self-emission from mirrors positioned before the slit or the foreground.
-These components are treated as extended sources, and after passing through the slit, their distribution is diffused on the focal plane.
+A slit acts as a geometric filter on the optical path. It fully diffuses
+contributions that are completely extended or diffuse, such as the self-emission
+of mirrors placed before the slit, or the foreground: these are treated as
+extended sources, and after the slit their distribution is diffused on the focal
+plane.
 
-However, the slit does not account for the dispersion of partially extended elements, nor does it affect the vignetting or propagation of the PSF.
-In summary, the slit only diffuses fully extended or diffuse contributions, while leaving the propagation of the PSF unchanged.
+A slit does not account for the dispersion of partially extended elements, and
+it does not affect vignetting or the propagation of the PSF. In short: a slit
+only diffuses fully extended or diffuse contributions, and leaves the PSF
+propagation unchanged.
 
 .. code-block:: xml
 
@@ -131,23 +158,27 @@ In summary, the slit only diffuses fully extended or diffuse contributions, whil
         <opticalElement> slit
             <type>slit</type>
             <width unit="mm">1.5</width>
+        </opticalElement>
     </optical_path>
 
-optics box & detector box
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Optics box & detector box
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Other elements supported by `ExoSim` are the optics box and the detector box.
-In these cases, the data file, here indicated as `black_box.ecsv`, includes emissivity and transmission both set to 1 for every wavelength.
-These are the boxes containing the optics and the detector, and their light reaches each pixel in the detector from a solid angle equal to
-:math:`\pi - \Omega_{pix}` for the optics box and :math:`\pi` for the light coming from the detector box.
+`ExoSim` also supports the optics box and the detector box. For these, the data
+file (here `black_box.ecsv`) sets emissivity and transmission to 1 at every
+wavelength. These are the enclosures around the optics and the detector; their
+light reaches each detector pixel from a solid angle of
+:math:`\pi - \Omega_{pix}` for the optics box and :math:`\pi` for the detector
+box.
 
 .. image:: _static/detector_irradiation.png
     :width: 600
     :align: center
 
-The image summarises the problem. The green detector is illuminated by the yellow cone from the optical path.
-The optics box, represented in grey, irradiates it from the top, except from the yellow cone, and hence :math:`\pi - \Omega_{pix}`.
-The detector box, in purple, irradiates the pixel from the back: :math:`\pi`.
+The figure summarises the geometry. The green detector is illuminated by the
+yellow cone from the optical path. The optics box (grey) irradiates it from the
+front, everywhere except the yellow cone, hence :math:`\pi - \Omega_{pix}`. The
+detector box (purple) irradiates the pixel from the back, hence :math:`\pi`.
 
 .. code-block:: xml
 
@@ -177,7 +208,7 @@ The detector box, in purple, irradiates the pixel from the back: :math:`\pi`.
         </optical_path>
     </channel>
 
-Custom solid angles can be indicated with steradian units:
+Custom solid angles can be given in steradians:
 
 .. code-block:: xml
 
@@ -198,9 +229,10 @@ Custom solid angles can be indicated with steradian units:
 
 
 Load from HDF5 file
-^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^
 
-The user can also load the optical element from an HDF5 file, thanks to :class:`~exosim.tasks.load.load_optical_element.LoadOpticalElementHDF5`
+You can also load an optical element from an HDF5 file, with
+:class:`~exosim.tasks.load.load_optical_element.LoadOpticalElementHDF5`:
 
 .. code-block:: xml
 
@@ -220,16 +252,20 @@ The user can also load the optical element from an HDF5 file, thanks to :class:`
     </channel>
 
 Parsing the path
-------------------
-If more optical elements are listed, the :class:`~exosim.tasks.parse.parsePath.ParsePath` class orders them in the same order used by the user in the `.xml` file
-and propagates their light top to bottom. So the first element radiance is multiplied by the second element transmission, then the second element radiance is summed.
-The obtained radiance is then multiplied by the third element transmission and the third element radiance is summed to the result.
-The process is summarised in the previous figure.
-The final transmission is the product of all transmissions. At the end of the pipeline we have a resulting radiance, still expressed in units of :math:`W/m^2/\mu m/sr`,
-and still contained in a :class:`~exosim.models.signal.Radiance` class, which is the resulting radiance at the end of the chain, and a transmission that is the equivalent transmission of the full chain.
-This can be considered as an optical element equivalent to the full optical chain.
+----------------
 
-Similarly to what was presented in :ref:`foreground propagation`, we can summarise the process as
+When several optical elements are listed,
+:class:`~exosim.tasks.parse.parsePath.ParsePath` keeps them in the `.xml` order
+and propagates the light from top to bottom: the radiance of the first element
+is multiplied by the transmission of the second, then the radiance of the second
+is added; that result is multiplied by the transmission of the third, and the
+radiance of the third is added; and so on (this is the process shown in the
+figure above). The final transmission is the product of all the individual
+transmissions. The result is a single radiance (still in
+:math:`W/m^2/\mu m/sr`, still a :class:`~exosim.models.signal.Radiance`) and a
+single transmission, together equivalent to the whole optical chain.
+
+As in :ref:`foreground propagation`, the recursive relation is
 
 .. math::
 
@@ -239,16 +275,19 @@ Similarly to what was presented in :ref:`foreground propagation`, we can summari
 
     \Phi_{opt,i+1} = \Phi_{opt,i+1} \cdot \Phi_{opt,i}
 
-Where :math:`I_{opt, i}` is the radiance of :math:`i` optical element and :math:`\Phi_{opt,i}` is its transmission.
+where :math:`I_{opt, i}` is the radiance of optical element :math:`i` and
+:math:`\Phi_{opt,i}` is its transmission.
 
 .. note::
+    Because of how the light path is parsed, the order of the optical elements
+    matters. Elements further from the detector must be written first in the
+    `.xml` file.
 
-Because of the way the light path is parsed, it is important to be careful with the order of writing for the optical elements. Optical elements further from the detector should be written first in the `.xml` file.
-
-The :class:`~exosim.tasks.parse.parsePath.ParsePath` class allows combining different optical paths. If another optical path has already been parsed, for example, the :ref:`foregrounds` path,
-the user can set that path as a starting point for the new one to be parsed by using the `light_path` keyword.
-Combining more paths allows us to have, at the end of the chain, a single optical element in front of the detector.
-In this case, referring to the previous equations we can write
+:class:`~exosim.tasks.parse.parsePath.ParsePath` can also chain optical paths
+together. If another path has already been parsed (for example the
+:ref:`foregrounds` path), use the `light_path` keyword to set it as the starting
+point for the new one. Chaining paths this way leaves a single equivalent
+optical element in front of the detector. In terms of the equations above:
 
 .. math::
 
@@ -259,32 +298,40 @@ In this case, referring to the previous equations we can write
 
     \Phi_{opt,1} = \Phi_{1} \cdot \Phi_{prev}
 
-Where :math:`opt,1` identifies the first element of the new optical chain, while :math:`prev` is the result of the previous optical chain.
+where :math:`opt,1` is the first element of the new chain and :math:`prev` is
+the result of the previous chain.
 
-The output of :class:`~exosim.tasks.parse.parsePath.ParsePath` is not a single radiance and transmission, but a dictionary containing multiple radiances.
-In fact, when the light reaches the slit, it is diffused. But because the estimation of the diffusion is computed on the focal plane, the code stores the information
-and starts collecting the light after the slit as a new radiance. The same happens with the optics and detector boxes. Because these are to be multiplied by different solid angles,
-and the information is not available to the code until the whole channel is parsed, `ExoSim` separates the light into different radiances.
-So, at the end, we have the radiance from the contributions before the slits in one key of the dictionary that is the output of :class:`~exosim.tasks.parse.parsePath.ParsePath`;
-a radiance from the contributions after the slit but before the boxes; a radiance for the optics box and one for the detector boxes.
+The output of :class:`~exosim.tasks.parse.parsePath.ParsePath` is not a single
+radiance and transmission but a dictionary of several radiances. When the light
+reaches the slit it is diffused, but because the diffusion is computed on the
+focal plane, the code records the information and starts collecting the light
+after the slit as a new radiance. The same happens with the optics and detector
+boxes: they must be multiplied by different solid angles, which are not known
+until the whole channel is parsed, so `ExoSim` keeps their light in separate
+radiances. In the end the dictionary holds: the radiance from the contributions
+before the slit, the radiance from the contributions after the slit but before
+the boxes, the radiance for the optics box, and the radiance for the detector
+box.
 
-The user may also want to investigate the effects of a specific surface or contribution. In this case the user can use the keyword `isolate`:
+To study the effect of one specific surface or contribution, use the `isolate`
+keyword:
 
 .. code-block:: xml
 
     <optical_path>
         <opticalElement>
             ...
-            <isolate> True <isolate>
+            <isolate> True </isolate>
         </opticalElement>
     </optical_path>
 
-This forces the code to isolate that specific contribution and store it separately from the others in the output.
+This makes the code isolate that contribution and store it separately in the
+output.
 
 Common optics
---------------
+-------------
 
-The common optics path is described under the `Telescope` keyword in the descriptions.
+The common optics path is described under the `Telescope` keyword:
 
 .. code-block:: xml
 
@@ -294,9 +341,9 @@ The common optics path is described under the `Telescope` keyword in the descrip
         </optical_path>
     </Telescope>
 
-To optimise the code efficiency in case there are more channels in the payload, we estimate this contribution first.
-To estimate it we use :class:`~exosim.tasks.parse.parsePath.ParsePath`.
-If :ref:`foregrounds` have been parsed before, they should be attached to this path.
+When the payload has several channels, it is more efficient to estimate this
+contribution first, with :class:`~exosim.tasks.parse.parsePath.ParsePath`. If the
+:ref:`foregrounds` were parsed earlier, attach them to this path:
 
 .. code-block:: python
 
@@ -314,18 +361,21 @@ If :ref:`foregrounds` have been parsed before, they should be attached to this p
             output=out_payload, group_name='telescope',
             light_path=for_contrib )
 
-Where `for_contrib` has been produced in :ref:`foreground propagation`.
+Here `for_contrib` was produced in :ref:`foreground propagation`.
 
 .. _channel optical path:
 
 Channel optical path
-------------------------
-For each channel a specific optical path can be defined and parsed.
-This can be estimated either with :class:`~exosim.tasks.parse.parsePath.ParsePath` or using the :class:`~exosim.models.channel.Channel` class.
+--------------------
 
-The :class:`~exosim.models.channel.Channel` class contains all the routing to move forward to the focal plane production.
-The class can be instantiated by providing a dictionary with the channel description and the :ref:`wavelength grid` and :ref:`temporal grid`.
-Then the path can be parsed using :func:`~exosim.models.channel.Channel.parse_path`.
+Each channel can define and parse its own optical path, either with
+:class:`~exosim.tasks.parse.parsePath.ParsePath` or through the
+:class:`~exosim.models.channel.Channel` class.
+
+The :class:`~exosim.models.channel.Channel` class holds all the routing needed
+to move forward to the focal-plane production. Instantiate it with a dictionary
+describing the channel plus the :ref:`wavelength grid` and :ref:`temporal grid`,
+then parse the path with :func:`~exosim.models.channel.Channel.parse_path`:
 
 .. code-block:: python
 
@@ -337,4 +387,5 @@ Then the path can be parsed using :func:`~exosim.models.channel.Channel.parse_pa
                           wavelength=wl_grid, time=time_grid, output=out)
         channel.parse_path(light_path=common_path)
 
-Other functions of the :class:`~exosim.models.channel.Channel` class are discussed in :ref:`channel`.
+The other methods of :class:`~exosim.models.channel.Channel` are discussed in
+:ref:`channel`.

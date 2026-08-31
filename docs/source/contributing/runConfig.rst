@@ -1,12 +1,12 @@
 .. _run_config:
 
-
-==========================
+=================
 Run configuration
-==========================
+=================
 
-To handle shared information in the simulation, we can use the ``RunConfig`` class,
-which is a singleton initialised by :class:`~exosim.utils.run_config.RunConfigInit`.
+Information that is shared across the whole simulation is held in the
+``RunConfig`` class, a singleton initialised by
+:class:`~exosim.utils.run_config.RunConfigInit`:
 
 .. code-block:: python
 
@@ -15,10 +15,10 @@ which is a singleton initialised by :class:`~exosim.utils.run_config.RunConfigIn
 .. _parallel:
 
 Parallel processing
-======================
+-------------------
 
-Parallel processing is important for such demanding simulations.
-The number of parallel processes to use can be set using:
+`ExoSim` simulations are demanding, so parallel processing matters. Set the
+number of parallel processes with:
 
 .. code-block:: python
 
@@ -26,15 +26,15 @@ The number of parallel processes to use can be set using:
 
     RunConfig.n_job = N
 
-This number is then set for both `joblib` and `numba` libraries.
+The value is applied to both `joblib` and `numba`.
 
 .. _chunk_size:
 
 Chunk size
-=============
+----------
 
-The chunk size is the size of the chunk of the cached dataset (see :ref:`cached`).
-This value can be set as:
+The chunk size is the size of a chunk of a cached dataset (see :ref:`cached`).
+Set it with:
 
 .. code-block:: python
 
@@ -42,15 +42,14 @@ This value can be set as:
 
         RunConfig.chunk_size = N
 
-where `N` is the desired size of the chunk in MB, which will be set for the environment.
-
+where ``N`` is the chunk size in MB, applied for the whole environment.
 
 .. _random_seed:
 
-Random seed and Random generators
-=====================================
+Random seed and random generators
+---------------------------------
 
-The initial random seed can be set as:
+Set the initial random seed with:
 
 .. code-block:: python
 
@@ -58,11 +57,11 @@ The initial random seed can be set as:
 
     RunConfig.random_seed = N
 
-where `N` is the desired seed number.
-By default, the seed is set to `None`, and therefore each simulation is unique.
+where ``N`` is the seed. By default the seed is ``None``, so each simulation is
+unique.
 
-ExoSim also provides a default random generator (:class:`numpy.random.Generator`) already initialised with the set random seed.
-The random generator can be accessed as:
+`ExoSim` also provides a default random generator
+(:class:`numpy.random.Generator`), already initialised with the current seed:
 
 .. code-block:: python
 
@@ -70,7 +69,7 @@ The random generator can be accessed as:
 
     rng = RunConfig.random_generator
 
-and it can be used as any other random generator.
+It is used like any other NumPy generator:
 
 .. code-block:: python
 
@@ -85,6 +84,11 @@ and it can be used as any other random generator.
     # Poisson distribution:
     RunConfig.random_generator.poisson(5, 1000)
 
-More examples are available in the `numpy.random.Generator documentation <https://numpy.org/doc/stable/reference/random/generator.html>`_.
+More examples are in the `numpy.random.Generator documentation
+<https://numpy.org/doc/stable/reference/random/generator.html>`_.
 
-Because ExoSim works with chunks of data and the generator may be used in loops, if the seed is not `None`, :func:`~exosim.utils.run_config.RunConfigInit.random_generator` updates the seed at every call by adding 1 to the given value.
+`ExoSim` works on chunks of data and the generator may be called inside loops, so
+when the seed is not ``None``,
+:func:`~exosim.utils.run_config.RunConfigInit.random_generator` adds 1 to the
+seed at every call. This keeps the draws independent between chunks while staying
+reproducible.

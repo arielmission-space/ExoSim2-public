@@ -33,6 +33,10 @@ class TestInstantaneousReadOut:
     """Basic functionality tests for InstantaneousReadOut task."""
 
     def setup_method(self):
+        # Deterministic jitter draw: this test fits Gaussians to a jittered
+        # focal plane and compares them against an ideal convolution, so the
+        # pass/fail margin depends on the random jitter realisation.
+        np.random.seed(42)
         # Reduced parameters for faster testing
         self.osf = 2  # Reduced from 3 to 2
         self.npix = 32  # Reduced from 64 to 32
@@ -277,75 +281,167 @@ class TestInstantaneousReadOut:
         )  # Increased from 0.065 to 0.11 to account for numerical variations
 
 
-@pytest.mark.usefixtures("fast_test")
-class InstantaneousReadOutPowerConservationTest:
-    """Test power conservation in instantaneous readout."""
+def _focal_and_params(npix=24, osf=2):
+    """A small Gaussian point source on an oversampled focal plane plus the
+    matching readout / detector parameter dictionaries."""
+    grid = np.arange(-npix * osf // 2, npix * osf // 2, 1)
+    x, y = np.meshgrid(grid, grid)
+    sigma = (3 * osf) / 2.355
+    g = np.exp(-((np.sqrt(x * x + y * y)) ** 2 / (2.0 * sigma**2)))
+    focal = (g * 49 * u.ct / u.s)[np.newaxis, ...]
 
-    @pytest.fixture(autouse=True)
-    def _inject_fixture(self, fast_test):
-        if fast_test:
-            pytest.skip("Skipping this test class in fast mode")
-
-    def test_nyquist_sampled(self, test_data_dir):
-        """Test power conservation for Nyquist-sampled case."""
-        # Test setup and execution code...
-        # NOTE: Code omitted for brevity, can be found in original file
-
-    def test_not_nyquist_sampled(self, test_data_dir):
-        """Test power conservation for non-Nyquist-sampled case."""
-        # Test setup and execution code...
-        # NOTE: Code omitted for brevity, can be found in original file
-
-    def test_not_nyquist_sampled_forced(self, test_data_dir):
-        """Test power conservation for forced non-Nyquist-sampled case."""
-        # Test setup and execution code...
-        # NOTE: Code omitted for brevity, can be found in original file
-
-
-@pytest.mark.usefixtures("inject_test_data_dir")
-class InstantaneousReadOutResamplerTest:
-    """Test resampling functionality in instantaneous readout."""
-
-    def setup_method(self):
-        # Test setup code...
-        # NOTE: Code omitted for brevity, can be found in original file
-        pass
-
-    def twod_gaussian(
-        self, xdata_tuple, amplitude, xo, yo, sigma_x, sigma_y, theta, offset
-    ):
-        # Helper function implementation...
-        # NOTE: Code omitted for brevity, can be found in original file
-        pass
-
-    def test_value(self):
-        """Test resampling accuracy."""
-        # Test execution code...
-        # NOTE: Code omitted for brevity, can be found in original file
+    fp = CountsPerSecond(data=focal, spectral=grid, metadata={"oversampling": osf})
+    main_parameters = {
+        "time_grid": {
+            "start_time": 0.0 * u.hr,
+            "end_time": 2.0 * u.hr,
+            "low_frequencies_resolution": 2.0 * u.hr,
+        }
+    }
+    parameters = {
+        "detector": {
+            "well_depth": 1000 * u.ct,
+            "f_well_depth": 1,
+            "delta_pix": 18 * u.um,
+            "oversampling": osf,
+            "plate_scale": {
+                "spatial": 0.05 * u.arcsec / u.pixel,
+                "spectral": 0.05 * u.arcsec / u.pixel,
+            },
+        },
+        "readout": {
+            "readout_frequency": 100 * u.Hz,
+            "n_NRDs_per_group": 1,
+            "n_groups": 2,
+            "n_sim_clocks_Ground": 5,
+            "n_sim_clocks_first_NDR": 5,
+            "n_sim_clocks_NDR": 1,
+            "n_sim_clocks_Reset": 3,
+            "n_sim_clocks_groups": 200,
+            "n_exposures": 1,
+        },
+        "value": "test_channel",
+    }
+    return fp, main_parameters, parameters
 
 
 @pytest.mark.usefixtures("inject_test_data_dir")
-class InstantaneousReadOutNoJitterTest:
-    """Test instantaneous readout without jitter."""
+class TestInstantaneousReadOutNoJitter:
+    """With ``pointing_jitter = (None, None, None)`` the task simply replicates
+    the undersampled focal plane into every NDR and scales by the integration
+    time."""
 
-    def setup_method(self):
-        # Test setup code...
-        # NOTE: Code omitted for brevity, can be found in original file
-        pass
+    def _run(self, tmp_name):
+        fp, main_parameters, parameters = _focal_and_params()
+        fname = os.path.join(self.test_data_dir, tmp_name)
+        with SetOutput(fname).use(append=True, cache=True) as out:
+            readout_parameters, integration_time = PrepareInstantaneousReadOut()(
+                main_parameters=main_parameters,
+                parameters=parameters,
+                focal_plane=fp,
+                pointing_jitter=(None, None, None),
+                output_file=out,
+            )
+            dset = InstantaneousReadOut()(
+                readout_parameters=readout_parameters,
+                parameters=parameters,
+                focal_plane=fp,
+                pointing_jitter=(None, None, None),
+                output_file=out,
+            )
+            data = np.asarray(dset.dataset)
+        return data, integration_time, fp, parameters
 
-    def test_out(self):
-        """Test output shape and values without jitter."""
-        # Test execution code...
-        # NOTE: Code omitted for brevity, can be found in original file
+    def test_shape_matches_the_reading_scheme(self):
+        data, integration_time, _fp, _p = self._run("test_data/no_jit.h5")
+        assert data.shape[0] == integration_time.size
+        assert data.shape[1:] == (24, 24)
 
-    def twod_gaussian(
-        self, xdata_tuple, amplitude, xo, yo, sigma_x, sigma_y, theta, offset
-    ):
-        # Helper function implementation...
-        # NOTE: Code omitted for brevity, can be found in original file
-        pass
+    def test_each_ndr_is_the_undersampled_focal_plane_times_its_int_time(self):
+        data, integration_time, fp, _p = self._run("test_data/no_jit2.h5")
+        osf = fp.metadata["oversampling"]
+        undersampled = fp.data[0, 0::osf, 0::osf]
+        for i, t in enumerate(integration_time.to_value(u.s)):
+            np.testing.assert_allclose(data[i], undersampled * t, rtol=1e-6)
 
-    def test_value(self):
-        """Test output values without jitter."""
-        # Test execution code...
-        # NOTE: Code omitted for brevity, can be found in original file
+
+@pytest.mark.usefixtures("inject_test_data_dir")
+class TestInstantaneousReadOutExtraPaths:
+    def _prep(self, tmp_name, jitter, extra_params=None):
+        np.random.seed(42)
+        fp, main_parameters, parameters = _focal_and_params()
+        if extra_params:
+            parameters.update(extra_params)
+        jt = np.arange(0, 5, 0.1) * u.s
+        pj = (
+            (
+                np.random.normal(0, 0.05, jt.size) * u.arcsec,
+                np.random.normal(0, 0.05, jt.size) * u.arcsec,
+                jt,
+            )
+            if jitter
+            else (None, None, None)
+        )
+        fname = os.path.join(self.test_data_dir, tmp_name)
+        with SetOutput(fname).use(append=True, cache=True) as out:
+            readout_parameters, _it = PrepareInstantaneousReadOut()(
+                main_parameters=main_parameters,
+                parameters=parameters,
+                focal_plane=fp,
+                pointing_jitter=pj,
+                output_file=out,
+            )
+            task = InstantaneousReadOut()
+            dset = task(
+                readout_parameters=readout_parameters,
+                parameters=parameters,
+                focal_plane=fp,
+                pointing_jitter=pj,
+                output_file=out,
+            )
+            return task, np.asarray(dset.dataset)
+
+    def test_slicing_mode_gives_the_same_answer_as_the_bulk_path(self):
+        _t1, bulk = self._prep("test_data/iro_bulk.h5", jitter=True)
+        task = InstantaneousReadOut()
+        np.random.seed(42)
+        fp, main_parameters, parameters = _focal_and_params()
+        jt = np.arange(0, 5, 0.1) * u.s
+        pj = (
+            np.random.normal(0, 0.05, jt.size) * u.arcsec,
+            np.random.normal(0, 0.05, jt.size) * u.arcsec,
+            jt,
+        )
+        fname = os.path.join(self.test_data_dir, "test_data/iro_slice.h5")
+        with SetOutput(fname).use(append=True, cache=True) as out:
+            readout_parameters, _it = PrepareInstantaneousReadOut()(
+                main_parameters=main_parameters,
+                parameters=parameters,
+                focal_plane=fp,
+                pointing_jitter=pj,
+                output_file=out,
+            )
+            sliced = np.asarray(
+                task(
+                    readout_parameters=readout_parameters,
+                    parameters=parameters,
+                    focal_plane=fp,
+                    pointing_jitter=pj,
+                    output_file=out,
+                    slicing=True,
+                ).dataset
+            )
+        np.testing.assert_allclose(sliced, bulk, rtol=1e-6, atol=1e-6)
+
+    def test_force_power_conservation_rescales_each_ndr(self):
+        task, data = self._prep(
+            "test_data/iro_power.h5",
+            jitter=True,
+            extra_params={"force_power_conservation": True},
+        )
+        assert "median_power" in task.store_dict
+        assert "total_power" in task.store_dict
+        # after forcing, the per-NDR sums track the requested power
+        forced = task.store_dict["median_power"]
+        assert np.all(forced > 0)
+        assert data.shape[0] == forced.shape[0]

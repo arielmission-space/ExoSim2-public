@@ -19,7 +19,6 @@ from exosim.models.signal import CountsPerSecond, Signal
 from exosim.tasks.instrument.apply_intra_pixel_response_function import (
     ApplyIntraPixelResponseFunction,
 )
-from exosim.tasks.instrument.compute_saturation import ComputeSaturation
 from exosim.tasks.instrument.compute_solid_angle import ComputeSolidAngle
 from exosim.tasks.instrument.compute_sources_pointing_offset import (
     ComputeSourcesPointingOffset,
@@ -40,7 +39,6 @@ from exosim.tasks.instrument.load_wavelength_solution import (
 )
 from exosim.tasks.instrument.propagate_foregrounds import PropagateForegrounds
 from exosim.tasks.load.load_options import LoadOptions
-from exosim.tasks.sed import CreatePlanckStar
 
 set_log_level(logging.DEBUG)
 
@@ -263,54 +261,6 @@ class TestSolidAngleOperations:
 
 
 @pytest.mark.usefixtures("inject_payload_file")
-class TestSourcePropagationOperations:
-    """Test suite for source propagation operations."""
-
-    def setup_method(self):
-        """Set up wavelength and time grids for source propagation tests."""
-        loadOption = LoadOptions()
-        mainConfig = loadOption(filename=self.payload_file)
-
-        self.wl = utils.grids.wl_grid(
-            mainConfig["wl_grid"]["wl_min"],
-            9 * u.um,
-            mainConfig["wl_grid"]["logbin_resolution"],
-        )
-
-        self.tt = utils.grids.time_grid(
-            mainConfig["time_grid"]["start_time"],
-            mainConfig["time_grid"]["end_time"],
-            mainConfig["time_grid"]["low_frequencies_resolution"],
-        )
-        self.payload = mainConfig["payload"]
-
-    def test_source_propagation(self):
-        """
-        Test source propagation through optical system.
-
-        This test verifies that astronomical sources are correctly
-        propagated through the instrument optical system, including
-        proper handling of spectral and temporal dimensions.
-        """
-        pytest.skip(
-            "Source propagation requires sources dict, Atel, efficiency, and responsivity parameters. "
-            "This is typically handled by the Channel class pipeline after parse_path and estimate_responsivity."
-        )
-
-    def test_source_propagation_units(self):
-        """
-        Test units in source propagation.
-
-        This test verifies that source propagation maintains correct
-        units throughout the optical system calculations.
-        """
-        pytest.skip(
-            "Source propagation requires sources dict, Atel, efficiency, and responsivity parameters. "
-            "This is typically handled by the Channel class pipeline after parse_path and estimate_responsivity."
-        )
-
-
-@pytest.mark.usefixtures("inject_payload_file")
 class TestWavelengthSolutionOperations:
     """Test suite for wavelength solution operations."""
 
@@ -349,6 +299,91 @@ class TestWavelengthSolutionOperations:
 
         # Check for basic consistency (wavelengths should be positive)
         assert np.all(wl_solution["wavelength"] >= 0)
+
+    def _wl_solution(self):
+        return LoadWavelengthSolution()(
+            parameters=self.payload["channel"]["Spectrometer"]
+        )
+
+    def test_centering_on_a_specific_wavelength(self):
+        import astropy.units as u
+
+        wl_solution = self._wl_solution()
+        task = CreateFocalPlaneArray()
+        task.set_log_name()
+        osr = np.linspace(0.0, 10.0, 40) * u.um
+        mid_wl = float(
+            (
+                wl_solution["wavelength"].min() + wl_solution["wavelength"].max()
+            ).to_value(u.um)
+            / 2
+        )
+        params = {
+            "wl_min": wl_solution["wavelength"].min(),
+            "wl_max": wl_solution["wavelength"].max(),
+            "wl_solution": {"center": mid_wl * u.um},
+        }
+        out = task._centering(params, wl_solution, osr.copy(), "spectral")
+        # a real offset was applied
+        assert not np.allclose(out.to_value(u.um), osr.to_value(u.um))
+
+    def test_invalid_center_value_is_rejected(self):
+        import astropy.units as u
+
+        wl_solution = self._wl_solution()
+        task = CreateFocalPlaneArray()
+        task.set_log_name()
+        osr = np.linspace(0.0, 10.0, 20) * u.um
+        params = {
+            "wl_min": wl_solution["wavelength"].min(),
+            "wl_max": wl_solution["wavelength"].max(),
+            "wl_solution": {"center": "not-a-quantity"},
+        }
+        out = task._centering(params, wl_solution, osr.copy(), "spectral")
+        # invalid centre -> array returned unchanged
+        np.testing.assert_allclose(out.to_value(u.um), osr.to_value(u.um))
+
+    def test_manual_numeric_offset_mode(self):
+        import astropy.units as u
+
+        wl_solution = self._wl_solution()
+        task = CreateFocalPlaneArray()
+        task.set_log_name()
+        osr = np.linspace(0.0, 10.0, 20) * u.um
+        params = {"wl_solution": {"spectral_center": 1.5 * u.um}}
+        out = task._centering(params, wl_solution, osr.copy(), "spectral")
+        np.testing.assert_allclose(
+            out.to_value(u.um), (osr - 1.5 * u.um).to_value(u.um)
+        )
+
+    def test_wav_osr_dispersed_axis_fits_a_polynomial(self):
+        import astropy.units as u
+
+        wl_solution = self._wl_solution()
+        task = CreateFocalPlaneArray()
+        task.set_log_name()
+        osr = np.linspace(-1000.0, 1000.0, 50) * u.um
+        wav = task._wav_osr(wl_solution, "spectral", {"wl_solution": {}}, osr)
+        # the spectral axis is dispersed -> the fitted grid spans a wavelength range
+        assert wav.unit == u.um
+        assert np.ptp(wav.to_value(u.um)) > 0
+
+    def test_wav_osr_flat_axis_returns_zeros(self):
+        import astropy.units as u
+        from astropy.table import QTable
+
+        task = CreateFocalPlaneArray()
+        task.set_log_name()
+        wl_solution = QTable(
+            {
+                "wavelength": np.linspace(1.0, 3.0, 5) * u.um,
+                "spectral": np.linspace(-2.0, 2.0, 5) * u.um,
+                "spatial": np.zeros(5) * u.um,  # no dispersion along spatial
+            }
+        )
+        osr = np.linspace(0.0, 10.0, 12) * u.um
+        wav = task._wav_osr(wl_solution, "spatial", {"wl_solution": {}}, osr)
+        np.testing.assert_array_equal(wav.to_value(u.um), np.zeros(12))
 
 
 @pytest.mark.usefixtures("inject_payload_file")
@@ -546,166 +581,87 @@ class TestIntraPixelResponseOperations:
             pytest.skip(f"IPRF application requires additional setup: {e}")
 
 
-@pytest.mark.usefixtures("inject_payload_file")
-class TestSaturationOperations:
-    """Test suite for saturation time computation operations."""
-
-    def setup_method(self):
-        """Set up grids for saturation tests."""
-        loadOption = LoadOptions()
-        mainConfig = loadOption(filename=self.payload_file)
-
-        self.wl = utils.grids.wl_grid(
-            mainConfig["wl_grid"]["wl_min"],
-            9 * u.um,
-            mainConfig["wl_grid"]["logbin_resolution"],
-        )
-
-        self.tt = utils.grids.time_grid(
-            mainConfig["time_grid"]["start_time"],
-            mainConfig["time_grid"]["end_time"],
-            mainConfig["time_grid"]["low_frequencies_resolution"],
-        )
-        self.payload = mainConfig["payload"]
-
-    def test_saturation_time_computation(self):
-        """
-        Test saturation time computation.
-
-        This test verifies that detector saturation times are correctly
-        computed based on signal levels and detector well depth.
-        """
-        computeSaturation = ComputeSaturation()
-
-        # Create test signal
-        createPlanckStar = CreatePlanckStar()
-        star = createPlanckStar(
-            wavelength=self.wl[:10],  # Use subset
-            T=6000 * u.K,
-            R=1.0 * u.R_sun,
-            D=1 * u.pc,  # Closer for brighter source
-        )
-
-        try:
-            saturation_time = computeSaturation(
-                source_signal=star,
-                parameters=self.payload["channel"]["Photometer"],
-            )
-
-            # Verify saturation time calculation
-            assert hasattr(saturation_time, "value") or isinstance(
-                saturation_time, int | float | np.number
-            )
-            if hasattr(saturation_time, "value"):
-                assert (
-                    saturation_time.value >= 0
-                )  # Saturation time should be non-negative
-        except Exception as e:
-            pytest.skip(f"Saturation computation requires additional setup: {e}")
-
-    def test_saturation_limits(self):
-        """
-        Test saturation computation with different signal levels.
-
-        This test verifies saturation behavior with various source
-        intensities from faint to extremely bright sources.
-        """
-        computeSaturation = ComputeSaturation()
-
-        # Test with different source brightnesses
-        brightnesses = [1e-14, 1e-12, 1e-10] * u.sr  # Faint to bright
-
-        for brightness in brightnesses:
-            createPlanckStar = CreatePlanckStar()
-            star = createPlanckStar(
-                wavelength=self.wl[:5],  # Small subset
-                T=6000 * u.K,
-                R=1.0 * u.R_sun,
-                D=10
-                * u.pc
-                / np.sqrt(
-                    brightness.value / 1e-14
-                ),  # Distance to get desired brightness
-            )
-
-            try:
-                saturation_time = computeSaturation(
-                    source_signal=star,
-                    parameters=self.payload["channel"]["Photometer"],
-                )
-
-                # Brighter sources should saturate faster
-                if hasattr(saturation_time, "value"):
-                    assert saturation_time.value >= 0
-            except Exception:
-                # Skip if configuration not available for this brightness
-                continue
-
-
-@pytest.mark.usefixtures("inject_payload_file")
 class TestPointingOperations:
-    """Test suite for pointing and source positioning operations."""
+    """``ComputeSourcesPointingOffset`` projects a source's sky position onto
+    the focal plane as a sub-pixel offset from the pointing direction."""
 
-    def setup_method(self):
-        """Set up configuration for pointing tests."""
-        loadOption = LoadOptions()
-        mainConfig = loadOption(filename=self.payload_file)
-        self.payload = mainConfig["payload"]
-
-    def test_compute_sources_pointing_offset(self):
-        """
-        Test computation of source pointing offsets.
-
-        This test verifies that source pointing offsets are correctly
-        computed for accurate positioning on the focal plane.
-        """
-        computePointingOffset = ComputeSourcesPointingOffset()
-
-        # Test source positions (in arcseconds)
-        source_positions = {
-            "ra": [0, 10, -5] * u.arcsec,
-            "dec": [0, 5, -10] * u.arcsec,
+    def _params(self):
+        # 0.01 arcsec/um * 18 um / 4 (oversampling) = 0.045 arcsec per sub-pixel
+        return {
+            "detector": {
+                "plate_scale": {
+                    "spatial": 0.01 * u.arcsec / u.um,
+                    "spectral": 0.01 * u.arcsec / u.um,
+                },
+                "delta_pix": 18 * u.um,
+                "oversampling": 4,
+            }
         }
 
-        try:
-            pointing_offsets = computePointingOffset(
-                source_positions=source_positions,
-                parameters=self.payload["channel"]["Photometer"],
-            )
+    def _source(self, ra, dec):
+        return {"parsed_parameters": {"ra": ra, "dec": dec}}
 
-            # Verify offset computation
-            assert hasattr(pointing_offsets, "__len__") or hasattr(
-                pointing_offsets, "shape"
-            )
-        except Exception as e:
-            pytest.skip(f"Pointing offset computation requires additional setup: {e}")
+    def test_source_on_axis_has_zero_offset(self):
+        task = ComputeSourcesPointingOffset()
+        # the two values are (spectral-axis shift, spatial-axis shift)
+        off = task(
+            parameters=self._params(),
+            source=self._source(150.0 * u.deg, 20.0 * u.deg),
+            pointing=(150.0 * u.deg, 20.0 * u.deg),
+        )
+        assert tuple(off) == (0, 0)
 
-    def test_pointing_offset_units(self):
-        """
-        Test units in pointing offset calculations.
+    def test_ra_offset_drives_the_first_returned_value(self):
+        task = ComputeSourcesPointingOffset()
+        # pointing is 0.5 arcsec East of the source in RA, at the equator
+        off_first, off_second = task(
+            parameters=self._params(),
+            source=self._source(20.0 * u.deg, 0.0 * u.deg),
+            pointing=(20.0 * u.deg + 0.5 * u.arcsec, 0.0 * u.deg),
+        )
+        assert off_first == 11  # 0.5 arcsec / 0.045 = 11.1, rounded
+        assert off_second == 0
 
-        This test verifies that pointing calculations maintain proper
-        angular units throughout the coordinate transformations.
-        """
-        computePointingOffset = ComputeSourcesPointingOffset()
+    def test_dec_offset_drives_the_second_returned_value(self):
+        task = ComputeSourcesPointingOffset()
+        off_first, off_second = task(
+            parameters=self._params(),
+            source=self._source(20.0 * u.deg, 30.0 * u.deg),
+            pointing=(20.0 * u.deg, 30.0 * u.deg + 0.9 * u.arcsec),
+        )
+        assert off_first == 0
+        assert off_second == 20  # 0.9 arcsec / 0.045
 
-        # Simple test case
-        source_positions = {
-            "ra": [0] * u.arcsec,
-            "dec": [0] * u.arcsec,
-        }
+    def test_ra_wrap_does_not_blow_up(self):
+        task = ComputeSourcesPointingOffset()
+        # source just past RA=0, pointing just before: ~0.7 arcsec apart, not
+        # ~360 deg (a plain RA difference would give ~3e7 sub-pixels)
+        off_first, _ = task(
+            parameters=self._params(),
+            source=self._source(0.0001 * u.deg, 10.0 * u.deg),
+            pointing=(359.9999 * u.deg, 10.0 * u.deg),
+        )
+        assert abs(off_first) < 50
 
-        try:
-            pointing_offsets = computePointingOffset(
-                source_positions=source_positions,
-                parameters=self.payload["channel"]["Photometer"],
-            )
+    def test_cos_dec_foreshortening_is_applied(self):
+        task = ComputeSourcesPointingOffset()
+        # 1 arcsec of RA at dec=60 is only 0.5 arcsec on the sky
+        off_first, _ = task(
+            parameters=self._params(),
+            source=self._source(20.0 * u.deg, 60.0 * u.deg),
+            pointing=(20.0 * u.deg + 1.0 * u.arcsec, 60.0 * u.deg),
+        )
+        # 0.5 arcsec / 0.045 ~= 11, not 22
+        assert 10 <= off_first <= 12
 
-            # Check for appropriate units in output
-            if hasattr(pointing_offsets, "unit"):
-                assert pointing_offsets.unit is not None
-        except Exception as e:
-            pytest.skip(f"Pointing calculation requires configuration: {e}")
+    def test_missing_pointing_returns_zero(self):
+        task = ComputeSourcesPointingOffset()
+        off = task(
+            parameters=self._params(),
+            source=self._source(1.0 * u.deg, 2.0 * u.deg),
+            pointing=None,
+        )
+        assert tuple(off) == (0, 0)
 
 
 class TestForegroundPropagationOperations:

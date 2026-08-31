@@ -1,16 +1,17 @@
 .. _index:
 
-===================================
-Welcome to ExoSim 2's documentation!
-===================================
+======================
+ExoSim 2 documentation
+======================
 
 **ExoSim 2** is an end-to-end, time-domain simulator for exoplanet observations
 from space telescopes, ground-based observatories, and sub-orbital platforms.
-It models the full observation chain -- astronomical sources, instrument optics,
-dispersers, detector arrays, and readout electronics -- reproducing both the
-astrophysical signal and the instrumental systematics. Written in Python 3 with
-a modular, object-oriented design, almost every component can be replaced with a
-custom implementation without rewriting the rest of the pipeline.
+It models the full observation chain, from the astronomical sources through the
+instrument optics, the dispersers, the detector arrays and the readout
+electronics, reproducing both the astrophysical signal and the instrumental
+systematics. It is written in Python 3 with a modular, object-oriented design, so
+almost every component can be swapped for a custom implementation without
+rewriting the rest of the pipeline.
 
 This guide walks through the simulation steps with worked examples and explains
 how to configure ExoSim 2 for the instrument you want to model.
@@ -24,55 +25,39 @@ how to configure ExoSim 2 for the instrument you want to model.
         :link: installation
         :link-type: doc
 
-        .. image:: _static/install.png
-            :width: 250
-            :align: center
+        :octicon:`download;2.5em;sd-text-primary`
+        ^^^
+        New to ExoSim? Start here.
 
-        +++
-
-        New to ExoSim? Install ExoSim to start.
-
-    .. grid-item-card:: User Guide
+    .. grid-item-card:: User guide
         :text-align: center
         :shadow: md
         :link: user/index
         :link-type: doc
 
-        .. image:: _static/user.png
-            :width: 250
-            :align: center
+        :octicon:`book;2.5em;sd-text-primary`
+        ^^^
+        How to run ExoSim, one pipeline at a time.
 
-        +++
-
-        Learn how to use ExoSim.
-
-    .. grid-item-card:: Developer Guide
+    .. grid-item-card:: Developer guide
         :text-align: center
         :shadow: md
         :link: contributing/index
         :link-type: doc
 
-        .. image:: _static/developers.png
-            :width: 250
-            :align: center
+        :octicon:`tools;2.5em;sd-text-primary`
+        ^^^
+        How to extend or customise ExoSim.
 
-        +++
-
-        Learn how to improve or customise ExoSim.
-
-    .. grid-item-card:: API Guide
+    .. grid-item-card:: API guide
         :text-align: center
         :shadow: md
         :link: api/exosim/index
         :link-type: doc
 
-        .. image:: _static/api.png
-            :width: 250
-            :align: center
-
-        +++
-
-        Dig into the complete API guide.
+        :octicon:`code-square;2.5em;sd-text-primary`
+        ^^^
+        The complete API reference.
 
 
 .. grid:: 3 3 3 3
@@ -84,13 +69,9 @@ how to configure ExoSim 2 for the instrument you want to model.
         :link: FAQs
         :link-type: doc
 
-        .. image:: _static/faqs.png
-            :width: 150
-            :align: center
-
-        +++
-
-        Go To FAQs
+        :octicon:`question;2em;sd-text-secondary`
+        ^^^
+        Frequently asked questions
 
     .. grid-item-card:: License
         :text-align: center
@@ -98,13 +79,9 @@ how to configure ExoSim 2 for the instrument you want to model.
         :link: license
         :link-type: doc
 
-        .. image:: _static/license.png
-            :width: 150
-            :align: center
-
-        +++
-
-        Go To License
+        :octicon:`law;2em;sd-text-secondary`
+        ^^^
+        The BSD 3-Clause licence
 
     .. grid-item-card:: Changelog
         :text-align: center
@@ -112,71 +89,71 @@ how to configure ExoSim 2 for the instrument you want to model.
         :link: CHANGELOG
         :link-type: doc
 
-        .. image:: _static/changelog.png
-            :width: 150
-            :align: center
-
-        +++
-
-        Go To Changelog
+        :octicon:`history;2em;sd-text-secondary`
+        ^^^
+        What changed in each release
 
 .. toctree::
     :hidden:
     :maxdepth: 1
 
     Installation <installation>
-    User Guide <user/index>
-    Developer Guide  <contributing/index>
-    API Guide <api/index>
+    User guide <user/index>
+    Developer guide <contributing/index>
+    API guide <api/index>
     FAQs <FAQs>
     License <license>
     Changelog <CHANGELOG>
 
-.. warning::
+.. note::
 
-    This documentation is not complete yet. If you find any issue or difficulty,
-    please contact the developers for help.
+    Found a mistake or something unclear? Please contact the developers, or open
+    an issue on the `GitHub repository
+    <https://github.com/arielmission-space/ExoSim2-public/issues>`__.
 
 What can ExoSim 2 do?
 =====================
 
-- **Radiometric modelling** -- fast estimates of signal and noise budgets,
+- **Radiometric modelling**: fast estimates of signal and noise budgets,
   aperture photometry, saturation analysis, and multiaccum readout factors for
   performance prediction and observing-time calculations.
-- **Full time-domain simulation** -- focal-plane evolution, sub-exposures with
+- **Full time-domain simulation**: focal-plane evolution, sub-exposures with
   pointing jitter, and realistic detector readouts (NDRs) to test data reduction
   pipelines against a known truth.
-- **Comprehensive noise budget** -- photon noise, read noise, dark current, and
+- **Comprehensive noise budget**: photon noise, read noise, dark current, and
   user-defined noise sources with realistic detector behaviour.
-- **Low-frequency systematics** -- pointing jitter, thermal fluctuations, and
+- **Low-frequency systematics**: pointing jitter, thermal fluctuations, and
   detector drifts captured across the full observation timescale.
-- **Multi-instrument support** -- configured out of the box for the Ariel space
+- **Multi-instrument support**: configured out of the box for the Ariel space
   mission, with community-contributed configurations for JWST and ground-based
   spectrographs.
-- **Flexible configuration and outputs** -- XML and YAML parameter files with
+- **Flexible configuration and outputs**: XML and YAML parameter files with
   inheritance and full unit handling via Astropy, and structured,
   self-documenting HDF5 outputs.
 
 Who should use ExoSim 2?
 ========================
 
-Mission planners and instrument scientists exploring design trade-offs before
-hardware is built; observers estimating signal-to-noise ratios and feasibility
-before proposal submission; data-pipeline developers validating reduction
-algorithms against known-truth synthetic data; and students gaining hands-on
-experience of realistic observation scenarios without needing telescope time.
+- **Mission planners and instrument scientists** exploring design trade-offs
+  before the hardware is built.
+- **Observers** estimating signal-to-noise ratios and feasibility before
+  submitting a proposal.
+- **Data-pipeline developers** validating reduction algorithms against
+  known-truth synthetic data.
+- **Students** gaining hands-on experience with realistic observation scenarios
+  without needing telescope time.
 
 Cite
-------
+====
 
-If you use this software please cite:
+If you use this software, please cite:
 
 Mugnai et al., 2025, "`ExoSim 2: the new exoplanet observation simulator applied to the Ariel space mission <https://link.springer.com/article/10.1007/s10686-024-09976-2>`__", Exp. Astron, 59, 9. DOI:10.1007/s10686-024-09976-2.
 
 Acknowledgments
-------------------
+===============
 
-ExoSim 2 has been developed under the umbrella of `Ariel Space Mission <https://arielmission.space/>`__,
+ExoSim 2 has been developed under the umbrella of the `Ariel Space Mission <https://arielmission.space/>`__,
 with the support of the Ariel Consortium and the members of the Simulator Software, Management and Documentation (S2MD) Working Group.
 
 ..  image:: _static/ariel.png
@@ -193,11 +170,3 @@ and supported by `ASI <https://www.asi.it/en/>`__.
 
 
 We thank Ahmed Al-Refaie for his support during the development and the inspiration provided by his code: `TauREx3 <https://arxiv.org/abs/1912.07759>`__ .
-
-
-.. The icons used in this page are from `Font PNGEgg <https://https://www.pngegg.com>`__,
-    and all the icons are licensed under `Non commercial license <https://www.pngegg.com/tos>`__.
-    Non-commercial means something is not primarily intended for, or directed towards, commercial advantage or monetary compensation by an individual or organisation.
-    As ExoSim is a publicly available software, under BSD-3-Clause license, we are allowed to use these icons in our documentation, because they are not used for commercial purposes.
-We believe that our work does not conflict with the legitimate interests of the creator of the artistic icons.
-    We also edited some of the icon to fit our needs.

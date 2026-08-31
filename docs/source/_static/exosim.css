@@ -1,10 +1,12 @@
-.navbar-brand img {
-   height: 100px;
-}
+/* Keep the ExoSim logo within the header without clipping. */
 .navbar-brand {
-   height: 100px;
+    height: var(--pst-header-height, 4rem);
+    display: flex;
+    align-items: center;
 }
 
-.aligncenter {
-        text-align: center;
-    }
+.navbar-brand img,
+.navbar-brand .logo__image {
+    max-height: 2.75rem;
+    width: auto;
+}

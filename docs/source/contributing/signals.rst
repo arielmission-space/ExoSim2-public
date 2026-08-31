@@ -1,13 +1,14 @@
 .. _signal:
 
-==========
+=======
 Signals
-==========
+=======
 
-The data flow in the code is handled by the :class:`exosim.models.signal.Signal` class.
-Signals are similar to arrays but with methods and a math specifically designed for the code goal.
+The data flow in `ExoSim` is handled by the
+:class:`exosim.models.signal.Signal` class. A signal behaves like an array, but
+with methods and arithmetic tailored to what the code needs.
 
-To better understand how they work, let's produce a simple case:
+The easiest way to see how it works is a simple case:
 
 .. code-block:: python
 
@@ -20,22 +21,25 @@ To better understand how they work, let's produce a simple case:
 
         signal = Signal(spectral=wl, data=data, time=time_grid)
 
-The resulting ``signal`` variable now contains a :class:`~exosim.models.signal.Signal` class.
-We can access the data stored in the :attr:`~exosim.models.signal.Signal.data` attribute.
-If units are attached to the data, they are stored in the `data_units` attribute.
+The ``signal`` variable now holds a :class:`~exosim.models.signal.Signal`. The
+data is in the :attr:`~exosim.models.signal.Signal.data` attribute, and any units
+attached to it are in ``data_units``.
 
-The data are stored in a cube as described in the picture.
+The data is stored as a cube, as shown in the picture.
 
 .. image:: _static/signal_class.png
     :width: 600
     :align: center
 
-The grid used for the spectral direction (axis 2) is stored in the `spectral` attribute, with its units in `spectral_units`.
-Similarly, the grid used for the spatial direction (axis 1), if any, is stored in the `spatial` attribute, with its units in `spatial_units`,
-and the temporal grid (axis 0), if any, is stored in `time` with its units in `time_units`.
-If no information is provided for these grids, the default values are :math:`0 \, \mu m` for the spectral and spatial axes and :math:`0 \, hr` for the temporal axis.
+The grid along the spectral direction (axis 2) is in the ``spectral`` attribute,
+with its units in ``spectral_units``. Likewise, the spatial grid (axis 1), if
+any, is in ``spatial`` with units in ``spatial_units``, and the temporal grid
+(axis 0), if any, is in ``time`` with units in ``time_units``. When a grid is not
+given, it defaults to :math:`0 \, \mu m` for the spectral and spatial axes and
+:math:`0 \, hr` for the temporal axis.
 
-Also, `metadata` can be attached to a :class:`~exosim.models.signal.Signal` class in the form of a dictionary.
+A dictionary of ``metadata`` can also be attached to a
+:class:`~exosim.models.signal.Signal`.
 
 .. code-block:: python
 
@@ -58,32 +62,33 @@ In both cases
     {'test': True}
 
 Units
-------
+-----
 
-If any units are attached to the input data as in
+Units can be attached to the input data directly,
 
 .. code-block:: python
 
         data = np.ones(10)*u.m
         signal = Signal(data=data)
 
-Or they can be specified as:
+or passed separately:
 
 .. code-block:: python
 
         data = np.ones(10)
         signal = Signal(data=data, data_units=u.m)
 
-Then, the data can be converted into different units as
+The data can then be converted to other units:
 
 .. code-block:: python
 
         signal.to(u.cm)
 
 Derived classes
------------------
+---------------
 
-Thanks to the units support, we can derive different classes:
+Because units are supported, several specialised classes are derived from
+:class:`~exosim.models.signal.Signal`:
 
 + :class:`exosim.models.signal.Sed`, which has units of :math:`W \, m^{-2} \, \mu m^{-1}`
 + :class:`exosim.models.signal.Radiance`, which has units of :math:`W \, m^{-2} \, \mu m^{-1} \, sr^{-1}`
@@ -92,29 +97,38 @@ Thanks to the units support, we can derive different classes:
 + :class:`exosim.models.signal.Adu`, which has units of :math:`adu`
 + :class:`exosim.models.signal.Dimensionless`, which has no units
 
-The user can directly initialise one of these classes to specify the data units.
-Otherwise, if units are attached to the data, the main :class:`~exosim.models.signal.Signal` class automatically detects the right derived class to use.
+You can initialise one of these classes directly to fix the data units.
+Otherwise, when units are attached to the data, the base
+:class:`~exosim.models.signal.Signal` class picks the right derived class
+automatically.
 
 
 Mathematical operations
----------------------------------
+-----------------------
 
-A set of mathematical operations is possible with the :class:`~exosim.models.signal.Signal` class and its derived classes.
-Later here are listed the simplest examples to show the concept; however, the supported operations include:
+The :class:`~exosim.models.signal.Signal` class and its derived classes support a
+set of mathematical operations. The examples below show the simplest cases, but
+the supported operations also include:
 
-+ operations between :class:`~exosim.models.signal.Signal` classes (as in the examples);
-+ operations between a :class:`~exosim.models.signal.Signal` and a :class:`numpy.ndarray` or a :class:`~astropy.units.Quantity`;
-+ operations in reversed order (array + :class:`~exosim.models.signal.Signal` instead of only :class:`~exosim.models.signal.Signal` + array)
++ operations between :class:`~exosim.models.signal.Signal` classes (as in the
+  examples);
++ operations between a :class:`~exosim.models.signal.Signal` and a
+  :class:`numpy.ndarray` or a :class:`~astropy.units.Quantity`;
++ operations in reversed order (``array + Signal``, not only ``Signal + array``).
 
-Also, the units are taken into account during the operation. In fact, multiplying a :class:`~exosim.models.signal.Dimensionless` by a :class:`~exosim.models.signal.Sed` results in a :class:`~exosim.models.signal.Sed`,
-as multiplying a :class:`exosim.models.signal.Radiance` by a solid angle results in a :class:`~exosim.models.signal.Sed`.
-It is not possible to sum or subtract a :class:`~exosim.models.signal.Sed` class from a :class:`~exosim.models.signal.Dimensionless`.
-This, again, is true not only between :class:`~exosim.models.signal.Signal` classes, but also when operating :class:`~exosim.models.signal.Signal` classes and :class:`~astropy.units.Quantity`.
+Units are carried through the operation. Multiplying a
+:class:`~exosim.models.signal.Dimensionless` by a
+:class:`~exosim.models.signal.Sed` gives a :class:`~exosim.models.signal.Sed`,
+and so does multiplying a :class:`exosim.models.signal.Radiance` by a solid
+angle. A :class:`~exosim.models.signal.Sed` cannot be added to or subtracted from
+a :class:`~exosim.models.signal.Dimensionless`. This holds between
+:class:`~exosim.models.signal.Signal` classes and also between a
+:class:`~exosim.models.signal.Signal` and a :class:`~astropy.units.Quantity`.
 
-Finally, the operations involving :class:`~exosim.models.signal.Signal` classes also work on cached classes. See :ref:`cached` for more.
+These operations also work on cached signals. See :ref:`cached` for more.
 
 Sum
-^^^^^
+^^^
 .. code-block:: python
 
         import numpy as np
@@ -223,21 +237,25 @@ and hence
         >>> print(signal3.data)
         [[[0. 0. 0.]]]
 
-Binning operation
----------------------------------
-Among the useful methods included in the :class:`exosim.models.signal.Signal` class, it is worth mentioning the binning.
-There are two binning methods included in the class:
+Binning
+-------
 
-+ :func:`exosim.models.signal.Signal.spectral_rebin` to rebin the dataset in the spectral direction
-+ :func:`exosim.models.signal.Signal.temporal_rebin` to rebin the dataset in the time direction
+Two of the most useful methods on :class:`exosim.models.signal.Signal` are the
+binning methods:
 
-They are both based on :func:`exosim.utils.binning.rebin`.
-The function resamples a function fp(xp) over the new grid x, rebinning if necessary, otherwise interpolates, but it does not perform extrapolation.
-The function is optimised to resample multidimensional arrays along a given axis.
++ :func:`exosim.models.signal.Signal.spectral_rebin` rebins the dataset along the
+  spectral direction,
++ :func:`exosim.models.signal.Signal.temporal_rebin` rebins it along the time
+  direction.
 
-Both :func:`~exosim.models.signal.Signal.spectral_rebin` and :func:`~exosim.models.signal.Signal.temporal_rebin` are described with examples in their documentation.
-Let's use as an example here the case of a spectral binning.
-We first define the initial values:
+Both are built on :func:`exosim.utils.binning.rebin`, which resamples a function
+``fp(xp)`` onto a new grid ``x``, binning down where the new grid is coarser and
+interpolating where it is finer, but never extrapolating. It is optimised to
+resample multidimensional arrays along a given axis.
+
+:func:`~exosim.models.signal.Signal.spectral_rebin` and
+:func:`~exosim.models.signal.Signal.temporal_rebin` are both documented with
+examples. Take spectral binning as an example. Start from the initial values:
 
         >>> wavelength = np.linspace(0.1, 1, 10) * u.um
         >>> data = np.ones((10, 1, 10))
@@ -262,10 +280,11 @@ or we can bin down to a new wavelength grid:
         (10,1,5)
 
 Writing, copying and converting
----------------------------------
-Other useful methods are related to the capability to export the information content of a :class:`exosim.models.signal.Signal` class.
+-------------------------------
 
-A :class:`~exosim.models.signal.Signal` can be cast into a :class:`dict` object as
+A :class:`~exosim.models.signal.Signal` also has methods to export its content.
+
+It can be cast to a :class:`dict`:
 
 .. code-block:: python
 
@@ -277,9 +296,11 @@ A :class:`~exosim.models.signal.Signal` can be cast into a :class:`dict` object 
 
         dict(signal)
 
-This will result in a dictionary with keys named after the class attributes with their content as value.
-The casting operation only preserves some of the :class:`exosim.models.signal.Signal` class information.
-The attributes that are cast are: `data`, `time`, `spectral`, `spatial`, `metadata`, `data_units`, `time_units`, `spectral_units`, and `spatial_units`.
+The result is a dictionary whose keys are the class attributes and whose values
+are their contents. Casting keeps only part of the
+:class:`exosim.models.signal.Signal` information: the attributes ``data``,
+``time``, ``spectral``, ``spatial``, ``metadata``, ``data_units``,
+``time_units``, ``spectral_units`` and ``spatial_units``.
 
     >>> print(dict(signal))
     {'data': array([[[1., 1., 1.]]]),
@@ -295,9 +316,8 @@ The attributes that are cast are: `data`, `time`, `spectral`, `spatial`, `metada
 
 
 
-The :func:`exosim.models.signal.Signal.write` method allows storage of the content into an :class:`~exosim.output.output.Output` class,
-more commonly, into an HDF5 file.
-In the following example, we show how to store the signal class into an output file.
+The :func:`exosim.models.signal.Signal.write` method stores the content into an
+:class:`~exosim.output.output.Output`, most often an HDF5 file. For example:
 
 .. code-block:: python
 
@@ -308,15 +328,15 @@ In the following example, we show how to store the signal class into an output f
         with HDF5Output(output) as o:
             signal.write(o, "test_signal")
 
-Then, the output will contain the class information as:
+The output then holds the class information:
 
 .. image:: _static/write_signal.png
     :width: 600
     :align: center
 
-The information stored is the same as :code:`dict(signal)`.
+The stored information is the same as :code:`dict(signal)`.
 
-Also, an iterator has been implemented in the :class:`~exosim.models.signal.Signal` class, so that the user can access the information as
+The :class:`~exosim.models.signal.Signal` class is also iterable:
 
     >>> for k,v in signal1: print(k,v)
     data [[[1. 1. 1.]]]
@@ -329,7 +349,8 @@ Also, an iterator has been implemented in the :class:`~exosim.models.signal.Sign
     spectral_units um
     spatial_units um
 
-Finally, a :class:`~exosim.models.signal.Signal` class can be copied to a new class, thanks to the :func:`exosim.models.signal.Signal.copy` method:
+Finally, a :class:`~exosim.models.signal.Signal` can be copied with
+:func:`exosim.models.signal.Signal.copy`:
 
 .. code-block:: python
 
@@ -338,14 +359,14 @@ Finally, a :class:`~exosim.models.signal.Signal` class can be copied to a new cl
 .. _cached:
 
 Cached signals
-----------------
+--------------
 
-:class:`~exosim.models.signal.Signal` classes can be used in `cached` mode to handle huge datasets.
-This is enabled by chunked :class:`h5py.Dataset`.
-The :class:`~exosim.models.signal.Signal` classes are supported by the :class:`~exosim.models.utils.cached_data.CachedData` class.
-To produce a cached :class:`~exosim.models.signal.Signal` the user must indicate a :class:`~exosim.output.hdf5.hdf5.HDF5OutputGroup`
-or :class:`~exosim.output.hdf5.hdf5.HDF5Output`,
-the data set shape, and a dataset name:
+A :class:`~exosim.models.signal.Signal` can run in `cached` mode to handle very
+large datasets. The data then lives in a chunked :class:`h5py.Dataset`, managed
+by :class:`~exosim.models.utils.cached_data.CachedData`. To create a cached
+signal, give it a :class:`~exosim.output.hdf5.hdf5.HDF5OutputGroup` or
+:class:`~exosim.output.hdf5.hdf5.HDF5Output`, the dataset shape and a dataset
+name:
 
 .. code-block:: python
 
@@ -363,11 +384,12 @@ the data set shape, and a dataset name:
                                     cached=True, output=out,
                                     dataset_name='cached_dataset')
 
-The dataset is stored in the indicated file in chunks of the user-defined size.
-By default the chunk size is set to 2 MB.
-Each chunk is a cube of the full spectral and spatial shapes and the number of time steps needed to weigh 2 MB.
+The dataset is written to the file in chunks. Each chunk spans the full spectral
+and spatial shapes and as many time steps as fit in the chunk size, which
+defaults to 2 MB.
 
-Then, the chunk size can be set using the :class:`~exosim.utils.run_config.RunConfig` class, as described in :ref:`chunk_size`:
+The chunk size is set through :class:`~exosim.utils.run_config.RunConfig`, as
+described in :ref:`chunk_size`:
 
 .. code-block:: python
 
@@ -382,15 +404,16 @@ where `N` is the desired size of chunk in MB, which will be set for the environm
     :width: 600
     :align: center
 
-If no output file is indicated, the code produce a temporary file.
-Having a cached :class:`~exosim.models.signal.Signal` is slightly different from a normal one.
-While for the normal one we usually access the datacube content using the ``data`` attribute,
-for a cached :class:`~exosim.models.signal.Signal` is preferred to use the ``dataset``:
-while the former forces the system to load the entire datacube, which should be avoided for large datasets,
-the latter refers to the associate chunked :class:`h5py.Dataset` class.
+If no output file is given, the code writes to a temporary file.
 
-To access the chunks and set the dataset values, one can use the :class:`h5py.Dataset` methods.
-In the following example, we iterate over the class chunks and set the values to 1.
+A cached signal is used slightly differently from a normal one. For a normal
+signal you read the datacube through the ``data`` attribute; for a cached signal
+you should use ``dataset`` instead. ``data`` forces the whole datacube into
+memory, which must be avoided for large datasets, whereas ``dataset`` is the
+chunked :class:`h5py.Dataset` itself.
+
+You can reach the chunks and set values with the :class:`h5py.Dataset` methods.
+The example below iterates over the chunks and sets every value to 1:
 
 .. code-block:: python
 
@@ -405,16 +428,19 @@ Otherwise, the data can be accessed as a normal NumPy array:
         cached_signal.dataset[10,10,10] = 1
 
 
-.. note:: A cached :class:`~exosim.models.signal.Signal` allows the access to
-        the associated :class:`h5py.Dataset` only as long as the :class:`~exosim.output.hdf5.hdf5.HDF5Output` is open.
+.. note::
+    A cached :class:`~exosim.models.signal.Signal` can reach its
+    :class:`h5py.Dataset` only while the
+    :class:`~exosim.output.hdf5.hdf5.HDF5Output` is open.
 
-To be sure to apply the edits to the dataset in the open file, remember to flush them:
+To make sure the edits land in the open file, flush them:
 
 .. code-block:: python
 
         cached_signal.output.flush()
 
-Finally, if the user wants to loop over the chunks, a dedicated utility is available in ExoSim: :func:`~exosim.utils.iterators.iterate_over_chunks`
+To loop over the chunks, `ExoSim` provides a dedicated helper,
+:func:`~exosim.utils.iterators.iterate_over_chunks`:
 
 .. code-block:: python
 

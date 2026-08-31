@@ -165,7 +165,10 @@ def _get_git_info() -> tuple[str | None, str | None]:
         tuple: (branch_name, commit_hash) or (None, None) if not in git repo
     """
     try:
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # __file__ is <root>/src/exosim/__about__.py -> walk up to <root>
+        base_dir = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        )
     except NameError:
         return None, None
 

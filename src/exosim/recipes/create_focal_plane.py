@@ -109,18 +109,26 @@ class CreateFocalPlane(TimedClass, log.Logger):
             wl_max = self.mainConfig["wl_grid"]["wl_max"]
             logbin_resolution = self.mainConfig["wl_grid"]["logbin_resolution"]
         else:
-            # Fallback: infer from channel config or use sensible defaults
+            # Fallback: infer the passband from the channel configuration, or
+            # fall back to sensible defaults.
             wl_min, wl_max, logbin_resolution = 1.0 * u.um, 2.0 * u.um, 100
-            try:
-                channels_cfg = self.mainConfig.get(
-                    "channels"
-                ) or self.payloadConfig.get("channels")
-                if isinstance(channels_cfg, dict) and len(channels_cfg) > 0:
-                    first_ch = next(iter(channels_cfg.values()))
-                    wl_min = first_ch.get("wl_min", wl_min)
-                    wl_max = first_ch.get("wl_max", wl_max)
-            except Exception:
-                pass
+            self.warning(
+                "no 'wl_grid' in the configuration; inferring the wavelength "
+                "grid from the channel passbands"
+            )
+            channel_cfg = self.payloadConfig.get("channel")
+            if isinstance(channel_cfg, OrderedDict):
+                channels = list(channel_cfg.values())
+            elif isinstance(channel_cfg, dict):
+                channels = [channel_cfg]
+            else:
+                channels = []
+            mins = [ch["wl_min"] for ch in channels if "wl_min" in ch]
+            maxs = [ch["wl_max"] for ch in channels if "wl_max" in ch]
+            if mins:
+                wl_min = min(mins)
+            if maxs:
+                wl_max = max(maxs)
         self.wl_grid = utils.grids.wl_grid(wl_min, wl_max, logbin_resolution)
         self.debug(
             f"Wavelength grid initialized: {len(self.wl_grid)} bins from "

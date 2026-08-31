@@ -762,6 +762,30 @@ class TestLoadPhoenix:
         # Check that error method was called
         task.error.assert_called_once()
 
+    def test_no_path_and_no_filename_raises_oserror(self, monkeypatch):
+        monkeypatch.delenv("PHOENIX_PATH", raising=False)
+        with pytest.raises(OSError, match="phoenix path missing"):
+            LoadPhoenix()(R=1 * u.R_sun, D=10 * u.pc, T=5000 * u.K, logg=4.5)
+
+    def test_missing_temperature_raises_keyerror(self, tmp_path):
+        with pytest.raises(KeyError, match="star temperature missing"):
+            LoadPhoenix()(path=str(tmp_path), R=1 * u.R_sun, D=10 * u.pc, logg=4.5)
+
+    def test_missing_logg_raises_keyerror(self, tmp_path):
+        with pytest.raises(KeyError, match="star logg missing"):
+            LoadPhoenix()(path=str(tmp_path), R=1 * u.R_sun, D=10 * u.pc, T=5000 * u.K)
+
+    def test_empty_phoenix_directory_raises_oserror(self, tmp_path):
+        # path exists, all params given, but no *.BT-Settl.spec.fits.gz files
+        with pytest.raises(OSError, match="No stellar SED files found"):
+            LoadPhoenix()(
+                path=str(tmp_path),
+                R=1 * u.R_sun,
+                D=10 * u.pc,
+                T=5000,  # no units -> assumed Kelvin
+                logg=4.5,
+            )
+
 
 class TestPrepareSed:
     """Test the PrepareSed task."""

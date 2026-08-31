@@ -1,53 +1,51 @@
 .. _total noise:
 
-=======================
-Total Noise
-=======================
+===========
+Total noise
+===========
 
-The total relative noise is estimated for a :math:`1 \, hr` time scale observation.
-Therefore it has units of :math:`\sqrt{hr}`.
+The total relative noise is estimated for a :math:`1 \, hr` observation, so it
+has units of :math:`\sqrt{hr}`. The task in charge of it is
+:class:`~exosim.tasks.radiometric.computeTotalNoise.ComputeTotalNoise`.
 
-The task dedicated to this job is :class:`~exosim.tasks.radiometric.computeTotalNoise.ComputeTotalNoise`.
+It starts from an empty array of variances :math:`Var_{1 \, hr}(\lambda)` and
+scans the columns of the radiometric table for noise sources: a column counts as
+a noise source if its name contains the word ``noise``.
 
-We start from an empty array of variances :math:` Var_{1 \, hr}(\lambda)`.
-
-This task iterates over the columns of the radiometric table looking for noise sources.
-If a column name contains the word `noise`, then it is handled by this task.
-Assuming that the code finds a column name `X_noise`.
-If the column `X_noise` units are :math:`ct/s` then
+Take a column called ``X_noise``. If its units are :math:`ct/s`, the variance is
+updated as
 
 .. math::
 
     Var_{1 \, hr}(\lambda) = Var_{1 \, hr}(\lambda) + \frac{[\sigma_{X}(\lambda)]^2}{\Delta T_{int}}
 
-where :math:`\Delta T_{int} = 3600 \, s` for the :math:`1 \, hr` integration time.
-
-When the noise from all the columns that have such units has been added, the total variance is converted into relative noise.
-
-.. note::
-    To avoid confusion, only the noise from the source and the cumulative foreground are added to the total noise.
-
-Then the relative noise is
+with :math:`\Delta T_{int} = 3600 \, s` for the 1-hour integration time. Once
+every column with those units has been added, the total variance is turned into
+relative noise,
 
 .. math::
     \sigma_{1 \, hr}(\lambda) = \frac{Var_{1 \, hr}(\lambda)}{S_{source}(\lambda)}
 
 where :math:`S_{source}` is the source signal in the radiometric table.
 
-Assuming that the code also finds a column name `Y_noise` and that the column `Y_noise` has no units.
-This is a relative noise already.
-So, the code updates the total noise as
+.. note::
+    To avoid confusion, only the noise from the source and from the cumulative
+    foreground are added to the total noise.
+
+Now take a column called ``Y_noise`` that has no units. This is already a
+relative noise, so it is combined directly:
 
 .. math::
     \sigma_{1 \, hr}(\lambda) = \sqrt{[\sigma_{1 \, hr}(\lambda)]^2 + [\sigma_{Y}(\lambda)]^2}
 
-When also this check is concluded, the total relative noise is added to the radiometric table.
+Once this pass is done too, the total relative noise is written back to the
+radiometric table.
 
-To run the task from script
+To run the task from a script:
 
 .. code-block:: python
 
-        import exosim.tasks.radiometric as radiometric
+    import exosim.tasks.radiometric as radiometric
 
-        computeTotalNoise = radiometric.ComputeTotalNoise()
-        total_noise = computeTotalNoise(table)
+    computeTotalNoise = radiometric.ComputeTotalNoise()
+    total_noise = computeTotalNoise(table)

@@ -144,8 +144,8 @@ class EstimateZodi(Task):
             dir_path = Path(os.path.dirname(os.path.realpath(__file__)))
             i = 0
             while (
-                "data" not in [d.stem for d in Path(dir_path).iterdir() if d.is_dir()]
-                or i > 10
+                "data" not in [d.stem for d in dir_path.iterdir() if d.is_dir()]
+                and i <= 10
             ):
                 dir_path = dir_path.parent
                 i += 1

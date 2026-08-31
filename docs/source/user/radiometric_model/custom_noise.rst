@@ -1,37 +1,39 @@
-Custom Noise
+.. _custom_noise_radiometric:
+
+============
+Custom noise
 ============
 
-Overview
---------
+Custom noise lets you add noise terms to the radiometric model beyond the
+standard photon, dark current and read noise. `ExoSim` provides a flexible task
+that accepts several input formats, so you can describe most instrument-specific
+systematics without writing code.
 
-Custom noise allows users to include additional noise contributions in the radiometric model beyond the standard photon, dark current, and read noise components. ExoSim 2 provides a flexible task to compute custom noise contributions that can be specified in multiple formats to accommodate various noise modelling requirements.
+Default task
+------------
 
-Default Task
----------------------------------
+The default task
+:class:`~exosim.tasks.radiometric.compute_custom_noise.ComputeCustomNoise`
+computes the user-defined contributions. It accepts three input formats:
 
-The default task :class:`~exosim.tasks.radiometric.compute_custom_noise.ComputeCustomNoise` computes user-defined noise contributions for the radiometric noise budget. It supports three different input formats to accommodate various noise specification methods:
+1. a single noise source, as a simple dictionary,
+2. several noise sources, as multiple XML entries,
+3. wavelength-dependent noise, from a spectral data table.
 
-1. **Single noise source**: Simple dictionary for one contribution
-2. **Multiple noise sources**: Using OrderedDict for several contributions
-3. **Spectral data tables**: Wavelength-dependent noise from data files
+It returns a tuple:
 
+1. **noise_table**: an :class:`astropy.table.QTable` with one column per named
+   source (units ``hr**0.5``). It does not contain a total column.
+2. **total_custom_noise**: the sources combined in quadrature
+   (:class:`astropy.units.Quantity`, units ``hr**0.5``).
 
-The task returns a tuple containing:
+Configuration formats
+---------------------
 
-1. **noise_table**: Astropy table.QTable with individual noise contributions
+Single noise source
+~~~~~~~~~~~~~~~~~~~~~
 
-   - Individual noise columns for each named source (units: hr**0.5)
-   - Does not include a total column (total is returned separately)
-
-2. **total_custom_noise**: Combined noise from all sources using quadrature addition (Astropy units.Quantity with units hr**0.5)
-
-Configuration Formats
-----------------------
-
-Format 1: Single Noise Source (Simple Dictionary)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For a single constant noise contribution:
+A single constant contribution:
 
 .. code-block:: xml
 
@@ -41,7 +43,7 @@ For a single constant noise contribution:
         </custom_noise>
     </radiometric>
 
-This corresponds to the following internal structure:
+which corresponds to the internal structure
 
 .. code-block:: python
 
@@ -53,10 +55,11 @@ This corresponds to the following internal structure:
         }
     }
 
-Format 2: Multiple Noise Sources (Multiple XML Entries)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Several noise sources
+~~~~~~~~~~~~~~~~~~~~~~
 
-For multiple constant noise contributions, specify multiple custom_noise entries:
+Add one ``custom_noise`` entry per contribution. They are treated as independent
+and combined in quadrature:
 
 .. code-block:: xml
 
@@ -72,12 +75,11 @@ For multiple constant noise contributions, specify multiple custom_noise entries
         </custom_noise>
     </radiometric>
 
-This creates multiple independent noise sources that are combined in quadrature.
+Wavelength-dependent noise
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Format 3: Spectral Data (Wavelength-Dependent)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-For wavelength-dependent noise from data tables, the custom_noise section should contain a ``data`` field with spectral information:
+For noise that varies with wavelength, point the ``custom_noise`` section at a
+``data`` file:
 
 .. code-block:: xml
 
@@ -88,7 +90,7 @@ For wavelength-dependent noise from data tables, the custom_noise section should
         </custom_noise>
     </radiometric>
 
-The data file should contain wavelength and one or more noise columns:
+The file holds a wavelength column and one or more noise columns:
 
 .. code-block:: text
 
@@ -108,42 +110,36 @@ The data file should contain wavelength and one or more noise columns:
     5.0 0.004 0.0015
     6.0 0.003 0.0012
 
-All non-wavelength columns are treated as separate noise contributions and are combined in quadrature.
+Every column other than the wavelength is treated as a separate contribution and
+combined in quadrature.
 
-XML Configuration Examples
----------------------------
+Enabling custom noise
+---------------------
 
-Basic Configuration
-~~~~~~~~~~~~~~~~~~~
-
-To enable custom noise computation in your instrument configuration:
+Custom noise is computed whenever one or more sources are present. A basic
+configuration alongside the standard noise sources:
 
 .. code-block:: xml
 
     <radiometric>
-        <!-- Other noise sources -->
         <photon_noise> True </photon_noise>
         <dark_current> True </dark_current>
         <read_noise> True </read_noise>
 
-        <!-- Custom noise contributions -->
         <custom_noise> 100
             <name>systematic_uncertainty</name>
         </custom_noise>
     </radiometric>
 
-Advanced Configuration with Multiple Sources
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+and a configuration with several constant sources plus a spectral one:
 
 .. code-block:: xml
 
     <radiometric>
-        <!-- Standard noise sources -->
         <photon_noise> True </photon_noise>
         <dark_current> True </dark_current>
         <read_noise> True </read_noise>
 
-        <!-- Multiple custom noise sources -->
         <custom_noise> 50
             <name>thermal_drift</name>
         </custom_noise>
@@ -154,47 +150,46 @@ Advanced Configuration with Multiple Sources
             <name>mechanical_vibration</name>
         </custom_noise>
 
-        <!-- Spectral custom noise from file -->
         <custom_noise>
             <data>__ConfigPath__/wavelength_dependent_systematics.ecsv</data>
             <name>spectral_systematics</name>
         </custom_noise>
     </radiometric>
 
-Column Naming Convention
-~~~~~~~~~~~~~~~~~~~~~~~~
+Column naming
+~~~~~~~~~~~~~
 
-The task automatically generates column names for the output table:
+The output column names are generated automatically:
 
-- If a ``name`` field is provided: ``{name}_noise``
-- If ``name`` contains "noise": uses the name as-is
-- If no name provided: defaults to ``custom_noise``
-- For spectral data: ``{name}_{column_name}_noise`` for each data column
+- with a ``name`` field: ``{name}_noise``,
+- if ``name`` already contains "noise": the name is used as is,
+- with no name: ``custom_noise``,
+- for spectral data: ``{name}_{column_name}_noise`` for each data column.
 
-Integration with Radiometric Model
------------------------------------
+Where it runs in the pipeline
+-----------------------------
 
-The custom noise computation is automatically integrated into the radiometric model pipeline when custom noise sources are specified. The task is called as part of the noise computation sequence:
+When custom sources are present, the custom noise is computed automatically as
+part of the noise sequence:
 
-1. Multiaccum gain calculation
-2. Photon noise computation
-3. Dark current noise computation
-4. Read noise computation
-5. **Custom noise computation** (this task)
-6. Total noise combination
+1. multiaccum gain calculation,
+2. photon noise,
+3. dark current noise,
+4. read noise,
+5. **custom noise** (this task),
+6. total noise combination.
 
-The custom noise contributions are automatically included in the total noise budget using quadrature addition with all other noise sources.
+The custom contributions are added in quadrature with the other noise sources in
+the total budget.
 
-Custom Task Implementation
---------------------------
+Custom task
+-----------
 
-Users can implement custom noise tasks by inheriting from the :class:`~exosim.tasks.radiometric.compute_custom_noise.ComputeCustomNoise` base class. The custom task should:
-
-1. Accept the same input parameters as the default task (wavelength, description)
-2. Implement the ``model()`` method for the actual computation
-3. Return the same output format (noise_table, total_noise)
-
-Example custom task structure:
+To go further, inherit from
+:class:`~exosim.tasks.radiometric.compute_custom_noise.ComputeCustomNoise`. The
+custom task should take the same inputs as the default one (``wavelength``,
+``description``), implement the ``model()`` method, and return the same output
+(``noise_table``, ``total_noise``):
 
 .. code-block:: python
 
@@ -204,30 +199,20 @@ Example custom task structure:
 
         def __init__(self):
             super().__init__()
-            # Add any additional parameters if needed
+            # add any extra parameters here
 
         def model(self, wavelength, description):
-            # Implement custom noise calculation logic
-            # Must return (noise_table, total_noise)
-            # where noise_table is QTable and total_noise is Quantity
-
-            # Example: call parent method and modify results
             noise_table, total_noise = super().model(wavelength, description)
-
-            # Add custom modifications here
-
+            # apply your modifications here
             return noise_table, total_noise
 
-To use your custom task, specify it in the XML configuration:
+Point to it in the configuration:
 
 .. code-block:: xml
 
     <radiometric>
         <custom_noise_task>path.to.my_custom_noise_task.MyCustomNoiseTask</custom_noise_task>
-        <!-- Custom noise specifications -->
         <custom_noise> 100
             <name>my_custom_source</name>
         </custom_noise>
     </radiometric>
-
-The custom noise system provides maximum flexibility for modelling instrument-specific systematic effects while maintaining consistency with ExoSim 2's overall noise budget framework.

@@ -1,13 +1,15 @@
 .. _readnoise:
 
-===================================
-Read out noise
-===================================
+==========
+Read noise
+==========
 
-Every time a pixel is read by the electronics, an error is introduced. This is called `read noise`.
-This is the noise of the amplifier which converts the counts into a change in analog voltage for the ADC.
-This kind of uncertainty is represented by default by :class:`~exosim.tasks.detector.addReadNoise.AddNormalReadNoise`.
-This :class:`~exosim.tasks.task.Task` simulates the read noise as a normal distribution whose parameters can be defined in the configuration file.
+Every time a pixel is read by the electronics, an error is introduced: the
+`read noise`. It is the noise of the amplifier that converts the counts into an
+analogue voltage change for the ADC. By default it is modelled by
+:class:`~exosim.tasks.detector.addReadNoise.AddNormalReadNoise`, which simulates
+the read noise as a normal distribution whose parameters are set in the
+configuration file:
 
 .. code-block:: xml
 
@@ -16,15 +18,19 @@ This :class:`~exosim.tasks.task.Task` simulates the read noise as a normal distr
             <read_noise> True </read_noise>
             <read_noise_task> AddNormalReadNoise </read_noise_task>
             <read_noise_sigma unit="ct"> 10 </read_noise_sigma>
-        <detector>
+        </detector>
     </channel>
 
-A different realization of the same distribution is added to each pixel of each sub-exposure.
+A separate draw from the same distribution is added to every pixel of every
+sub-exposure:
 
 .. math::
     S_{meas} = S_{meas} + \mathcal{N}(\mu = 0, \sigma = \sigma_{RN})
 
-Alternatively, a map of read noise measured for each pixel can be used. A default Task is provided for this purpose assuming NumPy array (see `NumPy documentation <https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_) as input: :class:`~exosim.tasks.detector.addReadNoiseMapNumpy.AddReadNoiseMapNumpy`
+Alternatively, you can use a per-pixel map of measured read noise. A default
+task is provided for a NumPy array input (see the `NumPy documentation
+<https://numpy.org/devdocs/reference/generated/numpy.lib.format.html>`_):
+:class:`~exosim.tasks.detector.addReadNoiseMapNumpy.AddReadNoiseMapNumpy`.
 
 .. code-block:: xml
 
@@ -33,12 +39,13 @@ Alternatively, a map of read noise measured for each pixel can be used. A defaul
             <read_noise> True </read_noise>
             <read_noise_task> AddReadNoiseMapNumpy </read_noise_task>
             <read_noise_filename> read_noise_map.npy </read_noise_filename>
-        <detector>
+        </detector>
     </channel>
 
 .. note::
-    Other custom realizations of this Task can be developed by the user (see :ref:`Custom Tasks`).
+    You can develop custom versions of this task (see :ref:`Custom Tasks`).
 
 .. note::
-    For reproducibility, the seed for the random generator can be set as described in :ref:`random_seed`.
-    Remember that in the case of multiple chunks used, the random seed used in any chunk is stored in the output file for reproducibility.
+    For reproducibility, the random-generator seed can be set as described in
+    :ref:`random_seed`. When multiple chunks are used, the seed used for each
+    chunk is stored in the output file.

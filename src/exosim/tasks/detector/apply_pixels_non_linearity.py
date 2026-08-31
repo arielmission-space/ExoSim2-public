@@ -16,7 +16,9 @@ class ApplyPixelsNonLinearity(Task):
         Q_{det} = Q \cdot (a + b \cdot Q + c \cdot Q^2 + d \cdot Q^3 + e \cdot Q^4)
 
     The input is a dictionary with a `map` keyword containing an array with the coefficients for each pixel.
-    The map shape is (n_pixels_x, n_pixels_y, coefficient order).
+    The map shape is (coefficient order, n_pixels_y, n_pixels_x): the first axis
+    runs over the polynomial coefficients :math:`a_0, a_1, \dots`, the other two
+    over the detector pixel grid.
 
     The user can list any number of coefficients, that will be parsed in the following model
 

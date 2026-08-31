@@ -1,24 +1,30 @@
 .. _pointing:
 
-===========================================
+=======================================
 Telescope pointing and multiple sources
-===========================================
+=======================================
 
-In this section we will discuss how to simulate the source position in the sky, relative to the telescope pointing.
-In a real observation, the telescope is pointed to a certain location in the sky, where the target is expected to be, and other sources can be in the field.
+This section explains how to simulate where a source sits in the sky relative to
+the telescope pointing. In a real observation, the telescope points at a
+location in the sky where the target is expected to be, and other sources may
+fall in the field.
 
 .. note::
-    This pointing section has nothing to do with pointing stability simulations or with a pointing direction changing with time.
-    Here we are only simulating the ideal telescope pointing.
+    This section has nothing to do with pointing-stability simulations or a
+    pointing direction that changes with time. Here we simulate only the ideal,
+    static telescope pointing.
 
-The position of the target from the sky to the focal plane is handled in :class:`~exosim.tasks.instrument.populate_focal_plane.PopulateFocalPlane`
-by the :class:`~exosim.tasks.instrument.compute_sources_pointing_offset.ComputeSourcesPointingOffset`. The offset resolution is an integer multiple of the subpixel size.
+The path of the target from the sky to the focal plane is handled in
+:class:`~exosim.tasks.instrument.populate_focal_plane.PopulateFocalPlane` by
+:class:`~exosim.tasks.instrument.compute_sources_pointing_offset.ComputeSourcesPointingOffset`.
+The offset resolution is an integer multiple of the sub-pixel size.
 
 Telescope pointing
---------------------
+------------------
 
-In `ExoSim` the telescope pointing direction can be set in the main configuration `.xml` file (see :ref:`general settings`).
-Assuming we want to observe HD209458_, we point the telescope to the target coordinates by adding
+The telescope pointing direction is set in the main configuration `.xml` file
+(see :ref:`general settings`). To observe HD209458_, point the telescope at the
+target coordinates:
 
 .. code-block:: xml
 
@@ -29,7 +35,8 @@ Assuming we want to observe HD209458_, we point the telescope to the target coor
         </pointing>
     </root>
 
-Then, we need to add the coordinates also to the star in the source description (see :ref:`sources`):
+Then add the same coordinates to the star in the source description (see
+:ref:`sources`):
 
 .. code-block:: xml
 
@@ -46,9 +53,9 @@ Then, we need to add the coordinates also to the star in the source description 
         <dec> +18d53m04s </dec>
     </source>
 
-Another important piece of information is the channel plate scale. In fact, `ExoSim` needs to estimate the angle of view of each pixel
-to estimate the star position in the focal plane. Assuming the instrument has two channels: a photometer and a spectrometer,
-we can add this information under the `detector` section as
+`ExoSim` also needs the channel plate scale, so it can work out the angular size
+of each pixel and place the star on the focal plane. For an instrument with a
+photometer and a spectrometer, add it under the `detector` section:
 
 .. code-block:: xml
 
@@ -69,19 +76,20 @@ we can add this information under the `detector` section as
         </detector>
     </channel>
 
-In this example, the spectrometer has different plate scales in the two detector directions.
+Here the spectrometer has different plate scales in the two detector directions.
 
-Because we are pointing directly to the target, the star will be at the centre of the focal plane:
+Because we point straight at the target, the star lands at the centre of the
+focal plane:
 
 .. image:: _static/focal_plane_single_perfect.png
     :width: 600
     :align: center
 
 Pointing offset
-------------------
+---------------
 
-If we want to simulate an offset of the source on the focal plane, we can move the telescope pointing.
-In this example we simply changed the pointing in the main configuration `.xml` file:
+To offset the source on the focal plane, move the telescope pointing. In this
+example we simply changed the pointing in the main configuration `.xml` file:
 
 .. code-block:: xml
 
@@ -92,7 +100,7 @@ In this example we simply changed the pointing in the main configuration `.xml` 
         </pointing>
     </root>
 
-The result will be a different location of the target on the focal plane
+The target now lands at a different position on the focal plane:
 
 .. image:: _static/focal_plane_offset.png
     :width: 600
@@ -102,13 +110,14 @@ The result will be a different location of the target on the focal plane
 .. _multiple_sources:
 
 Multiple sources in the field
-----------------------------------
+-----------------------------
 
-Another useful case is the simulation of multiple sources on the focal plane.
-In this example we add two other targets. To keep things simple, we add two HD 209458 stars to the field: HD 209458 1 and HD 209458 2.
-We change the star distances a little to differentiate them on the focal plane: HD 209458 1 is set at 55 pc and
-HD 209458 2 is set at 35 pc instead of 47 pc as the original star location.
-Also, the star locations on the sky are slightly changed to generate the offsets:
+`ExoSim` can also put several sources on the focal plane. In this example we add
+two more targets. To keep things simple, they are two more copies of HD 209458,
+called HD 209458 1 and HD 209458 2, at slightly different distances so they can
+be told apart on the focal plane: HD 209458 1 at 55 pc and HD 209458 2 at 35 pc,
+against 47 pc for the original star. Their sky positions are also nudged to
+create the offsets:
 
 .. code-block:: xml
 
@@ -142,7 +151,7 @@ Also, the star locations on the sky are slightly changed to generate the offsets
         <dec> +18d53m04.7s </dec>
     </source>
 
-The results will look like:
+The result looks like this:
 
 .. image:: _static/focal_plane_multiple.png
     :width: 600
@@ -150,10 +159,9 @@ The results will look like:
 
 .. _HD209458: http://simbad.u-strasbg.fr/simbad/sim-id?Ident=HD%20209458
 
-For the following, it is important to separate the target source,
-which is the source that we expect to have an astronomical signal associated (see :ref:`Astronomical signals`),
-from the others.
-This can be done by adding the `source_target` attribute to the source description:
+For the next steps it matters to separate the **target source**, the one
+expected to carry an astronomical signal (see :ref:`Astronomical signals`), from
+the others. Do this with the `source_target` attribute:
 
 .. code-block:: xml
 
@@ -161,6 +169,6 @@ This can be done by adding the `source_target` attribute to the source descripti
         <source_target>True</source_target>
     </source>
 
-Then the target source will be treated differently from the others.
-In the focal plane data product, the target source will be stored under the ``focal_plane`` group.
-The other sources are considered `background sources` and will be stored under the ``bkg_focal_plane`` group.
+The target source is then treated differently from the rest: in the focal-plane
+data product it is stored under the ``focal_plane`` group, while the others are
+treated as background sources and stored under ``bkg_focal_plane``.

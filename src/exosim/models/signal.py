@@ -484,15 +484,15 @@ class Signal(log.Logger):
     ) -> tuple[int, int]:
         """This function finds a data slice given a time interval."""
         if isinstance(start_time, u.Quantity):
-            start_time = start_time.to(u.hr)
+            start_time = start_time.to_value(u.hr)
         else:
             self.debug("start time assumed to be expressed in hr")
         if isinstance(end_time, u.Quantity):
-            end_time = end_time.to(u.hr)
+            end_time = end_time.to_value(u.hr)
         else:
-            self.debug("start time assumed to be expressed in hr")
-        start = np.argmin(np.abs(self.time - start_time.value))
-        stop = np.argmin(np.abs(self.time - end_time.value))
+            self.debug("end time assumed to be expressed in hr")
+        start = np.argmin(np.abs(self.time - start_time))
+        stop = np.argmin(np.abs(self.time - end_time))
         return start, stop
 
     def get_slice(self, start_time: ValueType, end_time: ValueType) -> np.ndarray:

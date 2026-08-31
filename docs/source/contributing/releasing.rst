@@ -60,7 +60,7 @@ Writing changelog entries
 =========================
 
 Changelog entries are **not** tied to individual commits. When a unit of work is
-complete — which may span several commits — add one fragment describing it:
+complete (it may span several commits), add one fragment describing it:
 
 .. code-block:: console
 
@@ -89,7 +89,7 @@ The script (``scripts/release.py``) will:
 
 #. verify you are on ``develop``, the tree is clean and in sync with ``origin``,
    and that there is at least one changelog fragment;
-#. run the quality gate (``ruff`` + ``pytest``) — skip with ``nox -s release -- --skip-checks``;
+#. run the quality gate (``ruff`` + ``pytest``); skip it with ``nox -s release -- --skip-checks``;
 #. ask whether the bump is ``major``, ``minor`` or ``patch`` (or pass it:
    ``nox -s release -- minor``) and compute the next ``X.Y.Z`` from the last
    ``vX.Y.Z`` tag;

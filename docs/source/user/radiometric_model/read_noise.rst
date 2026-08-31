@@ -1,20 +1,26 @@
-Read Noise
+.. _read_noise_radiometric:
+
+==========
+Read noise
 ==========
 
-Overview
---------
+Read noise is the noise added by the detector electronics every time the array is
+read out. `ExoSim` includes a default task to add its contribution to the
+radiometric model, and you can replace it with your own when needed.
 
-The read noise is a fundamental noise component in detector systems that originates from the electronics during the readout process. ExoSim2 includes a default task to compute the read noise contribution to the radiometric model, which can be customized by users when needed.
+Default task
+------------
 
-Default Task: ComputeConstantReadNoise
---------------------------------------
+The default task
+:class:`~exosim.tasks.radiometric.compute_constant_read_noise.ComputeConstantReadNoise`
+computes the read noise for each aperture in the radiometric table. It treats the
+read noise as a constant per-pixel value that scales with the aperture area and
+the frame time.
 
-The default task :class:`~exosim.tasks.radiometric.compute_constant_read_noise.ComputeConstantReadNoise` computes the read noise for each aperture in the radiometric table. It models the read noise as a constant per-pixel noise that scales with the aperture area and frame time.
+Model
+~~~~~
 
-Mathematical Model
-~~~~~~~~~~~~~~~~~~
-
-The read noise variance is computed using the following formula:
+The read-noise variance is
 
 .. math::
 
@@ -22,18 +28,18 @@ The read noise variance is computed using the following formula:
 
 where:
 
-- :math:`G` is the multiaccum gain factor
-- :math:`\sigma_{\mathrm{RN}}` is the read noise per pixel (in counts)
-- :math:`A` is the aperture area (in pixels)
-- :math:`t_{\mathrm{frame}}` is the frame time (in seconds)
+- :math:`G` is the multiaccum gain factor,
+- :math:`\sigma_{\mathrm{RN}}` is the read noise per pixel, in counts,
+- :math:`A` is the aperture area, in pixels,
+- :math:`t_{\mathrm{frame}}` is the frame time, in seconds.
 
-The final read noise is then:
+The read noise is the square root of the variance,
 
 .. math::
 
     \mathrm{read\_noise} = \sqrt{\mathrm{read\_noise\_variance}}
 
-The result is normalized by the input signal for a 1-hour exposure:
+and is then normalised by the signal for a 1-hour exposure,
 
 .. math::
 
@@ -41,67 +47,55 @@ The result is normalized by the input signal for a 1-hour exposure:
 
 where :math:`S` is the signal.
 
-Task Parameters
-~~~~~~~~~~~~~~~
+Inputs
+~~~~~~
 
-The task requires the following parameters:
+The task needs:
 
-- **signal**: Signal array for normalization (astropy.units.Quantity)
-- **aperture_table**: Table containing aperture information with required columns:
+- **signal**: the signal array used for the normalisation
+  (:class:`astropy.units.Quantity`).
+- **aperture_table**: a table with the aperture information, with the columns
 
-  - ``aperture_size``: area of the aperture (in pixels)
-  - ``frame_time``: frame time for each aperture (in seconds)
+  - ``aperture_size``: the aperture area, in pixels,
+  - ``frame_time``: the frame time for each aperture, in seconds.
 
-- **description**: Channel description dictionary containing:
+- **description**: the channel description, which must contain
+  ``detector.read_noise_sigma``, the read noise per pixel
+  (:class:`astropy.units.Quantity`, in ct).
+- **multiaccum_gain**: the multiaccum gain factor (float or Quantity).
 
-  - ``detector.read_noise_sigma``: read noise per pixel (astropy.units.Quantity, in ct)
-
-- **multiaccum_gain**: Multiaccum gain factor (float or Quantity)
-
-Task Output
-~~~~~~~~~~~
+Output
+~~~~~~
 
 The task returns:
 
-1. An updated aperture table with two additional columns:
-
-   - ``read_noise_variance``: computed read noise variance for each aperture
-   - ``read_noise``: computed total read noise for each aperture, normalized by the signal
-
-2. An array of read noise values for each aperture (normalized by the signal)
+1. the aperture table with two new columns, ``read_noise_variance`` and
+   ``read_noise`` (the latter normalised by the signal), and
+2. an array of read-noise values for each aperture, normalised by the signal.
 
 Configuration
 -------------
 
-XML Configuration for Default Task
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To use the default read noise task in your instrument configuration, add the following to your channel configuration in the XML file:
+To use the default task, set the read noise per pixel in the detector section
+and enable the read noise in the radiometric section:
 
 .. code-block:: xml
 
     <detector>
-        <!-- Other detector parameters -->
-
-        <!-- Specify the read noise sigma per pixel -->
+        <!-- other detector parameters -->
         <read_noise_sigma unit="ct"> 10 </read_noise_sigma>
-
     </detector>
 
     <radiometric>
-        <!-- Read noise will be computed automatically if enabled above -->
         <read_noise> True </read_noise>
-
-        <!-- Optional: specify custom task (if not specified, uses ComputeConstantReadNoise) -->
+        <!-- optional: pick a custom task; defaults to ComputeConstantReadNoise -->
         <!-- <read_noise_task> ComputeConstantReadNoise </read_noise_task> -->
     </radiometric>
 
+Custom task
+-----------
 
-Creating a Custom Task
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Users can implement custom read noise tasks by inheriting from the :class:`~exosim.tasks.radiometric.compute_constant_read_noise.ComputeConstantReadNoise` base class. The custom task should:
-
-1. Accept the same input parameters as the default task
-2. Implement the ``model()`` method
-3. Return the same output format (table and noise array)
+To model the read noise differently, inherit from
+:class:`~exosim.tasks.radiometric.compute_constant_read_noise.ComputeConstantReadNoise`.
+The custom task should take the same inputs as the default one, implement the
+``model()`` method, and return the same output (the table and the noise array).

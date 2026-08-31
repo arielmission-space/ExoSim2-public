@@ -134,8 +134,10 @@ class AnalogToDigital(Task):
             subexposures.dataset, desc="converting to digital"
         ):
             data = (deepcopy(subexposures.dataset[chunk]) - offset) * gain_factor
-            data[data < 0] = 0  # applying the offset as trigger
-            ndrs.dataset[chunk] = rounder(data).astype(int_type)
+            # clip to the representable range: below the offset -> 0, above the
+            # ADC full scale -> saturated (otherwise the cast wraps around)
+            data = np.clip(rounder(data), 0, dtype_range)
+            ndrs.dataset[chunk] = data.astype(int_type)
             ndrs.output.flush()
 
         ndrs.metadata["ADC"] = {"gain": gain_factor, "offset": offset}

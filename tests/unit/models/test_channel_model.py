@@ -585,6 +585,42 @@ class TestChannelSourcelessOperation:
                 f"target_source raised {type(exc).__name__} with empty sources: {exc}"
             )
 
+    def _fake_source(self, is_target=False):
+        src = type("S", (), {})()
+        src.metadata = {"parsed_parameters": {"source_target": is_target}}
+        return src
+
+    def test_target_source_single_source_returns_it(self):
+        channel = self._make_channel()
+        channel.sources = {"star": self._fake_source()}
+        assert channel.target_source == "star"
+
+    def test_target_source_picks_the_flagged_one(self):
+        channel = self._make_channel()
+        channel.sources = {
+            "star": self._fake_source(is_target=True),
+            "companion": self._fake_source(is_target=False),
+        }
+        assert channel.target_source == "star"
+
+    def test_target_source_multi_without_flag_raises(self):
+        channel = self._make_channel()
+        channel.sources = {
+            "a": self._fake_source(),
+            "b": self._fake_source(),
+        }
+        with pytest.raises(KeyError, match="no source is flagged"):
+            _ = channel.target_source
+
+    def test_target_source_multiple_flags_raise(self):
+        channel = self._make_channel()
+        channel.sources = {
+            "a": self._fake_source(is_target=True),
+            "b": self._fake_source(is_target=True),
+        }
+        with pytest.raises(KeyError, match="more than one source"):
+            _ = channel.target_source
+
     def test_populate_focal_plane_skips_when_no_sources(self):
         """Test that populate_focal_plane returns unchanged when sources is empty.
 

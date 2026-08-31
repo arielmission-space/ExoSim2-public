@@ -9,41 +9,41 @@ from .pixels_non_linearity import PixelsNonLinearity
 
 
 class PixelsNonLinearityFromCorrection(PixelsNonLinearity):
-    """
-    This tools helps the user to find the pixel non-linearity coefficients to as inputs for ExoSim,
-    starting from the measurable pixel non-linearity correction.
+    r"""
+    Finds the pixel non-linearity coefficients that ExoSim needs as input,
+    starting from the measured pixel non-linearity correction.
 
-    In fact, the detector non linearity model, is usually written as polynomial such as
+    The detector non-linearity is usually written as a polynomial:
 
     .. math::
-        Q_{det} = Q \bigtriangleup (1 + \\sum_i a_i \\cdot Q^i)
+        Q_{det} = Q \bigtriangleup (1 + \sum_i a_i \cdot Q^i)
 
     where :math:`Q_{det}` is the charge read by the detector, and :math:`Q` is the ideal count,
-    as :math:`Q = \\phi_t`, with :math:`\\phi` being the number of electrons generated and :math:`t` being the elapsed time.
-    In the equation above, :math:`\bigtriangleup` is the operator used to defined the relation between :math:`Q_{det}` and :math:`Q`,
-    which depends on the definition of the coefficients :math:`a_i` (see also equation below).
+    as :math:`Q = \phi t`, with :math:`\phi` being the number of electrons generated and :math:`t` being the elapsed time.
+    In the equation above, :math:`\bigtriangleup` is the operator relating :math:`Q_{det}` and :math:`Q`,
+    which depends on the definition of the coefficients :math:`a_i` (see also the equation below).
 
-    However, it is usually the inverse operation that is known, as it's coefficients are measurable empirically:
+    In practice it is the inverse relation that is known, since its coefficients are measurable empirically:
 
     .. math::
-        Q ={Q_{det}}\bigtriangledown ( b_1 + \\sum_{i=2} b_i \\cdot Q_{det}^i)
+        Q = {Q_{det}} \bigtriangledown ( b_1 + \sum_{i=2} b_i \cdot Q_{det}^i)
 
-    Where :math:`\bigtriangledown` is the inverse operator of :math:`\bigtriangleup`.
-    Depending on the way the non linearity is estimated, the operator can either be a division (:math:`\\div`)
+    where :math:`\bigtriangledown` is the inverse operator of :math:`\bigtriangleup`.
+    Depending on how the non-linearity is estimated, the operator is either a division (:math:`\div`)
     or a multiplication (:math:`\times`). If not specified, a division is assumed.
 
     The :math:`b_i` correction coefficients should be listed in the configuration file using the `pnl_coeff` keyword
-    in increasing alphabetical order: `pnl_coeff_a` for :math:`b_1`,
+    in alphabetical order: `pnl_coeff_a` for :math:`b_1`,
     `pnl_coeff_b` for :math:`b_2`, `pnl_coeff_c` for :math:`b_3`,
     `pnl_coeff_d` for :math:`b_4`, `pnl_coeff_e` for :math:`b_5` and so on.
-    The user can list any number of correction coefficients, and they will be automatically parsed.
-    Please, note that using this notation, :math:`b_1` is not forced to be the unity.
+    Any number of coefficients can be listed and they are parsed automatically.
+    Note that with this notation :math:`b_1` is not forced to be unity.
 
-    This class will restrieve the :math:`a_i` coefficients, starting from the the indicated :math:`b_i`.
-    The results are the coefficients for a 4-th order polynomial:
+    This class retrieves the :math:`a_i` coefficients from the given :math:`b_i`.
+    The result is the set of coefficients for a 4th-order polynomial:
 
     .. math::
-        Q_{det} = Q \\cdot (a_1 + a_2 \\cdot Q + a_3 \\cdot Q^2 + a_4 \\cdot Q^3 + a_5 \\cdot Q^4)
+        Q_{det} = Q \cdot (a_1 + a_2 \cdot Q + a_3 \cdot Q^2 + a_4 \cdot Q^3 + a_5 \cdot Q^4)
 
     However, each pixel is different, and therefore, this class also produces a map of the coefficient for each pixel.
     Each coefficient is normally distributed around the mean value, with a standard deviation indicated in the configuration.

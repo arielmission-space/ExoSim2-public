@@ -341,6 +341,65 @@ class TestLoadOpticalElementHDF5:
 
         assert isinstance(data, Radiance), "Should return Radiance object"
 
+    def test_folder_structured_hdf5_is_read(self, tmp_path):
+        path = tmp_path / "folder_struct.h5"
+        wl = np.linspace(1, 10, 50)
+        with h5py.File(str(path), "w") as f:
+            g = f.create_group("grp")
+            sub = g.create_group("radiance")
+            sub.create_dataset("wavelength", data=wl)
+            sub.create_dataset("radiance", data=np.ones(50))
+        params = {
+            "hdf5_file": str(path),
+            "group_key": "grp",
+            "wavelength_key": "wavelength",
+            "radiance_key": "radiance",
+        }
+        data = LoadOpticalElementHDF5()._get_data(
+            params, wl * u.um, np.array([0.0]) * u.s, "radiance_key", Radiance
+        )
+        assert isinstance(data, Radiance)
+
+    def test_missing_group_raises_keyerror(self, tmp_path):
+        path = tmp_path / "nogroup.h5"
+        with h5py.File(str(path), "w") as f:
+            f.create_group("other")
+        params = {
+            "hdf5_file": str(path),
+            "group_key": "grp",
+            "wavelength_key": "wavelength",
+            "radiance_key": "radiance",
+        }
+        with pytest.raises(KeyError, match="not found in HDF5 file"):
+            LoadOpticalElementHDF5()._get_data(
+                params,
+                np.array([1.0]) * u.um,
+                np.array([0.0]) * u.s,
+                "radiance_key",
+                Radiance,
+            )
+
+    def test_missing_dataset_raises_keyerror(self, tmp_path):
+        path = tmp_path / "nodataset.h5"
+        with h5py.File(str(path), "w") as f:
+            f.create_group("grp").create_dataset(
+                "wavelength", data=np.linspace(1, 2, 5)
+            )
+        params = {
+            "hdf5_file": str(path),
+            "group_key": "grp",
+            "wavelength_key": "wavelength",
+            "radiance_key": "radiance",
+        }
+        with pytest.raises(KeyError, match="not found in group"):
+            LoadOpticalElementHDF5()._get_data(
+                params,
+                np.linspace(1, 2, 5) * u.um,
+                np.array([0.0]) * u.s,
+                "radiance_key",
+                Radiance,
+            )
+
 
 class TestOpticalSystemIntegration:
     """Test suite for optical system integration and robustness."""

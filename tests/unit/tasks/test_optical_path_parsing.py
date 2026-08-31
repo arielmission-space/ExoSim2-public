@@ -303,3 +303,14 @@ def test_foreground_iterative_building(load_main_config):
     assert isinstance(path_new, dict)
     assert isinstance(path_new["radiance_0"], Radiance)
     assert isinstance(path_new["efficiency"], Dimensionless)
+
+
+def test_parse_optical_element_requires_a_value_key():
+    import pytest
+
+    task = ParsePath()
+    task.set_log_name()
+    with pytest.raises(KeyError, match="'value' key is required"):
+        task._parse_optical_element(
+            {"type": "filter", "temperature": 70}, output_file=None
+        )

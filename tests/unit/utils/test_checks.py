@@ -6,6 +6,8 @@ This module tests the checks utility functions including:
 - find_key and look_for_key: Dictionary key search utilities
 """
 
+from unittest.mock import MagicMock
+
 import astropy.units as u
 import numpy as np
 import pytest
@@ -116,8 +118,56 @@ class TestCheckUnits:
         assert np.isclose(result.value, 1.0)
 
 
+class TestCheckUnitsLoggingBranches:
+    """Cover the optional calling_class debug/branch paths of check_units."""
+
+    def test_string_convertible_with_calling_class(self):
+        log = MagicMock()
+        result = check_units("2.5", u.m, calling_class=log, force=True)
+        assert result.value == pytest.approx(2.5)
+        assert log.debug.called
+
+    def test_string_not_convertible_is_left_alone(self):
+        log = MagicMock()
+        # "abc" cannot become a float; check_units keeps it and lets numpy handle it,
+        # which raises when multiplied by a unit
+        with pytest.raises((ValueError, TypeError)):
+            check_units("abc", u.m, calling_class=log, force=True)
+        assert log.debug.called
+
+    def test_no_unit_without_force_to_dimensionless_target(self):
+        log = MagicMock()
+        result = check_units(5.0, "", calling_class=log, force=False)
+        assert result.unit == u.dimensionless_unscaled
+        assert result.value == 5.0
+        assert log.debug.called
+
+    def test_no_unit_without_force_to_real_unit_raises(self):
+        log = MagicMock()
+        with pytest.raises(u.UnitConversionError):
+            check_units(5.0, u.m, calling_class=log, force=False)
+        assert log.debug.called  # "forcing no units" is logged before the failure
+
+    def test_dimensionless_input_passes_through(self):
+        result = check_units(np.array([1.0, 2.0]) * u.Unit(""), "")
+        assert result.unit == u.dimensionless_unscaled
+        np.testing.assert_array_equal(result.value, [1.0, 2.0])
+
+    def test_inverse_hz_normalised_to_seconds(self):
+        # a quantity given as 1/Hz is treated as seconds
+        result = check_units(0.5 / u.Hz, u.s)
+        assert result.unit == u.s
+        assert result.value == pytest.approx(0.5)
+
+
 class TestFindKey:
     """Test find_key function for dictionary key searching."""
+
+    def test_missing_key_logs_error_via_calling_class(self):
+        log = MagicMock()
+        with pytest.raises(KeyError, match="no matching key found"):
+            find_key(["a", "b"], ["c"], calling_class=log)
+        log.error.assert_called_once()
 
     def test_find_key_basic_functionality(self):
         """Test basic find_key functionality."""

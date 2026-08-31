@@ -1,15 +1,15 @@
 .. _merge:
 
-===================================
-Merge NDRs and Results
-===================================
+======================
+Merge NDRs and results
+======================
 
-NDRs of the same group are to be merged. This is automatically handled by :class:`~exosim.tasks.detector.mergeGroups.MergeGroups`.
-This :class:`~exosim.tasks.task.Task` simply iterates over the exposures and finds all the NDRs belonging to the same group.
-These are then averaged together, returning a single NDR.
+The NDRs of the same group are merged, automatically, by
+:class:`~exosim.tasks.detector.mergeGroups.MergeGroups`. This
+:class:`~exosim.tasks.task.Task` iterates over the exposures, finds all the NDRs
+of the same group, and averages them into a single NDR.
 
-Assuming that the :math:`k`-th NDR comes from the combination of :math:`N` NDRs in the same group,
-we can write this as
+If the :math:`k`-th NDR is the average of :math:`N` NDRs in the same group:
 
 .. math::
 
@@ -19,7 +19,7 @@ we can write this as
 .. _results_ndr:
 
 Resulting NDRs
-===================================
+==============
 
 The resulting NDRs are shown below.
 
@@ -31,14 +31,14 @@ The resulting NDRs are shown below.
     :width: 600
     :align: center
 
-To produce such plots see also :ref:`ndrs plotter`.
+See :ref:`ndrs plotter` for how to produce these plots.
 
 .. _output_ndr:
 
 Output description
-===================================
+==================
 
-The following picture describes the structure of the NDRs data output.
+This figure describes the structure of the NDRs data output.
 
 .. image:: _static/NDR_output.png
     :width: 600

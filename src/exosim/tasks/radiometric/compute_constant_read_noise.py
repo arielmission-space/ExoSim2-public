@@ -61,7 +61,7 @@ class ComputeConstantReadNoise(Task):
         self.set_output([table, model])
 
     def model(self, signal, aperture_table, description, multiaccum_gain):
-        """
+        r"""
         Compute the read noise for each aperture using the provided parameters.
 
         This method estimates the total read noise based on the per-pixel read noise value, the aperture area, the frame time, and the multiaccum gain.
@@ -71,26 +71,26 @@ class ComputeConstantReadNoise(Task):
 
         .. math::
 
-            \\mathrm{read\\_noise\\_variance} = G \\cdot \\sigma_\\mathrm{RN}^2 \\cdot \frac{A}{t_\\mathrm{frame}}
+            \mathrm{read\_noise\_variance} = G \cdot \sigma_\mathrm{RN}^2 \cdot \frac{A}{t_\mathrm{frame}}
 
         where
 
         - :math:`G` is the multiaccum gain,
-        - :math:`\\sigma_\\mathrm{RN}` is the read noise per pixel (in ct),
+        - :math:`\sigma_\mathrm{RN}` is the read noise per pixel (in ct),
         - :math:`A` is the aperture area (in pixels),
-        - :math:`t_\\mathrm{frame}` is the frame time (in seconds).
+        - :math:`t_\mathrm{frame}` is the frame time (in seconds).
 
         The read noise is then:
 
         .. math::
 
-            \\mathrm{read\\_noise} = \\sqrt{\\mathrm{read\\_noise\\_variance}}
+            \mathrm{read\_noise} = \sqrt{\mathrm{read\_noise\_variance}}
 
         The result is normalized by the input signal:
 
         .. math::
 
-            \\mathrm{read\\_noise\\_norm} = \frac{\\mathrm{read\\_noise}}{S}
+            \mathrm{read\_noise\_norm} = \frac{\mathrm{read\_noise}}{S}
 
         where :math:`S` is the signal.
 

@@ -35,6 +35,17 @@ class MergeGroups(Task):
         n_ndrs = self.get_task_param("n_ndrs")
         output = self.get_task_param("output")
 
+        n_frames = subexposures.dataset.shape[0]
+        if n_ndrs > 1 and n_frames != n_groups * n_ndrs:
+            self.error(
+                f"cannot merge {n_frames} sub-exposures into {n_groups} groups "
+                f"of {n_ndrs} NDRs ({n_groups * n_ndrs} expected)"
+            )
+            raise ValueError(
+                f"sub-exposure count ({n_frames}) is not n_groups * n_ndrs "
+                f"({n_groups} * {n_ndrs})"
+            )
+
         merged_ndrs = Adu(
             spectral=subexposures.spectral,
             time=subexposures.time[0::n_ndrs],

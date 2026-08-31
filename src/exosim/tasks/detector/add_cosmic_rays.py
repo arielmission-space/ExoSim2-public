@@ -167,6 +167,7 @@ class AddCosmicRays(Task):
                     info_row.append(RunConfig.random_seed)
 
                     r_ = 0
+                    shape = shapes[-1]  # fallback if probs sum to < 1
                     for s, r in zip(shapes, probs, strict=False):
                         r_ += r
                         if rand <= r_:

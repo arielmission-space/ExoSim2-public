@@ -1,32 +1,34 @@
 .. _readout_scheme_calculator:
 
-===================================
-Readout Scheme Calculator
-===================================
+=========================
+Readout scheme calculator
+=========================
 
-Let's assume we want to produce the following readout scheme, but know only the following information.
+Suppose we want to produce the readout scheme below, but we only know a few
+things about it.
 
 .. image:: _static/reading_ramp.png
    :width: 600
    :align: center
 
-The ramp is sampled at `readout_frequency` cadence, defined in :ref:`sub-exposures creation`.
-In this example we want to spend :math:`0.2 \, s` seconds in ground (GND) state and
-:math:`0.2 \, s` before the reset state (RST).
-The NDRs are read at a constant cadence of :math:`0.1 \, s`.
-Then we want to have 3 groups which divide the residual ramp into equal parts.
-Each group consists of 2 NDRs separated the time needed to read a NDR.
+The ramp is sampled at the ``readout_frequency`` cadence defined in
+:ref:`sub-exposures creation`. In this example we want to spend :math:`0.2 \, s`
+in the ground (GND) state and :math:`0.2 \, s` before the reset (RST) state. The
+NDRs are read at a constant cadence of :math:`0.1 \, s`. We then want 3 groups
+that split the rest of the ramp into equal parts, each group made of 2 NDRs
+separated by the time needed to read one NDR.
 
+To build the scheme we need the time spent between groups, which the figure gives
+along the bottom as a time from the start of the simulation. We also need to
+convert these human-readable units into the simulation-clock units that
+:class:`~exosim.tasks.subexposures.compute_reading_scheme.ComputeReadingScheme`
+expects (see :ref:`reading_scheme`). Finally, we want to use the ramp sampling
+well, so we do not want to saturate the detector.
+:class:`~exosim.tools.readoutSchemeCalculator.ReadoutSchemeCalculator` handles all
+of this.
 
-To produce the reading scheme, we need to know the time spent between groups
-(which is reported in the bottom part of the figure expressed as time from the start of the simulation).
-But we also need to translate our human-readable units into the simulation clock unis needed for :class:`~exosim.tasks.subexposures.compute_reading_scheme.ComputeReadingScheme`,
-as described in :ref:`reading_scheme`.
-Finally, we want to make good use of the ramp sampling, and therefore we don't want to saturate the detector.
-All of this is handled by :class:`~exosim.tools.readoutSchemeCalculator.ReadoutSchemeCalculator`.
-
-
-First we need to translate all the known parameter in the following description in the channel section of the tool input file:
+First, translate the known parameters into the channel section of the tool input
+file:
 
 .. code-block:: xml
 
@@ -40,21 +42,20 @@ First we need to translate all the known parameter in the following description 
         </readout>
     </channel>
 
-The user can also set the `readout_frequency` in units of :math:`Hz` instead of :math:`s`.
+The ``readout_frequency`` can also be given in :math:`Hz` instead of :math:`s`.
 
-Obviously, to estimate the saturation time some other input is needed: the focal planes.
-We assume here that the focal plane are stored in `input_file.h5`:
+To estimate the saturation time the tool also needs the focal planes. Here we
+assume they are stored in ``input_file.h5``:
 
 .. code-block:: python
 
     import exosim.tools as tools
 
-    tools.ReadoutSchemeCalculator(options_file = 'tools_input_example.xml',
+    tools.ReadoutSchemeCalculator(options_file='tools_input_example.xml',
                                   input_file='input_file.h5')
 
-The code will then suggest the inputs to write on the payload configuration file.
-In this case, according to the figure, the results will be
-
+The tool then prints the inputs to write in the payload configuration file. For
+this figure, the result is:
 
 .. code-block:: xml
 
@@ -70,14 +71,13 @@ In this case, according to the figure, the results will be
         </readout>
     </channel>
 
-Which will result in the following scheme
+which gives the following scheme:
 
 .. image:: _static/reading_ramp_nclock.png
    :width: 600
    :align: center
 
-
-Also, the user can set a custom exposure time to use instead of the saturation time:
+You can also set a custom exposure time to use instead of the saturation time:
 
 .. code-block:: xml
 

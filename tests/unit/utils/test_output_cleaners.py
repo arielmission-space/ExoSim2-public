@@ -434,3 +434,133 @@ class TestPruneOutputIntegration:
                     assert "intermediate_1" not in ch_keys
                     assert "intermediate_2" not in ch_keys
                     assert "intermediate_3" not in ch_keys
+
+
+class TestPruneOutputParameters:
+    """The folders_to_remove / folders_to_keep / compact_file options."""
+
+    def test_folders_to_remove_deletes_matching_groups(self, simple_output_structure):
+        with HDF5Output(simple_output_structure, append=True) as output:
+            prune_output(output, folders_to_remove=["sky", "telescope"])
+        with h5py.File(simple_output_structure, "r") as f:
+            assert "sky" not in f
+            assert "telescope" not in f
+            assert "channels" in f
+
+    def test_compact_file_false_skips_recompaction(self, simple_output_structure):
+        with HDF5Output(simple_output_structure, append=True) as output:
+            prune_output(output, compact_file=False)
+        # the file is still valid and pruned
+        with h5py.File(simple_output_structure, "r") as f:
+            assert "extra_data_1" not in f["channels"]["channel1"]
+
+
+class TestCompactHdf5File:
+    def test_compacting_removes_deleted_data(self, temp_hdf5_file):
+        from exosim.utils.output_cleaners import _compact_hdf5_file
+
+        with h5py.File(temp_hdf5_file, "w") as f:
+            f.create_dataset("keep", data=np.ones((50, 50)))
+            f.create_dataset("drop", data=np.ones((500, 500)))
+        with h5py.File(temp_hdf5_file, "a") as f:
+            del f["drop"]
+
+        _compact_hdf5_file(temp_hdf5_file)
+
+        with h5py.File(temp_hdf5_file, "r") as f:
+            assert "keep" in f
+            assert "drop" not in f
+            np.testing.assert_array_equal(f["keep"][()], np.ones((50, 50)))
+
+    def test_missing_file_is_handled(self, tmp_path):
+        from exosim.utils.output_cleaners import _compact_hdf5_file
+
+        # should not raise, just return
+        _compact_hdf5_file(str(tmp_path / "does_not_exist.h5"))
+
+    def test_missing_file_logs_when_a_logger_is_given(self, tmp_path):
+        from unittest.mock import MagicMock
+
+        from exosim.utils.output_cleaners import _compact_hdf5_file
+
+        logger = MagicMock()
+        _compact_hdf5_file(str(tmp_path / "nope.h5"), logger=logger)
+        logger.error.assert_called_once()
+
+    def test_attributes_are_carried_over(self, tmp_path):
+        from unittest.mock import MagicMock
+
+        from exosim.utils.output_cleaners import _compact_hdf5_file
+
+        fname = str(tmp_path / "attrs.h5")
+        with h5py.File(fname, "w") as f:
+            f.attrs["root_attr"] = "r"
+            g = f.create_group("grp")
+            g.attrs["group_attr"] = 7
+            d = g.create_dataset("data", data=np.arange(10))
+            d.attrs["ds_attr"] = 1.5
+            f.create_dataset("drop", data=np.ones((200, 200)))
+        with h5py.File(fname, "a") as f:
+            del f["drop"]
+
+        logger = MagicMock()
+        _compact_hdf5_file(fname, logger=logger)
+
+        with h5py.File(fname, "r") as f:
+            assert f.attrs["root_attr"] == "r"
+            assert f["grp"].attrs["group_attr"] == 7
+            assert f["grp"]["data"].attrs["ds_attr"] == 1.5
+            assert "drop" not in f
+        logger.info.assert_called()
+
+    def test_unreadable_file_raises_and_cleans_the_temp(self, tmp_path):
+        from exosim.utils.output_cleaners import _compact_hdf5_file
+
+        bad = tmp_path / "bad.h5"
+        bad.write_bytes(b"not an hdf5 file at all")
+        with pytest.raises(OSError, match=r"[Uu]nable to (synchronously )?open"):
+            _compact_hdf5_file(str(bad))
+        assert not (tmp_path / "bad.h5.tmp").exists()
+
+
+class TestPruneOutputResolution:
+    def test_no_valid_group_returns_quietly(self):
+        from unittest.mock import MagicMock
+
+        from exosim.utils.output_cleaners import prune_output
+
+        out = MagicMock()
+        out._group = None
+        out.fd = None
+        logger = MagicMock()
+        prune_output(out, logger=logger)
+        logger.error.assert_called_with("No valid HDF5 group or file found")
+
+    def test_compact_warns_when_no_filename_can_be_found(self, tmp_path):
+        from unittest.mock import MagicMock
+
+        from exosim.utils.output_cleaners import prune_output
+
+        fname = str(tmp_path / "anon.h5")
+        with h5py.File(fname, "w") as f:
+            f.create_group("info")
+            ch = f.create_group("channels").create_group("c")
+            ch.create_dataset("focal_plane", data=np.ones((4, 4)))
+            ch.create_dataset("junk", data=np.ones(4))
+
+        # an output-like object that carries the open file handle but no
+        # discoverable filename -> the compaction step must bail out with a warning
+        class _Anon:
+            pass
+
+        out = _Anon()
+        out.fd = h5py.File(fname, "a")
+        logger = MagicMock()
+        try:
+            prune_output(out, logger=logger)
+        finally:
+            out.fd.close()
+        assert any(
+            "could not determine filename" in str(c)
+            for c in logger.warning.call_args_list
+        )

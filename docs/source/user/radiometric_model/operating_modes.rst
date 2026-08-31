@@ -1,12 +1,13 @@
 .. _recipe:
 .. _modes:
 
-===================================
-Radiometric Model Operating Modes
-===================================
+=================================
+Radiometric model operating modes
+=================================
 
-The radiometric model in ExoSim has three operating modes that are automatically selected based on the configuration and input files.
-This is handled by the :class:`~exosim.recipes.radiometric_model.RadiometricModel` class.
+The radiometric model has three operating modes, selected automatically from the
+configuration and the input files. This is handled by the
+:class:`~exosim.recipes.radiometric_model.RadiometricModel` class.
 
 Usage
 -----
@@ -17,61 +18,62 @@ Usage
     recipes.RadiometricModel(options_file='your_config_file.xml',
                              output_file='output_file.h5')
 
-The :class:`~exosim.recipes.radiometric_model.RadiometricModel` can also be run from console as
+:class:`~exosim.recipes.radiometric_model.RadiometricModel` can also be run from
+the console:
 
 .. code-block:: console
 
     exosim-radiometric -c your_config_file.xml -o output_file.h5
 
-or
+Add ``-P`` to also run
+:class:`~exosim.plots.radiometric_plotter.RadiometricPlotter` (documented in
+:ref:`radiometric plotter`):
 
 .. code-block:: console
 
     exosim-radiometric -c your_config_file.xml -o output_file.h5 -P
 
-to also run ExoSim :class:`~exosim.plots.radiometric_plotter.RadiometricPlotter`, which is documented in :ref:`radiometric plotter`.
-
-The radiometric pipeline stores the products in the output file by default using :func:`exosim.recipes.radiometric_model.RadiometricModel.write`.
-If the output format is the default HDF5_, refer to :ref:`loadHDF5` in the :ref:`FAQs` section for how to use the data,
-and see :ref:`load signal table` in particular to cast the focal plane into a :class:`~exosim.models.signal.Signal` class.
+The radiometric pipeline stores its products in the output file by default, with
+:func:`exosim.recipes.radiometric_model.RadiometricModel.write`. If the output
+format is the default HDF5_, see :ref:`loadHDF5` in the :ref:`FAQs` section for
+how to read the data, and :ref:`load signal table` in particular for how to cast
+the focal plane into a :class:`~exosim.models.signal.Signal`.
 
 .. _HDF5: https://www.hdfgroup.org/solutions/hdf5/
 
-Operating Mode Selection
+How the mode is selected
 ------------------------
 
-The radiometric model automatically selects the appropriate mode based on:
+The mode is chosen from the configuration and the input files, in this order:
 
-1. **Target List Mode**: When ``targetlist_filepath`` is specified in the sky configuration
-2. **Existing Focal Plane Mode**: When the output file exists and contains focal plane data
-3. **Single Source Mode**: When creating a new focal plane for a single source configuration
+1. **Target-list mode**: when ``targetlist_filepath`` is set in the sky
+   configuration.
+2. **Existing focal-plane mode**: when the output file already exists and
+   contains focal-plane data, and no target list is set.
+3. **Single-source mode**: when neither of the above applies, so a new focal
+   plane is built for a single source.
 
 .. _target_list_mode:
 
-Target List Mode
-================
+Target-list mode
+----------------
 
-When a ``targetlist_filepath`` is specified in the sky configuration, the radiometric model processes multiple targets efficiently. This mode is ideal for survey planning and comparative studies.
+When ``targetlist_filepath`` is set in the sky configuration, the radiometric
+model processes several targets in one run. This is the mode for survey planning
+and for comparing targets.
 
-**Key Features:**
-- Processes multiple targets from a CSV file
-- Creates individual focal planes for each target
-- Generates comprehensive radiometric tables for each source
-- Supports automated plotting and data export
+For each target the pipeline:
 
-**Overview:**
+1. reads the target parameters from the CSV file,
+2. builds a focal plane for that target,
+3. computes its apertures, signals and noise,
+4. stores its radiometric table and plots.
 
-The target list pipeline processes each target in the following workflow:
+Configuration
+~~~~~~~~~~~~~~
 
-1. **Load target list**: Reads the target parameters from a CSV file
-2. **Create focal planes**: Generates focal planes for each target individually
-3. **Compute radiometric estimates**: Calculates apertures, signals, and noise for each target
-4. **Store results**: Saves individual radiometric tables and plots for each target
-
-**Configuration:**
-
-To use the target list mode, your main configuration file should specify a target list in the sky section.
-By default, this is loaded by :class:`~exosim.tasks.load.load_source_list.LoadSourceList`.
+Point the sky section at a target list. By default it is loaded by
+:class:`~exosim.tasks.load.load_source_list.LoadSourceList`:
 
 .. code-block:: xml
 
@@ -89,9 +91,10 @@ By default, this is loaded by :class:`~exosim.tasks.load.load_source_list.LoadSo
         </source>
     </sky>
 
-**Target List Format:**
+Target-list format
+~~~~~~~~~~~~~~~~~~~
 
-The target list should be a CSV file with the following structure:
+The target list is a CSV file, for example:
 
 .. csv-table:: Example target list
    :header: "star name", "star Teff [K]", "star R [R_sun]", "star D [pc]", "star M [M_sun]"
@@ -101,11 +104,13 @@ The target list should be a CSV file with the following structure:
    "HD 209458", "6086", "1.18", "47.5", "1.175"
    "HD 219134", "4699", "0.778", "6.5", "0.778"
 
-The column names in the CSV file are mapped to the physical parameters using the ``column_mapping`` section in the configuration.
+The column names in the file are mapped to the physical parameters through the
+``column_mapping`` section of the configuration.
 
-**Output Structure:**
+Output structure
+~~~~~~~~~~~~~~~~~
 
-The output file contains the following structure for target list mode:
+In target-list mode the output file is organised per target:
 
 .. code-block::
 
@@ -129,97 +134,90 @@ The output file contains the following structure for target list mode:
     │   └── HD_219134/
     └── ...
 
-Additionally, individual CSV files are created:
+One CSV file is also written per target:
 
 - ``GJ_1214_radiometric_table.ecsv``
 - ``HD_209458_radiometric_table.ecsv``
 - ``HD_219134_radiometric_table.ecsv``
 
-**Usage Example:**
+Example
+~~~~~~~
 
 .. code-block:: python
 
     from exosim.recipes import RadiometricModel
 
-    # Create radiometric model with target list
     rm = RadiometricModel(
         options_file='config_with_targets.xml',
         output_file='target_list_results.h5'
     )
-
-    # Run radiometric analysis for all targets
     rm.run()
 
 .. _existing_fp:
 
-Existing Focal Plane Mode
-==========================
+Existing focal-plane mode
+-------------------------
 
-When a focal plane file already exists and no target list is specified, the radiometric model loads the existing focal plane and computes radiometric estimates directly.
+When a focal-plane file already exists and no target list is set, the radiometric
+model loads that focal plane and computes the radiometric estimates directly.
 
 .. image:: _static/radiometric-full.png
     :align: center
 
-**Pipeline Steps:**
+Starting from the existing focal plane, the pipeline runs the signal estimation:
 
-Starting from the existing focal plane, the following steps are executed:
+1. build the wavelength table (see :ref:`wavelength bin`);
+2. estimate the aperture sizes and pixel counts (see :ref:`estimate apertures`);
+3. estimate the sub-foreground signals, if any (see :ref:`estimate signals`);
+4. estimate the total foreground signals (see :ref:`estimate signals`);
+5. estimate the source signals in the apertures (see :ref:`estimate signals`);
+6. estimate the saturation times (see :ref:`saturation_time`);
 
-**Signal Estimation:**
+then the noise estimation:
 
-1. Creation of the wavelength table (see :ref:`wavelength bin`);
-2. Estimation of aperture sizes and pixel counts (see :ref:`estimate apertures`);
-3. Estimation of sub-foreground signals, if any (see :ref:`estimate signals`);
-4. Estimation of total foreground signals (see :ref:`estimate signals`);
-5. Estimation of source signals in apertures (see :ref:`estimate signals`);
-6. Estimation of saturation times (see :ref:`saturation_time`);
+1. compute the multiaccum factors (see :ref:`multiaccum`);
+2. estimate the photon noise (see :ref:`photon noise`);
+3. compute the detector noise sources;
+4. compute the total noise (see :ref:`total noise`).
 
-**Noise Estimation:**
-
-1. Calculation of multiaccum factors (see :ref:`multiaccum`);
-2. Estimation of photon noise (see :ref:`photon noise`);
-3. Computation of detector noise sources
-4. Calculation of total noise (see :ref:`total noise`)
-
-The radiometric table is then stored in the output file.
-
-**Usage Example:**
+The radiometric table is then written to the output file.
 
 .. code-block:: python
 
-    # Assuming 'existing_focal_plane.h5' already contains focal plane data
+    # 'existing_focal_plane.h5' already contains focal-plane data
     rm = recipes.RadiometricModel(
         options_file='config.xml',
-        output_file='existing_focal_plane.h5'  # Existing file
+        output_file='existing_focal_plane.h5'
     )
-
-Output Files
---------------
-
-The radiometric model produces output files based on the operating mode:
-
-**Target List Mode:**
-   Creates a new HDF5 file containing radiometric tables for all specified targets.
-
-**Existing Focal Plane Mode:**
-   Updates the input HDF5 file with radiometric information added to existing focal plane data.
-
-**Single Source Mode:**
-   Saves radiometric results to the specified output file.
-
-All outputs include comprehensive radiometric tables with wavelength grids, signal estimates, and noise calculations for each channel and detector configuration.
 
 .. _non_existing_fp:
 
-Non existing focal plane
-==========================
+Single-source mode
+------------------
 
-If a focal plane is not available as input, the :class:`~exosim.recipes.radiometric_model.RadiometricModel` creates it.
+If no focal plane is available as input,
+:class:`~exosim.recipes.radiometric_model.RadiometricModel` builds one.
 
 .. image:: _static/non_existing_fp.png
     :align: center
 
-Following the figure, the pipeline first loads the input configuration `xml` file.
-Then it removes the temporal dimension, as the radiometric model won't need it.
-It isolates every optical element, such that it can estimate their contributions, and finally creates the focal plane using :ref:`focal plane recipe`.
+Following the figure, the pipeline loads the input configuration file, removes
+the temporal dimension (the radiometric model does not need it), isolates each
+optical element so it can estimate its contribution, and builds the focal plane
+with the :ref:`focal plane recipe`. From there, the :ref:`existing_fp` pipeline
+runs on the new focal plane.
 
-Then, from the new focal plane the :ref:`existing_fp` pipeline is run.
+Output files
+------------
+
+What the model writes depends on the mode:
+
+- **Target-list mode**: a new HDF5 file with a radiometric table for every
+  target.
+- **Existing focal-plane mode**: the input HDF5 file, with the radiometric
+  information added next to the focal-plane data.
+- **Single-source mode**: the radiometric results in the output file you
+  specify.
+
+Every output holds the full radiometric table, with the wavelength grid, the
+signal estimates and the noise for each channel.

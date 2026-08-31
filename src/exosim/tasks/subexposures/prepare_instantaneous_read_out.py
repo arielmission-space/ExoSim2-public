@@ -7,8 +7,7 @@ from exosim.tasks.subexposures.compute_reading_scheme import ComputeReadingSchem
 from exosim.tasks.subexposures.estimate_ch_jitter import EstimateChJitter
 from exosim.tasks.task import Task
 from exosim.utils.checks import check_units
-from exosim.utils.iterators import iterate_over_chunks, searchsorted
-from exosim.utils.operations import operate_over_axis
+from exosim.utils.iterators import searchsorted
 
 
 class PrepareInstantaneousReadOut(Task):
@@ -229,48 +228,6 @@ class PrepareInstantaneousReadOut(Task):
             )
 
         self.set_output([self.store_dict, ndr_integration_times])
-
-    def force_power_conservation(self, out, parameters, focal_plane, fp_time, osf):
-        # to compute the total power on the focal plane I use the undersampled focal plane
-
-        total_power = np.empty(out.dataset.shape[0])
-        desired_power = np.empty(out.dataset.shape[0])
-
-        for chunk in iterate_over_chunks(
-            out.dataset,
-            desc="computing median incoming power {}".format(parameters["value"]),
-        ):
-            # computing the total power in the jittered focal plane
-            dset = out.dataset[chunk]
-            total_power[chunk[0]] = dset.sum(axis=-1).sum(axis=-1)
-
-            # computing the desired power from the original focal planes
-            fp_time_ = fp_time[chunk[0]]
-            fp_times = list(set(fp_time_))
-            for time_id in fp_times:
-                mask = np.where(fp_time_ == time_id)[0]
-                # I estimated the expected power from the oversampled focal plane
-                desired_power[chunk[0]][mask] = (
-                    np.sum(focal_plane.data[time_id]) / osf**2
-                )
-
-        # applying integration time to the jittered focal planes
-        for chunk in iterate_over_chunks(
-            out.dataset,
-            desc="forcing conservation of power {}".format(parameters["value"]),
-        ):
-            dset = out.dataset[chunk]
-            dset = operate_over_axis(
-                dset, desired_power[chunk[0]] / total_power[chunk[0]], 0, "*"
-            )
-
-            out.dataset[chunk] = dset
-
-            out.output.flush()
-
-        self.store_dict.update(
-            {"median_power": desired_power, "total_power": total_power}
-        )
 
     @staticmethod
     @jit(nopython=True, parallel=True)

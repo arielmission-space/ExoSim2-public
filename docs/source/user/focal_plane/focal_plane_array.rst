@@ -1,26 +1,30 @@
-===================================
+===========
 Focal plane
-===================================
+===========
 
-Create focal planes
----------------------
+Create the focal planes
+-----------------------
 
-The next step in the :class:`~exosim.models.channel.Channel` pipeline is to create an empty focal plane to populate.
-This can be done with the method :func:`~exosim.models.channel.Channel.create_focal_planes`.
+The next step in the :class:`~exosim.models.channel.Channel` pipeline is to
+create an empty focal plane to populate, with
+:func:`~exosim.models.channel.Channel.create_focal_planes`:
 
 .. code-block:: python
 
         channel.create_focal_planes()
 
-This method calls the :class:`~exosim.tasks.instrument.create_focal_plane.CreateFocalPlane` task.
-This task first builds the focal plane array by using :class:`~exosim.tasks.instrument.create_focal_plane_array.CreateFocalPlaneArray`.
+This calls the
+:class:`~exosim.tasks.instrument.create_focal_plane.CreateFocalPlane` task,
+which first builds the focal-plane array with
+:class:`~exosim.tasks.instrument.create_focal_plane_array.CreateFocalPlaneArray`.
 
 .. _detector geometry:
 
 Detector geometry
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
-The first step is the detector geometry, which needs to be specified in the channel detector description:
+The first input is the detector geometry, given in the channel detector
+description:
 
 .. code-block:: xml
 
@@ -35,19 +39,24 @@ The first step is the detector geometry, which needs to be specified in the chan
 
     </channel>
 
-In this case we are building a detector with 64 pixels in the spatial direction and 364 pixels in the dispersion direction, with pixels 18 micron wide.
-The `oversampling` key allows us to use sub-pixels. In this case we split each pixel into 3 in each direction, yielding 9 sub-pixels.
+This builds a detector with 64 pixels in the spatial direction and 364 pixels in
+the dispersion direction, each 18 micron wide. The `oversampling` key adds
+sub-pixels: here each pixel is split into 3 in each direction, giving 9
+sub-pixels.
 
 .. note::
-The main reason to have an oversampling factor is the jitter effect (see :ref:`Instantaneous readout`).
-    The oversampling factor is needed to ensure that the PSF is Nyquist sampled (at least 2 per FWHM) and to correctly represent intra-pixel response.
-    The oversampling factor can be any number, but for efficiency reasons it should be a power of an odd value.
+    The main reason for an oversampling factor is the jitter effect (see
+    :ref:`Instantaneous readout`). Oversampling ensures the PSF is Nyquist
+    sampled (at least 2 samples per FWHM) and lets the intra-pixel response be
+    represented correctly. The factor can be any number, but for efficiency it
+    should be a power of an odd value.
 
 
 Wavelength solution
-^^^^^^^^^^^^^^^^^^^^
-If the channel is a `spectrometer`, then the wavelength solution is used to find the wavelength collected by each pixel in the dispersion direction.
-The solution can be specified as
+^^^^^^^^^^^^^^^^^^^
+
+For a `spectrometer` channel, the wavelength solution gives the wavelength
+collected by each pixel in the dispersion direction. It is specified as:
 
 .. code-block:: xml
 
@@ -59,82 +68,102 @@ The solution can be specified as
         </wl_solution>
     </channel>
 
-The `wl_sol.ecsv` file is a table with 3 columns: `Wavelength`, `x`, `y`, where `x` is the dispersion direction and `y` is the spatial direction.
-If `y` is set to 0 for each wavelength, the source light is assumed to be dispersed only along the dispersion direction; otherwise it is also dispersed in the spatial direction.
-The wavelengths associated with each pixel in the spectral and spatial directions are stored along the focal plane in the :class:`~exosim.models.signal.Signal` class in the `spectral` and `spatial` attributes.
+The `wl_sol.ecsv` file is a table with three columns, `Wavelength`, `x` and `y`,
+where `x` is the dispersion direction and `y` is the spatial direction. If `y`
+is 0 at every wavelength, the source light is dispersed only along the
+dispersion direction; otherwise it is also dispersed spatially. The wavelengths
+assigned to each pixel are stored on the focal plane, in the `spectral` and
+`spatial` attributes of the :class:`~exosim.models.signal.Signal`.
 
-The `wl_solution_task` indicates the task to use to load the wavelength solution.
-By default, the :class:`~exosim.tasks.instrument.load_wavelength_solution.LoadWavelengthSolution` is used.
-This :class:`~exosim.tasks.task.Task` can be customised, as described in :ref:`Custom Tasks`.
+`wl_solution_task` names the task that loads the wavelength solution; the default
+is
+:class:`~exosim.tasks.instrument.load_wavelength_solution.LoadWavelengthSolution`,
+which can be customised (see :ref:`Custom Tasks`).
 
-The **center** key is used to set the central pixel in the spectral direction.
-If "auto" it sets the central wavelength of the channel in the centre of the pixel array.
-If a wavelength is indicated, it centres the wavelength solution on that wavelength.
-Else, it shifts the pixel array by the indicated number of pixels.
+The **center** key sets the central pixel in the spectral direction:
 
-If the channel is a `photometer` there is no need to specify the wavelength solution.
-The :class:`~exosim.tasks.instrument.create_focal_plane_array.CreateFocalPlaneArray` task will use the detector responsivity to estimate a wavelength solution to use for the next step (:ref:`rescale contribution`).
+- `auto` puts the central wavelength of the channel at the centre of the pixel
+  array;
+- a wavelength value centres the wavelength solution on that wavelength;
+- an integer shifts the pixel array by that many pixels.
 
-Source and foregrounds Focal planes
------------------------------------------
-Once the array is built, the :class:`~exosim.tasks.instrument.create_focal_plane.CreateFocalPlane` task creates a stack of arrays along the temporal direction.
+A `photometer` channel needs no wavelength solution. The
+:class:`~exosim.tasks.instrument.create_focal_plane_array.CreateFocalPlaneArray`
+task uses the detector responsivity to derive a wavelength solution for the next
+step (:ref:`rescale contribution`).
+
+Source and foreground focal planes
+----------------------------------
+
+Once the array is built, the
+:class:`~exosim.tasks.instrument.create_focal_plane.CreateFocalPlane` task
+stacks copies of it along the temporal axis.
 
 .. image:: _static/signal_class.png
     :align: center
 
-Finally, :func:`~exosim.models.channel.Channel.create_focal_planes` duplicates it to produce a focal plane for the foreground contributions.
-This method populates the `focal_plane` and `frg_focal_plane` attributes in the :class:`~exosim.models.channel.Channel` class.
+Finally, :func:`~exosim.models.channel.Channel.create_focal_planes` duplicates
+the stack to create a focal plane for the foreground contributions. This
+populates the `focal_plane` and `frg_focal_plane` attributes of
+:class:`~exosim.models.channel.Channel`.
 
 
 .. _rescale contribution:
 
-Rescale Contributions
------------------------
+Rescale contributions
+---------------------
 
-Knowing the size of the focal planes and the wavelength solutions, we can rescale the incoming signals to convert them from signal densities (:math:`counts/s/\mu m`) into proper signals (:math:`counts/s/pixel`).
+With the focal-plane size and the wavelength solutions known, the incoming
+signals can be rescaled from signal densities (:math:`counts/s/\mu m`) to proper
+signals (:math:`counts/s/pixel`):
 
 .. code-block:: python
 
         channel.rescale_contributions()
 
-The :func:`~exosim.models.channel.Channel.rescale_contributions` method updates the `sources` and `path` keys in the :class:`~exosim.models.channel.Channel` class by rebinning the signals according to the focal plane dispersion binning.
-Then it estimates the wavelength solution gradient from the pixel wavelength solution and multiplies the signal by this gradient.
+:func:`~exosim.models.channel.Channel.rescale_contributions` updates the
+`sources` and `path` keys of :class:`~exosim.models.channel.Channel` by rebinning
+the signals onto the focal-plane dispersion binning. It then estimates the
+wavelength-solution gradient from the pixel wavelength solution and multiplies
+the signal by it.
 
-Populate focal plane
-----------------------
+Populate the focal plane
+------------------------
 
-Next it is time to populate the source focal plane. We follow the following scheme:
+Next, populate the source focal plane, following this scheme:
 
 .. image:: _static/focal_plane_population.png
     :align: center
 
-First we need to produce a monochromatic PSF for each wavelength sampled in the pixel wavelength solution.
-Then we multiply the PSF by the source signal at the respective wavelength and add the result to the relevant pixel.
-On the now populated focal plane, we then apply the Intra-pixel Response Function (IRF).
+First, produce a monochromatic PSF for each wavelength sampled in the pixel
+wavelength solution. Then multiply each PSF by the source signal at its
+wavelength and add the result to the relevant pixel. Finally, apply the
+intra-pixel response function (IRF) to the populated focal plane.
 
-
-The first steps are handled by
+The first steps are handled by:
 
 .. code-block:: python
 
         channel.populate_focal_plane()
 
-The :func:`~exosim.models.channel.Channel.populate_focal_plane` method calls the :class:`~exosim.tasks.instrument.populate_focal_plane.PopulateFocalPlane` task.
+:func:`~exosim.models.channel.Channel.populate_focal_plane` calls the
+:class:`~exosim.tasks.instrument.populate_focal_plane.PopulateFocalPlane` task.
 
 PSF
-^^^^^^^^
-The first step mentioned above is the production of the Point Spread Function hypercube.
+^^^
+
+The first step is building the point-spread-function hypercube.
 
 .. image:: _static/psf_ipercube.png
     :align: center
 
-For each temporal step, the PSF cube is defined as in the following figure:
+For each temporal step, the PSF cube is defined as in the figure below:
 
 .. image:: _static/psf_cube.png
     :align: center
 
-The PSF specifics are to be listed in the `psf` section of the `.xml` channel description.
-The simplest PSFs are described by the `Airy` or `Gauss` functions.
+The PSF is specified in the `psf` section of the `.xml` channel description. The
+simplest PSFs are the `Airy` and `Gauss` functions:
 
 .. code-block:: xml
 
@@ -144,14 +173,16 @@ The simplest PSFs are described by the `Airy` or `Gauss` functions.
         </psf>
     </channel>
 
-In this case, the :class:`~exosim.tasks.instrument.populate_focal_plane.PopulateFocalPlane` task calls :func:`~exosim.utils.psf.create_psf`.
-This function produces a PSF cube as the one shown before, where the volume of each PSF is normalised to unity:
+In this case the
+:class:`~exosim.tasks.instrument.populate_focal_plane.PopulateFocalPlane` task
+calls :func:`~exosim.utils.psf.create_psf`, which produces a PSF cube like the
+one above, with each PSF normalised to unit volume:
 
 .. image:: _static/airy_es.png
     :width: 500
     :align: center
 
-The `psf` section can be customised by adding the following keys:
+The `psf` section accepts these extra keys:
 
 .. code-block:: xml
 
@@ -164,14 +195,15 @@ The `psf` section can be customised by adding the following keys:
         </psf>
     </channel>
 
-Where `nzero` indicates the number of zeros in the Airy function, `size_x` and `size_y` are the sizes of the PSF cube in the spectral and spatial directions.
-`size_x` and `size_y` can also be set to `full` to use the full size of the focal plane.
+`nzero` is the number of zeros of the Airy function; `size_x` and `size_y` are
+the sizes of the PSF cube in the spectral and spatial directions. `size_x` and
+`size_y` can also be set to `full` to use the full size of the focal plane.
 
-However, the user may want to load specific PSF shapes.
-This can be done by writing a dedicated :class:`~exosim.tasks.instrument.loadPsf.LoadPsf` task.
-:class:`~exosim.tasks.instrument.loadPsf.LoadPsf` task produces a hypercube, where each temporal step of the focal plane is associated with a PSF cube as in the previous picture.
-The native PSF format supported by `ExoSim` is the PAOS format, and the functionality is provided by :class:`~exosim.tasks.instrument.loadPsfPaos.LoadPsfPaos`.
-In this case the user shall specify it in the `.xml` file as
+You may instead want to load specific PSF shapes. Do this with a dedicated
+:class:`~exosim.tasks.instrument.loadPsf.LoadPsf` task, which produces a
+hypercube where each temporal step of the focal plane has its own PSF cube. The
+native PSF format supported by `ExoSim` is the PAOS format, handled by
+:class:`~exosim.tasks.instrument.loadPsfPaos.LoadPsfPaos`. Specify it as:
 
 .. code-block:: xml
 
@@ -182,22 +214,19 @@ In this case the user shall specify it in the `.xml` file as
         </psf>
     </channel>
 
-The :class:`~exosim.tasks.instrument.loadPsfPaos.LoadPsfPaos` task loads the PSF cube provided by the `filename` data.
-The PSFs are then interpolated over a grid matching the one used to produce the focal planes, to convert them into physical units.
-Then the total volume of the interpolated PSF is rescaled to the total volume of the original one.
-This allows accounting for losses in transmission due to the optical path.
-The PSFs are then interpolated over a wavelength grid matching the one used for the focal plane, producing the cube.
-This speeds up the subsequent `ExoSim` steps.
-The default :class:`~exosim.tasks.instrument.loadPsfPaos.LoadPsfPaos` task does not include a temporal dependency,
-and therefore the PSF cube is repeated along the temporal axis.
+:class:`~exosim.tasks.instrument.loadPsfPaos.LoadPsfPaos` loads the PSF cube from
+`filename`. The PSFs are interpolated onto a grid matching the one used to build
+the focal planes, to convert them to physical units, and their total volume is
+rescaled to that of the originals, which accounts for transmission losses in the
+optical path. They are also interpolated onto a wavelength grid matching the
+focal plane, producing the cube; this speeds up the later `ExoSim` steps. The
+default :class:`~exosim.tasks.instrument.loadPsfPaos.LoadPsfPaos` task has no
+time dependence, so the PSF cube is repeated along the temporal axis.
 
 .. note::
-
-For long observations with a small "low frequencies variation"
-    the memory needed to keep the repeated PAOS PSF could be very high.
-    It is possible to store only one PSF, switching
-    to False the `time_dependence` parameter in the `psf` section,
-    e.g.:
+    For a long observation with a small low-frequency variation, keeping the
+    repeated PAOS PSF in memory can be expensive. You can store a single PSF by
+    setting `time_dependence` to False in the `psf` section:
 
     .. code-block:: xml
 
@@ -209,34 +238,40 @@ For long observations with a small "low frequencies variation"
             </psf>
         </channel>
 
-The user can define a temporal dependence by using a custom :class:`~exosim.tasks.instrument.loadPsf.LoadPsf` task.
-An example using PAOS PSFs is reported in :class:`~exosim.tasks.instrument.loadPsfPaosTimeInterp.LoadPsfPaosTimeInterp`.
+To add a time dependence, use a custom
+:class:`~exosim.tasks.instrument.loadPsf.LoadPsf` task. An example with PAOS PSFs
+is
+:class:`~exosim.tasks.instrument.loadPsfPaosTimeInterp.LoadPsfPaosTimeInterp`.
 
-Finally, the obtained PSFs are stored in the output file.
+Finally, the PSFs are stored in the output file.
 
-Adding PSF to the focal plane
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Once the PSF cube is ready, for each temporal step of the focal plane, we add a monochromatic PSF to the relevant pixel, multiplying it by the relative intensity of the source signal at the same temporal step.
-This allows us to produce a dispersed image in the case of a `spectrometer` or to accumulate the PSF in the case of a `photometer`.
-Also, if the source signal has a time-dependent variation, this is propagated to the image on the focal plane thanks to the use of the same temporal step in both the focal plane and the source signal.
-The result will be an oversampled focal plane.
+Adding the PSF to the focal plane
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Intra-pixel Response Function
---------------------------------
+Once the PSF cube is ready, for each temporal step of the focal plane a
+monochromatic PSF is added to the relevant pixel, multiplied by the intensity of
+the source signal at the same temporal step. This produces a dispersed image for
+a `spectrometer` or an accumulated PSF for a `photometer`. Because the focal
+plane and the source signal share the same temporal steps, any time variation in
+the source signal is carried through to the focal-plane image. The result is an
+oversampled focal plane.
 
-The pixels on the focal plane do not have a uniform responsivity to the incoming light on their surfaces.
-They are known to be more responsive at the centre and less at the edges.
-This effect can be represented in `ExoSim` by introducing the IRF.
+Intra-pixel response function
+-----------------------------
 
-This is handled by the :func:`~exosim.models.channel.Channel.apply_irf` method:
+A pixel does not respond uniformly across its surface: it is more responsive at
+the centre than at the edges. `ExoSim` represents this with the intra-pixel
+response function (IRF), applied by
+:func:`~exosim.models.channel.Channel.apply_irf`:
 
 .. code-block:: python
 
         channel.apply_irf()
 
-Create IRF
-^^^^^^^^^^^^^
-The task to use to estimate the IRF is indicated as
+Create the IRF
+^^^^^^^^^^^^^^
+
+The task that estimates the IRF is named as:
 
 .. code-block:: xml
 
@@ -246,9 +281,11 @@ The task to use to estimate the IRF is indicated as
         </detector>
     </channel>
 
-where :class:`~exosim.tasks.instrument.create_intrapixel_response_function.CreateIntrapixelResponseFunction` is the default class.
-This task implements the equation presented in Barron et al., PASP, 119, 466–475, 2007 (https://doi.org/10.1086/517620).
-It requires the pixel `diffusion length` and the `intra-pixel distance`:
+The default class is
+:class:`~exosim.tasks.instrument.create_intrapixel_response_function.CreateIntrapixelResponseFunction`.
+It implements the equation of Barron et al., PASP, 119, 466–475, 2007
+(https://doi.org/10.1086/517620), and needs the pixel `diffusion length` and the
+`intra-pixel distance`:
 
 .. code-block:: xml
 
@@ -260,36 +297,39 @@ It requires the pixel `diffusion length` and the `intra-pixel distance`:
         </detector>
     </channel>
 
-Two other default tasks are available to create the IRF:
+One alternative default task is available,
 :class:`~exosim.tasks.instrument.create_oversampled_intrapixel_response_function.CreateOversampledIntrapixelResponseFunction`.
-The first one is a simple oversampling of the IRF, while the second one is an oversampling of the IRF with a larger size.
+It produces an oversampled version of the IRF, zero-padded to the size of the
+PSF, for use with the `fast_convolution` method.
 
-The user can, however, specify their own tasks and the relative parameters.
-Notice that the IRF volume is expected to be normalised to unity.
-Here is an example of a resulting IRF:
+You can also supply your own task and parameters. Note that the IRF is expected
+to have unit volume. Here is an example IRF:
 
 .. image:: _static/pixel_response_es.png
     :width: 500
     :align: center
 
 .. caution::
-    If no `irf_task` key is provided in the channel description,
-    the :func:`~exosim.models.channel.Channel.apply_irf` method
-    automatically uses the default :class:`~exosim.tasks.instrument.create_intrapixel_response_function.CreateIntrapixelResponseFunction` task.
+    If no `irf_task` key is given in the channel description,
+    :func:`~exosim.models.channel.Channel.apply_irf` uses the default
+    :class:`~exosim.tasks.instrument.create_intrapixel_response_function.CreateIntrapixelResponseFunction`
+    task.
 
-IRF application
-^^^^^^^^^^^^^^^^^
+Apply the IRF
+^^^^^^^^^^^^^
 
-When the pixel response function is produced, we apply it using the :class:`~exosim.tasks.instrument.apply_intra_pixel_response_function.ApplyIntraPixelResponseFunction`.
-This task performs a convolution between the focal plane and the IRF.
+Once the pixel response function is ready, it is applied with
+:class:`~exosim.tasks.instrument.apply_intra_pixel_response_function.ApplyIntraPixelResponseFunction`,
+which convolves the focal plane with the IRF.
 
-Now the source focal plane is completed.
+The source focal plane is now complete.
 
 .. note::
 
-    In the default recipe (:ref:`focal plane recipe`), if no `irf_task` key is provided in the channel description, the IRF step is skipped.
+    In the default recipe (:ref:`focal plane recipe`), if no `irf_task` key is
+    given in the channel description, the IRF step is skipped.
 
-The user can specify the convolution method to use:
+You can choose the convolution method:
 
 .. code-block:: xml
 
@@ -299,64 +339,83 @@ The user can specify the convolution method to use:
         </detector>
     </channel>
 
-The available methods are `fftconvolve` (:func:`scipy.signal.fftconvolve`), `convolve` (:func:`scipy.signal.convolve`), `ndimage.convolve` (:func:`scipy.ndimage.convolve`) and `fast_convolution` (:func:`exosim.utils.convolution.fast_convolution`).
-If no convolution_method is specified, the default is `fftconvolve`.
+The available methods are `fftconvolve` (:func:`scipy.signal.fftconvolve`),
+`convolve` (:func:`scipy.signal.convolve`), `ndimage.convolve`
+(:func:`scipy.ndimage.convolve`) and `fast_convolution`
+(:func:`exosim.utils.convolution.fast_convolution`). The default is
+`fftconvolve`.
 
 .. note::
+    The `fast_convolution` method is the one implemented in `Sarkar et al., 2021
+    <https://link.springer.com/article/10.1007/s10686-020-09690-9>`__. It is
+    very accurate but slower than the others and memory-hungry, so use it only
+    for small oversampling factors.
 
-The `fast_convolution` method is the same as implemented in `Sarkar et al., 2021 <https://link.springer.com/article/10.1007/s10686-020-09690-9>`__.
-    It is very accurate but slower than the other methods and requires a lot of memory.
-    It is therefore recommended to use it only for small oversampling factors.
+The
+:class:`~exosim.tasks.instrument.create_intrapixel_response_function.CreateIntrapixelResponseFunction`
+task creates a kernel compatible with `fftconvolve`, `convolve` and
+`ndimage.convolve`. The
+:class:`~exosim.tasks.instrument.create_oversampled_intrapixel_response_function.CreateOversampledIntrapixelResponseFunction`
+task instead produces a kernel for `fast_convolution`, a method developed
+specifically for ExoSim.
 
-The :class:`~exosim.tasks.instrument.create_intrapixel_response_function.CreateIntrapixelResponseFunction` task creates a kernel compatible with both `fftconvolve` (:func:`scipy.signal.fftconvolve`), `convolve` (:func:`scipy.signal.convolve`) and `ndimage.convolve` (:func:`scipy.ndimage.convolve`).
-The task :class:`~exosim.tasks.instrument.create_oversampled_intrapixel_response_function.CreateOversampledIntrapixelResponseFunction` is instead compatible with `fast_convolution` (:func:`exosim.utils.convolution.fast_convolution`), which is a method developed specifically for ExoSim.
+Populate the foreground focal plane
+-----------------------------------
 
-Populate foreground focal plane
---------------------------------
-
-To populate the foreground focal plane, we can call the :func:`~exosim.models.channel.Channel.populate_foreground_focal_plane` method:
+Populate the foreground focal plane with
+:func:`~exosim.models.channel.Channel.populate_foreground_focal_plane`:
 
 .. code-block:: python
 
         channel.populate_foreground_focal_plane()
 
-This involves the :class:`~exosim.tasks.instrument.foregrounds_to_focal_plane.ForegroundsToFocalPlane` task,
-which simply adds the foreground contributions, stored in the `path` attribute, to the foreground focal plane, stored in the `frg_focal_plane` attribute.
+This uses the
+:class:`~exosim.tasks.instrument.foregrounds_to_focal_plane.ForegroundsToFocalPlane`
+task, which adds the foreground contributions stored in the `path` attribute to
+the foreground focal plane stored in `frg_focal_plane`.
 
-If the `path` element to add is before a slit, the signal is dispersed.
-Therefore the contribution signal is convolved with a kernel of the width of the slit expressed as a number of pixels, and then summed to the full array.
-If the slit width expressed as a number of pixels at the focal plane is :math:`L`, and the spectral resolving power computed at a certain :math:`\lambda_0` is :math:`R(\lambda_0)`,
-the detector receives diffuse radiation over the wavelength range :math:`\left( \lambda_j - \frac{L \lambda_0}{4 R(\lambda_0)} \, , \, \lambda_j  + \frac{L \lambda_0}{4 R(\lambda_0)} \right)`,
-and not over the full range of wavelengths accepted by the filter. So, the :math:`j`-th pixel sampling the :math:`\lambda_j` wavelength the collected signal is
+If a `path` element sits before a slit, its signal is dispersed: the
+contribution is convolved with a kernel as wide as the slit (in pixels) and then
+added to the full array. If the slit width at the focal plane is :math:`L`
+pixels and the spectral resolving power at some :math:`\lambda_0` is
+:math:`R(\lambda_0)`, the detector receives diffuse radiation over the
+wavelength range
+:math:`\left( \lambda_j - \frac{L \lambda_0}{4 R(\lambda_0)} \, , \, \lambda_j  + \frac{L \lambda_0}{4 R(\lambda_0)} \right)`,
+not over the full range passed by the filter. So the :math:`j`-th pixel,
+sampling wavelength :math:`\lambda_j`, collects
 
 .. math::
     S(j) = \int_{\lambda_j - \frac{L \lambda_0}{4 R(\lambda_0)}}^{\lambda_j  + \frac{L \lambda_0}{4 R(\lambda_0)}} S_{for} (\lambda) d \lambda
 
 
-If the `path` element to add is after a slit, or if no slit is in the path, the signal integrated over the full wavelength range is simply added to each pixel:
+If a `path` element sits after a slit, or there is no slit in the path, the
+signal integrated over the full wavelength range is simply added to each pixel:
 
 .. math::
     S = \int S_{for} (\lambda) d \lambda
 
-Now the foreground focal plane is completed.
+The foreground focal plane is now complete.
 
 .. _sub focal planes:
 
 Foreground sub focal planes
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-If at least one optical element has
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If at least one optical element is marked with
 
 .. code-block:: xml
 
     <optical_path>
         <opticalElement>
             ...
-            <isolate> True <isolate>
+            <isolate> True </isolate>
         </opticalElement>
     </optical_path>
 
-Then the sub-focal planes are computed. The same :func:`~exosim.models.channel.Channel.populate_foreground_focal_plane` method also populates a `frg_sub_focal_planes` attribute.
-This is a dictionary containing all the foreground signal contributions, highlighting the ones marked with ``isolate=True``.
-The sum of all the sub-focal planes matches `frg_focal_plane`.
+then the sub-focal planes are computed. The same
+:func:`~exosim.models.channel.Channel.populate_foreground_focal_plane` method
+also populates a `frg_sub_focal_planes` attribute: a dictionary of all the
+foreground signal contributions, singling out the ones marked
+``isolate=True``. The sum of all the sub-focal planes equals `frg_focal_plane`.
 
-This mode allows the user to investigate the effects of a single optical surface.
+This mode lets you study the effect of a single optical surface.

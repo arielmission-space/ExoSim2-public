@@ -190,11 +190,7 @@ html_show_sourcelink = False
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_additional_pages = {
-    #    "index": "index.html",
-    "user/index": "user_index.html",
-    "contributing/index": "developer_index.html",
-}
+html_additional_pages = {}
 html_title = "{} Manual".format(project)
 html_static_path = ["_static"]
 html_last_updated_fmt = "%b %d, %Y"

@@ -71,7 +71,7 @@ class FocalPlanePlotter(log.Logger):
                 if isinstance(self.input, str)
                 else "channels"
             )
-            channels = f[channels_path]["channels"] if channels_path else f["channels"]
+            channels = f[channels_path] if channels_path else f["channels"]
             ch_list = list(channels.keys())
             ch_list.sort()
             widths = []

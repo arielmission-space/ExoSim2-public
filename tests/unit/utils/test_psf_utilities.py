@@ -281,24 +281,9 @@ class TestPAOSIntegration:
     """Test suite for PAOS PSF data integration."""
 
     @pytest.fixture
-    def paos_data(self, test_data_dir):
-        """
-        Provide PAOS data file for testing.
-
-        This fixture locates the PAOS PSF data file in the test
-        data directory for integration testing.
-
-        Parameters
-        ----------
-        test_data_dir : pathlib.Path
-            Test data directory path
-
-        Returns
-        -------
-        str
-            Path to PAOS data file
-        """
-        return os.path.join(test_data_dir, "PAOS_ab0.h5")
+    def paos_data(self, project_root):
+        """Path to the bundled PAOS PSF data file (tests/data/PAOS_ab0.h5)."""
+        return os.path.join(project_root, "tests", "data", "PAOS_ab0.h5")
 
     def test_load_paos(self, paos_data):
         """
@@ -338,6 +323,48 @@ class TestPAOSIntegration:
         assert cube.shape[0] == len(tt), (
             "PSF cube time dimension should match input grid"
         )
+
+    def test_load_paos_normalisation(self, paos_data):
+        if not os.path.exists(paos_data):
+            pytest.skip("PAOS data file not found")
+        wl = np.linspace(1.0, 2.8, 4) * u.um
+        tt = np.linspace(0, 10, 2) * u.hr
+        parameters = {
+            "detector": {
+                "oversampling": 2,
+                "delta_pix": 10 * u.um,
+                "spatial_pix": 24,
+                "spectral_pix": 24,
+            }
+        }
+        cube, _norms = instrument.LoadPsfPaos()(
+            filename=paos_data, parameters=parameters, wavelength=wl, time=tt
+        )
+        assert cube.shape[:2] == (len(tt), len(wl))
+        # every PSF slab is normalised to unit sum
+        np.testing.assert_allclose(cube.sum(axis=(-1, -2)), 1.0, rtol=1e-3)
+
+    def test_load_paos_time_interp(self, project_root):
+        ab0 = os.path.join(project_root, "tests", "data", "PAOS_ab0.h5")
+        ab1 = os.path.join(project_root, "tests", "data", "PAOS_ab1.h5")
+        if not (os.path.exists(ab0) and os.path.exists(ab1)):
+            pytest.skip("PAOS data files not found")
+        wl = np.linspace(1.0, 2.8, 4) * u.um
+        tt = np.array([0.0, 5.0, 10.0]) * u.hr
+        parameters = {
+            "detector": {
+                "oversampling": 2,
+                "delta_pix": 10 * u.um,
+                "spatial_pix": 24,
+                "spectral_pix": 24,
+            },
+            "psf": {"t0": 10 * u.hr},
+        }
+        cube, _ = instrument.LoadPsfPaosTimeInterp()(
+            filename=f"{ab0}, {ab1}", parameters=parameters, wavelength=wl, time=tt
+        )
+        assert cube.shape[:2] == (len(tt), len(wl))
+        assert np.all(np.isfinite(cube))
 
 
 class TestPSFUtilityRobustness:

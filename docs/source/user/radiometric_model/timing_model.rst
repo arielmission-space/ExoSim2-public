@@ -1,13 +1,13 @@
 .. _timing_model:
 
-=============
-Timing Model
-=============
+============
+Timing model
+============
 
-Overview
---------
-
-The timing model computes fundamental timing parameters that determine detector operation and observation efficiency. These parameters directly influence noise calculations and detector performance:
+The timing model computes the timing parameters that set how the detector is
+operated and how much of the observation is spent collecting light. These
+parameters feed straight into the noise calculations, so getting them right
+matters for the performance estimate:
 
 - saturation time,
 - integration time,
@@ -16,12 +16,14 @@ The timing model computes fundamental timing parameters that determine detector 
 
 .. _saturation_time:
 
-Saturation Time
+Saturation time
 ---------------
 
-The default Task :class:`~exosim.tasks.radiometric.saturation_channel.SaturationChannel` computes the maximum exposure time before detector saturation occurs.
-It uses :class:`~exosim.tasks.radiometric.compute_saturation.ComputeSaturation` to perform the calculation.
-
+The saturation time is the longest exposure the detector can take before a pixel
+fills up. The default task
+:class:`~exosim.tasks.radiometric.saturation_channel.SaturationChannel` computes
+it, delegating the calculation to
+:class:`~exosim.tasks.radiometric.compute_saturation.ComputeSaturation`:
 
 .. math::
 
@@ -29,14 +31,17 @@ It uses :class:`~exosim.tasks.radiometric.compute_saturation.ComputeSaturation` 
 
 where:
 
-- :math:`t_{\mathrm{sat}}` is the saturation time
-- :math:`f_{\mathrm{well}}` is the fraction of well depth to use (safety factor)
-- :math:`W_{\mathrm{depth}}` is the detector well depth
-- :math:`S_{\mathrm{max}}` is the maximum signal rate in the focal plane
+- :math:`t_{\mathrm{sat}}` is the saturation time,
+- :math:`f_{\mathrm{well}}` is the fraction of the well depth to use, a safety
+  factor that keeps the detector away from the non-linear regime,
+- :math:`W_{\mathrm{depth}}` is the detector well depth,
+- :math:`S_{\mathrm{max}}` is the highest signal rate found anywhere in the
+  focal plane.
 
-The task combines source and foreground signals, searches the entire focal plane for maximum and minimum signal levels, and applies the saturation formula.
+The task combines the source and foreground signals, scans the whole focal plane
+for the maximum and minimum signal levels, and applies the formula above.
 
-To configure the well depth and fraction, use:
+Set the well depth and the fraction in the configuration:
 
 .. code-block:: xml
 
@@ -47,7 +52,7 @@ To configure the well depth and fraction, use:
         </detector>
     </channel>
 
-And it can be run in a script as
+The task can also be run from a script:
 
 .. code-block:: python
 
@@ -60,30 +65,34 @@ And it can be run in a script as
         input_file=focal_plane_file
     )
 
-This task can be customized by subclassing the :class:`~exosim.tasks.radiometric.saturation_channel.SaturationChannel` class and overriding its methods.
+To customise it, subclass
+:class:`~exosim.tasks.radiometric.saturation_channel.SaturationChannel` and
+override its methods.
 
-Integration Time
+Integration time
 ----------------
 
-
-The Task :class:`~exosim.tasks.radiometric.compute_integration_time.ComputeIntegrationTime` determines the actual integration time used for observations.
-
-The default implementation uses the minimum saturation time across all spectral bins:
+The task
+:class:`~exosim.tasks.radiometric.compute_integration_time.ComputeIntegrationTime`
+sets the integration time actually used for the observation. The default
+implementation takes the shortest saturation time across all the spectral bins,
+so that no bin saturates:
 
 .. math::
 
     t_{\mathrm{integration}} = \min(t_{\mathrm{sat}, i})
 
-where :math:`t_{\mathrm{sat}, i}` is the saturation time for spectral bin :math:`i`.
+where :math:`t_{\mathrm{sat}, i}` is the saturation time for spectral bin
+:math:`i`. It is computed automatically from the saturation analysis.
 
-This is computed automatically from saturation analysis.
-
-
-Duty Cycle/Observation Efficiency
+Duty cycle and observation efficiency
 -------------------------------------
 
-Computes the observing efficiency accounting for time losses due to overheads, resets, shutters, choppers, calibration sequences, or other interruptions.
-The default implementation :class:`~exosim.tasks.radiometric.compute_observation_efficiency.ComputeObservationEfficiency`, reads the observation efficiency from the configuration file:
+The duty cycle is the fraction of the observation actually spent integrating,
+once overheads, resets, shutters, choppers, calibration sequences and other
+interruptions are taken out. The default implementation,
+:class:`~exosim.tasks.radiometric.compute_observation_efficiency.ComputeObservationEfficiency`,
+reads it from the configuration file:
 
 .. code-block:: xml
 
@@ -93,10 +102,12 @@ The default implementation :class:`~exosim.tasks.radiometric.compute_observation
         </radiometric>
     </channel>
 
-If not specified, the observation efficiency is set to 1.0 (100% efficiency).
+If it is not specified, the observation efficiency is set to 1.0, that is 100%
+efficiency.
 
-The observation efficiency computation can be customized by implementing a custom task inheriting from :class:`~exosim.tasks.radiometric.compute_observation_efficiency.ComputeObservationEfficiency`.
-Such custom task should then be specified in the XML configuration:
+To compute it differently, write a custom task that inherits from
+:class:`~exosim.tasks.radiometric.compute_observation_efficiency.ComputeObservationEfficiency`
+and point to it in the XML configuration:
 
 .. code-block:: xml
 
@@ -106,20 +117,20 @@ Such custom task should then be specified in the XML configuration:
         </radiometric>
     </channel>
 
-Dead Time Based Efficiency
+Dead-time-based efficiency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ExoSim includes a built-in implementation :class:`~exosim.tasks.radiometric.compute_observation_efficiency_from_dead_time.ComputeObservationEfficiencyFromDeadTime` that computes observation efficiency based on detector dead time. This is more accurate for detectors with significant readout overhead.
-
-The efficiency is calculated as:
+`ExoSim` also ships a built-in alternative,
+:class:`~exosim.tasks.radiometric.compute_observation_efficiency_from_dead_time.ComputeObservationEfficiencyFromDeadTime`,
+which derives the efficiency from the detector dead time. It is more accurate for
+detectors with a significant readout overhead:
 
 .. math::
 
     \eta = \frac{t_{\mathrm{int}}}{t_{\mathrm{int}} + t_{\mathrm{dead}}}
 
-where :math:`t_{\mathrm{int}}` is the integration time and :math:`t_{\mathrm{dead}}` is the detector dead time.
-
-To use this implementation, specify the dead time in the configuration:
+where :math:`t_{\mathrm{int}}` is the integration time and :math:`t_{\mathrm{dead}}`
+is the detector dead time. Specify the dead time in the configuration:
 
 .. code-block:: xml
 
@@ -132,15 +143,18 @@ To use this implementation, specify the dead time in the configuration:
         </radiometric>
     </channel>
 
-This approach accounts for the fact that longer integration times result in higher observing efficiency, as the fixed dead time has proportionally less impact.
+Because the dead time is fixed, a longer integration time makes it weigh
+proportionally less, so the observing efficiency grows with the integration
+time.
 
-Frame Time
------------
+Frame time
+----------
 
-This is calculated automatically in :func:`~exosim.tasks.radiometric.utils.compute_saturation.compute_saturation` as the total time per detector frame, including integration time and readout overheads.
+The frame time is the total time per detector frame, integration time plus
+readout overheads. It is computed automatically in
+:func:`~exosim.tasks.radiometric.utils.compute_saturation.compute_saturation`
+from the integration time and the duty cycle:
 
 .. math::
 
     t_{\mathrm{frame}} = \frac{t_{\mathrm{integration}}}{\eta_{\mathrm{duty}}}
-
-Frame time is computed automatically from integration time and duty cycle.

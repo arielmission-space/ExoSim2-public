@@ -124,6 +124,11 @@ class AddGainDrift(Task):
                 out_grp.write_list("gain amplitude random_seed", RunConfig.random_seed)
         else:
             self.error("missing amplitude definition for gain")
+            raise KeyError(
+                "gain drift needs either 'gain_drift_amplitude' or "
+                "'gain_drift_amplitude_range_min'/'gain_drift_amplitude_range_max' "
+                "in the detector configuration"
+            )
 
         dinamic_range = z.max() - z.min()
         z *= amplitude / dinamic_range

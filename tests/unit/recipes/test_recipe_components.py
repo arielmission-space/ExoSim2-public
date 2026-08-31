@@ -101,6 +101,34 @@ class TestCreateFocalPlaneUnit:
         with pytest.raises(TypeError):
             CreateFocalPlane()  # Missing required arguments
 
+    def test_wl_grid_fallback_infers_the_passband_from_the_channels(self):
+        from collections import OrderedDict
+
+        cfp = CreateFocalPlane.__new__(CreateFocalPlane)
+        Logger.__init__(cfp)
+        cfp.mainConfig = {}  # no wl_grid, no time_grid, no pointing
+        cfp.payloadConfig = {
+            "channel": OrderedDict(
+                {
+                    "blue": {"wl_min": 0.6 * u.um, "wl_max": 1.2 * u.um},
+                    "red": {"wl_min": 1.0 * u.um, "wl_max": 3.5 * u.um},
+                }
+            )
+        }
+        cfp._initialize_grids_and_pointing()
+        assert cfp.wl_grid.min() < 0.7 * u.um  # widest wl_min across channels
+        assert cfp.wl_grid.max() > 3.0 * u.um  # widest wl_max across channels
+        assert cfp.pointing is None
+
+    def test_wl_grid_fallback_defaults_without_channel_passbands(self):
+        cfp = CreateFocalPlane.__new__(CreateFocalPlane)
+        Logger.__init__(cfp)
+        cfp.mainConfig = {}
+        cfp.payloadConfig = {"channel": {"value": "solo"}}  # no wl_min/wl_max
+        cfp._initialize_grids_and_pointing()
+        assert cfp.wl_grid.min() < 1.1 * u.um  # default wl_min
+        assert cfp.wl_grid.max() > 1.9 * u.um  # default wl_max
+
         with pytest.raises(TypeError):
             CreateFocalPlane("config_only.xml")  # Missing output file
 

@@ -1,27 +1,33 @@
 .. _sub-exposures creation:
 
-===================================
-Sub-Exposures
-===================================
+=============
+Sub-exposures
+=============
 
-The second step af an `ExoSim` simulation is the creation of the `sub-exposures` starting from  instrument focal planes.
-With `sub-exposures` here we are referring to the production of focal planes sampled at the same cadence of NDRs.
+The second step of an `ExoSim` simulation builds the `sub-exposures` from the
+instrument focal planes. A `sub-exposure` is a focal plane sampled at the same
+cadence as the NDRs.
 
-To better understand the idea of sub-exposures, we first need to discuss a little the detector ramp sampling.
-While the photons arrive to the focal plane, the detector pixels start converting them into electrons and collecting them.
-We can think of each pixel as an accumulator of charge. So, during time, the collected charges increases.
-When the accumulator is full, a reset process empties it to collect charges again.
-The focal plane is read during the charge accumulation, producing a certain number of NDRs,
-according to the multiaccum reading scheme enabled. This procedure assume an instantaneous readout of the detector.
-Such read focal planes, are called here `sub-exposures`.
-The difference between `sub-exposures` and NDRs are the fact that the sub-exposures of the same ramp are not summed together, as will be for the NDRs production,
-and the detector effects, which are involved in the production of NDRs. These are added later, as a last step in `ExoSim  2.0`.
-So, each sub-exposures represent an integrated image of what happened between the previous detector action and the sub-exposure time.
+To understand sub-exposures, we first need a word on detector ramp sampling. As
+photons reach the focal plane, each pixel converts them into electrons and
+collects the charge, like an accumulator that fills up over time. When it is
+full, a reset empties it and collection starts again. The focal plane is read
+during the accumulation, producing a number of NDRs set by the multiaccum
+reading scheme. This assumes an instantaneous readout of the detector, and the
+focal planes read this way are what we call `sub-exposures`.
 
-.. note:: In this model we are only considering *instantaneous read out* of the detector.
+Sub-exposures differ from NDRs in two ways: the sub-exposures of one ramp are
+**not** summed together (the NDRs are), and the detector effects that go into
+the NDRs are not applied yet; they are added later, as the last step in
+`ExoSim 2.0`. Each sub-exposure is therefore an integrated image of what
+happened between the previous detector action and the sub-exposure time.
 
-To produce these `sub-exposure` a simulation cadence is needed which refer to an higher frequency than the one used to sample the focal plane.
-This cadence can be set in the channel configuration file as `readout_frequency`:
+.. note::
+    This model considers only *instantaneous readout* of the detector.
+
+Producing the sub-exposures needs a simulation cadence at a higher frequency
+than the one used to sample the focal plane. Set it in the channel
+configuration file as `readout_frequency`:
 
 .. code-block:: xml
 
@@ -31,56 +37,63 @@ This cadence can be set in the channel configuration file as `readout_frequency`
         </readout>
     </channel>
 
-The user can also set the `readout_frequency` in units of :math:`Hz` instead of :math:`s`.
+You can also give `readout_frequency` in :math:`Hz` instead of :math:`s`.
 
-
-Let's seen an example. In the following figure is reported a reading scheme where we consider a mid frequencies resolution of 0.01 second,
-which here is called `simulation clock`. The other quantities in the figure are written as number of simulation clock units.
-The detector saturates in :math:`60 \, s`, which is the exposure time. This ramp is sampled using 3 groups of 2 NDRs each.
-For the first :math:`0.2 \, s` the detector is kept in ground state (GND), these corresponds to :math:`2` simulation clock units.
-We also know that for the last :math:`0.2 \,s` (:math:`2` simulation clock units), the detector is in reset mode (RST).
-So, the available time to sample the ramp is :math:`60-0.2-0.2 = 59.6 \, s`, corresponding to :math:`596` simulation clock units.
-Because the detector reading cadence is :math:`0.1 s`, after :math:`0.1 \, s` (:math:`1` simulation clock unit), the first sub-exposure of the first group is read.
-After other :math:`0.1 \, s` the second sub-exposure is read too. In every groups the two sub-exposures are separated by :math:`1` simulation clock units.
-The groups are then separated by :math:`29.6 \, s` (:math:`296` simulation clock units).
-This example is described in this picture, adapted from Rauscher and Fox et al. 2007 (http://iopscience.iop.org/article/10.1086/520887/pdf)
+Here is an example. The figure below shows a reading scheme with a
+mid-frequency resolution of 0.01 s, called the `simulation clock`; the other
+quantities in the figure are given as a number of simulation-clock units. The
+detector saturates in :math:`60 \, s`, which is the exposure time. The ramp is
+sampled with 3 groups of 2 NDRs each. For the first :math:`0.2 \, s` the
+detector is held in the ground state (GND), which is :math:`2` simulation-clock
+units; for the last :math:`0.2 \, s` (:math:`2` units) it is in reset mode
+(RST). The time available to sample the ramp is therefore
+:math:`60 - 0.2 - 0.2 = 59.6 \, s`, or :math:`596` units. With a readout cadence
+of :math:`0.1 \, s`, the first sub-exposure of the first group is read after
+:math:`0.1 \, s` (:math:`1` unit), and the second after another :math:`0.1 \, s`;
+within each group the two sub-exposures are :math:`1` unit apart. The groups are
+:math:`29.6 \, s` (:math:`296` units) apart. This example is adapted from
+Rauscher and Fox et al. 2007
+(http://iopscience.iop.org/article/10.1086/520887/pdf).
 
 .. image:: ../tools/_static/reading_ramp.png
     :width: 600
     :align: center
 
-Where are reported the duration of states on the top, and the start of each group on the bottom.
-We'll describe later (:ref:`reading_scheme`) how to design such reading scheme,
-but this numbers have been estimated using one of the :ref:`tools`: :ref:`readout_scheme_calculator`.
+The figure shows the duration of the states along the top and the start of each
+group along the bottom. :ref:`reading_scheme` explains how to design such a
+scheme; these numbers were computed with one of the :ref:`tools`,
+:ref:`readout_scheme_calculator`.
 
-Each of the simulation clock units corresponds to a different realisation of the focal plane, because of the pointing Jitter.
-All of these realisations are considered in the simulation.
-Schemes like this will be further investigated later, when we'll discuss how `ExoSim` handles reading schemes.
+Each simulation-clock unit corresponds to a different realisation of the focal
+plane, because of pointing jitter, and all of these realisations are used in the
+simulation.
 
-With reference to the previous figure, we can investigate the concept of `sub-exposures`,
-using the following image, where each color represents the area collected in a different sub-exposure.
+The next figure illustrates the concept of `sub-exposures`: each colour is the
+area collected in a different sub-exposure.
 
 .. image:: _static/reding_ramp_se_explained.png
     :width: 600
     :align: center
 
-The sub-exposures creation is automatised by a recipe: :class:`~exosim.recipes.createSubExposures.CreateSubExposures`.
-In this section we explain each of the steps that lead to the sub-exposures creation.
+The sub-exposure creation is automated by a recipe,
+:class:`~exosim.recipes.createSubExposures.CreateSubExposures`. This section
+explains the steps it goes through.
 
 .. toctree::
    :maxdepth: 1
 
-    Pointing jitter <pointing_jitter>
-    Reading scheme  <reading_scheme>
-    Instantaneous readout  <instantaneous_readout>
-    Astronomical signal  <astronomical_signal>
-    Finalising the Sub-Exposures <finalising_sub_exposures>
-    Automatic Recipe <pipeline>
+   Pointing jitter <pointing_jitter>
+   Reading scheme <reading_scheme>
+   Instantaneous readout <instantaneous_readout>
+   Astronomical signal <astronomical_signal>
+   Finalising the sub-exposures <finalising_sub_exposures>
+   Automatic recipe <pipeline>
 
-The steps flow is summarised in the following figure:
+The overall flow is summarised here:
 
 .. image:: _static/sub-exposure.png
     :align: center
 
-`ExoSim` also include a dedicated Plotter, called :class:`~exosim.plots.subExposuresPlotter.SubExposuresPlotter`,
-which is described in :ref:`sub-exposures plotter`
+`ExoSim` also has a dedicated plotter,
+:class:`~exosim.plots.subExposuresPlotter.SubExposuresPlotter`, described in
+:ref:`sub-exposures plotter`.

@@ -74,6 +74,27 @@ class TestZodiacal:
             zodi_emission.value / zodi.data, np.ones_like(zodi.data), decimal=5
         )
 
+    def test_zodi_factor_defaults_to_zero_when_missing(self):
+        wl = np.logspace(np.log10(0.5), np.log10(2.0), 100) * u.um
+        # no zodiacal_factor and no coordinates -> the model treats ``a`` as 0
+        zodi = self.estimate_zodi(wavelength=wl)
+        assert np.all(zodi.data == 0)
+
+    def test_default_map_search_gives_up_instead_of_looping_forever(
+        self, tmp_path, monkeypatch
+    ):
+        # point the module at a deep path with no 'data' directory anywhere
+        # above it: the walk-up must terminate and raise, not spin forever.
+        deep = tmp_path / "a" / "b" / "c"
+        deep.mkdir(parents=True)
+        monkeypatch.setattr(
+            "os.path.realpath", lambda _p: str(deep / "estimate_zodi.py")
+        )
+        task = EstimateZodi()
+        task.set_log_name()
+        with pytest.raises(OSError, match="default zodi map file not found"):
+            task.zodiacal_fit_direction((10.0 * u.deg, -20.0 * u.deg))
+
     def test_fit_coordinate(self):
         """
         Test zodiacal light estimation from sky coordinates.
