@@ -16,6 +16,14 @@ rewriting the rest of the pipeline.
 This guide walks through the simulation steps with worked examples and explains
 how to configure ExoSim 2 for the instrument you want to model.
 
+.. admonition:: Do you only need signal and noise budgets?
+    :class: seealso
+
+    If you do not need the time-domain focal plane — you just want signal and
+    noise budgets, saturation times, photometric apertures and wavelength bins —
+    `ExoRad 2 <https://exorad2-public.readthedocs.io/>`__ is the faster, lighter
+    option. It is the radiometric core ExoSim 2 builds on.
+
 .. grid:: 2 2 2 2
     :gutter: 3
 

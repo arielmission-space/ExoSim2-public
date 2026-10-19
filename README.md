@@ -10,6 +10,8 @@
 [![DOI](https://img.shields.io/badge/doi-10.1007%2Fs10686--024--09976--2-blue?link=https%3A%2F%2Fdoi.org%2F10.1007%2Fs10686-024-09976-2)](https://doi.org/10.1007/s10686-024-09976-2)
 [![arXiv](https://img.shields.io/badge/arXiv-2501.12809-red?link=https%3A%2F%2Farxiv.org%2Fabs%2F2501.12809)](https://arxiv.org/abs/2501.12809)
 [![EMACS](https://img.shields.io/badge/EMAC-2504--003-blue)](https://emacs.gsfc.nasa.gov?cid=2504-003)
+[![Ask DeepWiki](https://img.shields.io/badge/DeepWiki-Ask-0a7bbb)](https://deepwiki.com/arielmission-space/ExoSim2-public)
+[![GitDiagram](https://img.shields.io/badge/GitDiagram-architecture-4c1)](https://gitdiagram.com/arielmission-space/ExoSim2-public)
 
 
 ## Introduction <a name="introduction"></a>
@@ -65,6 +67,14 @@ If you have installed ExoSim from source code, to test your ExoSim 2 installatio
 
 ExoSim2 comes with an extensive documentation, which can be built using Sphinx.
 The documentation includes a tutorial, a user guide and a reference guide.
+The published documentation is at <https://exosim2-public.readthedocs.io/>.
+
+An AI-generated overview of the codebase is also available on
+[DeepWiki](https://deepwiki.com/arielmission-space/ExoSim2-public), and an
+interactive architecture diagram on
+[GitDiagram](https://gitdiagram.com/arielmission-space/ExoSim2-public). Both are
+generated automatically from the code and may be out of date or inaccurate: the
+documentation is the reference.
 
 To build the documentation, install the needed packages first via `uv`:
 
