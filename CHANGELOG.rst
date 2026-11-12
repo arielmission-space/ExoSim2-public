@@ -12,6 +12,25 @@ Unreleased changes live as fragments in ``changelog.d/`` and are merged here by
 
 .. scriv-insert-here
 
+.. _changelog-2.2.2:
+
+[2.2.2_] - Fix ACES solar-metallicity SED download
+==================================================
+
+Changed
+-------
+
+- the documentation home page now points readers who only need signal and
+  noise budgets to ExoRad 2, the radiometric model ExoSim 2 builds on
+
+Fixed
+-----
+
+- ``DownloadSed`` with ``model_name="phoenix-aces"`` built a 404 URL for a
+  solar-metallicity star: the Goettingen server names the directory and files
+  ``Z-0.0`` / ``lte...-0.0...``, but the URL builder formatted ``0.0`` as
+  ``+0.0``. Metallicity formatting is now routed through ``_feh_str``.
+
 .. _changelog-2.2.1:
 
 [2.2.1_] - Pipeline hardening
@@ -262,6 +281,8 @@ Cleaned repository
 .. _2.2.0: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.0
 
 .. _2.2.1: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.1
+
+.. _2.2.2: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.2
 
 .. _keepachangelog: https://keepachangelog.com/en/1.0.0/
 .. _semver: https://semver.org/spec/v2.0.0.html

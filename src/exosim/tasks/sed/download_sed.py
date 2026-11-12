@@ -56,15 +56,28 @@ def _snap(value, grid):
     return grid[int(np.argmin(np.abs(grid - value)))]
 
 
+def _feh_str(z: float) -> str:
+    """Format a metallicity the way the Goettingen server names its files.
+
+    A solar metallicity is written ``-0.0`` (directory ``Z-0.0``, file
+    ``lte...-0.0...``), not ``+0.0``; other values keep their sign. Formatting
+    ``0.0`` as ``+0.0`` builds a URL that 404s.
+    """
+    if z == 0.0:
+        return "-0.0"
+    return f"{z:+.1f}"
+
+
 def _aces_url(teff, logg, feh):
     """Build the Goettingen HiResFITS URL and return (url, snapped params)."""
     t = int(_snap(teff, _ACES_TEFF))
     g = float(_snap(logg, _ACES_LOGG))
     z = float(_snap(feh, _ACES_FEH))
-    # Filename convention: lte{TTTTT}-{logg:.2f}{feh:+.1f}.MODEL-HiRes.fits
+    z_str = _feh_str(z)
+    # Filename convention: lte{TTTTT}-{logg:.2f}{feh}.MODEL-HiRes.fits
     # The '-' before logg is a literal separator, not a sign.
-    filename = f"lte{t:05d}-{g:.2f}{z:+.1f}.{_ACES_MODEL}-HiRes.fits"
-    url = f"{_GOETTINGEN_BASE}{_ACES_MODEL}/Z{z:+.1f}/{filename}"
+    filename = f"lte{t:05d}-{g:.2f}{z_str}.{_ACES_MODEL}-HiRes.fits"
+    url = f"{_GOETTINGEN_BASE}{_ACES_MODEL}/Z{z_str}/{filename}"
     return url, t, g, z
 
 

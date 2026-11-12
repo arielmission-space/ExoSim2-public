@@ -25,14 +25,26 @@ class TestGridSnapping:
         url, t, g, z = ds._aces_url(5123, 4.4, 0.02)
         assert (t, g, z) == (5100, 4.5, 0.0)
         assert url.startswith("https://phoenix.astro.physik.uni-goettingen.de")
-        assert f"lte{t:05d}-{g:.2f}{z:+.1f}" in url
-        assert "Z+0.0" in url
+        # solar metallicity: the Goettingen server uses Z-0.0 / -0.0, not +0.0
+        assert f"lte{t:05d}-{g:.2f}-0.0" in url
+        assert "/Z-0.0/" in url
 
     def test_aces_url_negative_metallicity(self):
         url, _t, _g, z = ds._aces_url(4000, 4.5, -1.2)
         assert z == -1.0
         assert "Z-1.0" in url
         assert "-1.0." in url
+
+    def test_aces_url_positive_metallicity(self):
+        url, _t, _g, z = ds._aces_url(6000, 4.0, 0.4)
+        assert z == 0.5
+        assert "/Z+0.5/" in url
+        assert "4.00+0.5." in url
+
+    def test_feh_str(self):
+        assert ds._feh_str(0.0) == "-0.0"
+        assert ds._feh_str(0.5) == "+0.5"
+        assert ds._feh_str(-1.0) == "-1.0"
 
 
 class TestAirToVacuum:
