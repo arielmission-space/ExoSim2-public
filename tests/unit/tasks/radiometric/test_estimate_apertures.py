@@ -582,3 +582,32 @@ class TestEstimateAperturesErrorHandling:
         # Test that calling methods with None doesn't crash the program
         with contextlib.suppress(Exception):
             apertures.model(None, None, None, None)
+
+
+class TestEllipticalApertureSize:
+    """aperture_size must equal the photutils ellipse area (semi-axes a, b)."""
+
+    def test_aperture_size_is_pi_a_b(self):
+        from photutils.aperture import EllipticalAperture
+
+        yy, xx = np.mgrid[0:32, 0:64]
+        focal_plane = np.exp(
+            -((xx - 32) ** 2 / (2 * 4.0**2) + (yy - 16) ** 2 / (2 * 2.0**2))
+        )
+        table = QTable()
+        table["wavelength"] = [1.0, 1.1] * u.um
+        table["left_bin_edge"] = [0.95, 1.05] * u.um
+        table["right_bin_edge"] = [1.05, 1.15] * u.um
+        wl_grid = np.linspace(0.8, 1.3, 64)
+
+        result = EstimateApertures().model(
+            table, focal_plane, {"auto_mode": "elliptical", "EnE": 0.8}, wl_grid
+        )
+
+        assert set(result["aperture_shape"]) == {"elliptical"}
+        a = np.asarray(result["spectral_size"], dtype=float)
+        b = np.asarray(result["spatial_size"], dtype=float)
+        size = np.asarray(result["aperture_size"], dtype=float)
+        np.testing.assert_allclose(size, np.pi * a * b)
+        for ai, bi, si in zip(a, b, size, strict=True):
+            assert si == pytest.approx(EllipticalAperture((32, 16), ai, bi).area)

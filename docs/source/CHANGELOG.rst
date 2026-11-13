@@ -12,6 +12,24 @@ Unreleased changes live as fragments in ``changelog.d/`` and are merged here by
 
 .. scriv-insert-here
 
+.. _changelog-2.2.3:
+
+[2.2.3_] - Elliptical aperture area
+===================================
+
+Fixed
+-----
+
+- elliptical apertures: ``aperture_size`` (the pixel count used by
+  ``ComputeConstantDarkCurrentNoise`` and ``ComputeConstantReadNoise``) was
+  computed as :math:`\pi (a/2)(b/2)`, four times smaller than the area
+  integrated by the photometry, which uses ``a`` and ``b`` as the semi-axes of
+  the ``photutils`` ``EllipticalAperture``. It is now :math:`\pi a b`.
+  ``find_elliptical_aperture`` likewise returns :math:`\pi a b` as its area
+  (it returned ``a * b``) and its docstring now states that the sizes are
+  semi-axes. Aperture tables generated with earlier versions have a wrong
+  ``aperture_size`` for elliptical rows and should be regenerated
+
 .. _changelog-2.2.2:
 
 [2.2.2_] - Fix ACES solar-metallicity SED download
@@ -283,6 +301,8 @@ Cleaned repository
 .. _2.2.1: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.1
 
 .. _2.2.2: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.2
+
+.. _2.2.3: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.3
 
 .. _keepachangelog: https://keepachangelog.com/en/1.0.0/
 .. _semver: https://semver.org/spec/v2.0.0.html

@@ -115,9 +115,10 @@ def find_elliptical_aperture(ima, desired_ene, center=None):
     Returns
     -------
     (float, float)
-        sizes of the elliptical aperture (h,w)
+        semi-axes (a, b) of the elliptical aperture, in pixels, as used by
+        :class:`photutils.aperture.EllipticalAperture`
     float
-        number of pixels in the aperture
+        area of the aperture in pixels, :math:`\\pi a b`
     float
         encircled energy collected by the aperture
 
@@ -172,7 +173,7 @@ def find_elliptical_aperture(ima, desired_ene, center=None):
 
     a = res.x[0]
     b = res.x[1]
-    return (a, b), a * b, ene_func(center, a, b, ima)
+    return (a, b), np.pi * a * b, ene_func(center, a, b, ima)
 
 
 def find_bin_aperture(ima, desired_ene, spatial_with, center=None):

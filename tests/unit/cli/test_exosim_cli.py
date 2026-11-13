@@ -10,6 +10,7 @@ import os
 import tempfile
 from unittest.mock import MagicMock, patch
 
+import numba
 from click.testing import CliRunner
 
 from exosim.exosim import (
@@ -252,16 +253,21 @@ class TestUtilityFunctions:
     def test_set_threads_functionality(self):
         """Test _set_threads function with different values."""
         original_value = getattr(RunConfig, "n_job", None)
+        # ``RunConfig.n_job`` goes through ``numba.set_num_threads``, which refuses
+        # more threads than the machine offers (a CI runner has 2 CPUs): derive
+        # the values from the real limit instead of hard-coding 4 and 8.
+        available = numba.config.NUMBA_NUM_THREADS
+        low = min(2, available)
 
         try:
-            _set_threads(4)
-            assert RunConfig.n_job == 4
+            _set_threads(low)
+            assert RunConfig.n_job == low
 
             _set_threads(None)
-            assert RunConfig.n_job == 4  # Should remain unchanged when None
+            assert RunConfig.n_job == low  # Should remain unchanged when None
 
-            _set_threads(8)
-            assert RunConfig.n_job == 8
+            _set_threads(available)
+            assert RunConfig.n_job == available
 
         finally:
             # Restore original value

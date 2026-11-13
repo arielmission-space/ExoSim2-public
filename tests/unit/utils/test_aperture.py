@@ -46,7 +46,15 @@ class TestFindEllipticalAperture:
         psf = _gaussian_psf()
         (a, b), area, ene = find_elliptical_aperture(psf, 0.75)
         assert ene == pytest.approx(0.75, abs=0.03)
-        assert area == pytest.approx(a * b)
+        assert area == pytest.approx(np.pi * a * b)
+
+    def test_area_matches_photutils_ellipse(self):
+        from photutils.aperture import EllipticalAperture
+
+        psf = _gaussian_psf()
+        (a, b), area, _ = find_elliptical_aperture(psf, 0.75)
+        center = (psf.shape[1] / 2, psf.shape[0] / 2)
+        assert area == pytest.approx(EllipticalAperture(center, a, b).area)
 
 
 class TestFindBinAperture:

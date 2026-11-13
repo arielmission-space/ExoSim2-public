@@ -223,7 +223,8 @@ class EstimateApertures(Task):
         if shape == "rectangular":
             aperture_size = np.array(dwl) * np.array(dsp)
         elif shape == "elliptical":
-            aperture_size = np.pi * (np.array(dwl) / 2) * (np.array(dsp) / 2)
+            # dwl and dsp are the semi-axes (a, b) of the photutils EllipticalAperture
+            aperture_size = np.pi * np.array(dwl) * np.array(dsp)
         else:
             aperture_size = np.array(dsp)  # fallback generico
 
