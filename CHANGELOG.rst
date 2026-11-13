@@ -12,6 +12,20 @@ Unreleased changes live as fragments in ``changelog.d/`` and are merged here by
 
 .. scriv-insert-here
 
+.. _changelog-2.2.4:
+
+[2.2.4_] - Rescale sources API
+==============================
+
+Added
+-----
+
+- ``Channel.rescale_sources()`` and ``Channel.rescale_radiances()``: the two
+  halves of ``Channel.rescale_contributions()``, which now calls both and
+  behaves as before. A pipeline that propagates the sources a second time
+  (for example after ``define_sources``) can rescale only the sources, without
+  multiplying the path radiances by the wavelength step again.
+
 .. _changelog-2.2.3:
 
 [2.2.3_] - Elliptical aperture area
@@ -303,6 +317,8 @@ Cleaned repository
 .. _2.2.2: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.2
 
 .. _2.2.3: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.3
+
+.. _2.2.4: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.4
 
 .. _keepachangelog: https://keepachangelog.com/en/1.0.0/
 .. _semver: https://semver.org/spec/v2.0.0.html

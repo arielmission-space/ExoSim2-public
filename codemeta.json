@@ -40,7 +40,7 @@
     "license": "https://spdx.org/licenses/BSD-3-Clause",
     "name": "ExoSim2",
     "programmingLanguage": "Python 3",
-    "version": "2.2.3",
+    "version": "2.2.4",
     "codemeta:contIntegration": {
         "id": "https://app.codecov.io/gh/arielmission-space/ExoSim2-public"
     },

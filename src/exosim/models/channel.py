@@ -252,37 +252,51 @@ class Channel(log.Logger):
             self.bkg_focal_plane = focal_plane.copy(dataset_name="bkg_focal_plane")
         return focal_plane
 
-    # todo change into a more clearer name
-    def rescale_contributions(self) -> None:
+    def _focal_plane_wavelength_step(self) -> u.Quantity:
+        """Wavelength width of each focal-plane spectral column."""
+        x_wav_osr = self.focal_plane.spectral
+        d_x_wav_osr = np.zeros_like(x_wav_osr)
+        idx = np.where(x_wav_osr > 0.0)
+        d_x_wav_osr[idx] = np.gradient(x_wav_osr[idx])
+        if np.any(d_x_wav_osr < 0):
+            d_x_wav_osr *= -1.0
+        return d_x_wav_osr * self.focal_plane.spectral_units
+
+    def rescale_sources(self) -> None:
         """
-        It updated the contributions (sources and path)
-        by rebinning them to the wavelength solution grid
-        and multiplying them by the wl solution gradient
+        It rebins the sources onto the focal-plane wavelength grid and
+        multiplies them by the wavelength width of each column, turning
+        spectral densities into signals per column. Each source must be
+        rescaled once, after it has been propagated.
         """
-
-        def wl_gradient(x_wav_osr):
-            d_x_wav_osr = np.zeros_like(x_wav_osr)
-            idx = np.where(x_wav_osr > 0.0)
-            d_x_wav_osr[idx] = np.gradient(x_wav_osr[idx])
-            if np.any(d_x_wav_osr < 0):
-                d_x_wav_osr *= -1.0
-            return d_x_wav_osr
-
-        d_spectral_wl = (
-            wl_gradient(self.focal_plane.spectral) * self.focal_plane.spectral_units
-        )
-
-        # multiply sources by gradient
         if self.sources:
+            d_spectral_wl = self._focal_plane_wavelength_step()
             for source in self.sources:
                 self.sources[source].spectral_rebin(self.focal_plane.spectral)
                 self.sources[source] *= d_spectral_wl
 
-        # multiply radiances by gradient
+    def rescale_radiances(self) -> None:
+        """
+        It rebins the path radiances (foregrounds and optical-element
+        emission) onto the focal-plane wavelength grid and multiplies them
+        by the wavelength width of each column. The radiances must be
+        rescaled once: when the sources are propagated again (for example
+        after :meth:`define_sources`), use :meth:`rescale_sources` only.
+        """
         if self.path:
+            d_spectral_wl = self._focal_plane_wavelength_step()
             for rad in [k for k in self.path if "radiance" in k]:
                 self.path[rad].spectral_rebin(self.focal_plane.spectral)
                 self.path[rad] *= d_spectral_wl
+
+    def rescale_contributions(self) -> None:
+        """
+        It rescales the sources and the path radiances onto the focal-plane
+        wavelength grid: :meth:`rescale_sources` followed by
+        :meth:`rescale_radiances`.
+        """
+        self.rescale_sources()
+        self.rescale_radiances()
 
     @property
     def target_source(self):

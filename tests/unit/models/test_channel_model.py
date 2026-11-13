@@ -392,6 +392,57 @@ class TestChannelFocalPlaneOperations:
         # Should not raise any exception
         channel.rescale_contributions()
 
+    class _FakeSpectrum:
+        """Stand-in for a Signal: rebinning is a no-op, ``*=`` scales the data."""
+
+        def __init__(self, value):
+            self.value = np.array(value, dtype=float)
+
+        def spectral_rebin(self, spectral):
+            pass
+
+        def __imul__(self, other):
+            self.value = self.value * np.asarray(getattr(other, "value", other))
+            return self
+
+    def create_channel_with_contributions(self):
+        channel = self.create_test_channel_with_focal_plane()
+        # four columns, 0.1 um wide
+        channel.focal_plane.spectral = np.array([1.0, 1.1, 1.2, 1.3])
+        channel.sources = {"star": self._FakeSpectrum([1.0] * 4)}
+        channel.path = {
+            "efficiency": MagicMock(),
+            "radiance_0_zodi": self._FakeSpectrum([1.0] * 4),
+        }
+        return channel
+
+    def test_rescale_sources_leaves_radiances_untouched(self):
+        channel = self.create_channel_with_contributions()
+        channel.rescale_sources()
+        np.testing.assert_allclose(channel.sources["star"].value, 0.1)
+        np.testing.assert_allclose(channel.path["radiance_0_zodi"].value, 1.0)
+
+    def test_rescale_radiances_leaves_sources_untouched(self):
+        channel = self.create_channel_with_contributions()
+        channel.rescale_radiances()
+        np.testing.assert_allclose(channel.sources["star"].value, 1.0)
+        np.testing.assert_allclose(channel.path["radiance_0_zodi"].value, 0.1)
+
+    def test_rescale_contributions_rescales_both_once(self):
+        channel = self.create_channel_with_contributions()
+        channel.rescale_contributions()
+        np.testing.assert_allclose(channel.sources["star"].value, 0.1)
+        np.testing.assert_allclose(channel.path["radiance_0_zodi"].value, 0.1)
+
+    def test_sources_propagated_twice_keep_radiances_rescaled_once(self):
+        """Re-defining the sources needs rescale_sources, not rescale_contributions."""
+        channel = self.create_channel_with_contributions()
+        channel.rescale_contributions()
+        channel.sources = {"star": self._FakeSpectrum([1.0] * 4)}
+        channel.rescale_sources()
+        np.testing.assert_allclose(channel.sources["star"].value, 0.1)
+        np.testing.assert_allclose(channel.path["radiance_0_zodi"].value, 0.1)
+
 
 class TestChannelTargetSource:
     """Test target source identification."""
