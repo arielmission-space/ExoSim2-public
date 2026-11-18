@@ -6,7 +6,7 @@ import re
 import astropy.units as u
 import h5py
 import numpy as np
-from scipy.interpolate import interp1d
+from scipy.interpolate import RectBivariateSpline, interp1d
 
 import exosim.tasks.instrument.load_psf as load_psf
 from exosim.utils.aperture import find_rectangular_aperture
@@ -193,6 +193,108 @@ class LoadPsfPaos(load_psf.LoadPsf):
         imac = wx @ ima @ wy.T
 
         return np.array(imac)
+
+    def load_fine_psf(self, filename, parameters, sampling):
+        """
+        Fine-grid PSFs of the PAOS wavelengths, used to tabulate the pixel
+        response function (``<psf><population>prf</population></psf>``).
+
+        Every PAOS PSF is resampled on a grid of cells of size
+        ``delta_pix / sampling`` using the same window and the same alignment
+        as :meth:`load_imac` (the PAOS array centre falls on the centre sample
+        ``shape // 2``). The fine cells are smaller than the PAOS cells, so the
+        exact overlap rebinning of :meth:`load_imac` would be piecewise
+        constant: the *shape* is the cubic (bicubic spline) interpolation of the
+        PAOS intensity, with the negative values (ringing) clipped to zero, which is then rescaled such that the image sums to the exact
+        energy inside the window given by the overlap rebinning (flux exact,
+        shape smooth).
+
+        Parameters
+        ----------
+        filename: str
+            PAOS file
+        parameters: dict
+            channel parameters
+        sampling: int
+            fine samples per physical pixel
+
+        Returns
+        -------
+        :class:`numpy.ndarray`
+            wavelength of the PSFs in um, ascending
+        :class:`numpy.ndarray`
+            ``(n_wavelengths, n_spatial, n_spectral)`` cube of fine PSFs. Each
+            sample is the energy in the fine cell.
+        """
+        delta_fine = (parameters["detector"]["delta_pix"] / sampling).to(u.um)
+        with h5py.File(os.path.expanduser(filename), "r") as data:
+            temp = re.compile(r"\d+(?:\.\d*)")
+            keys = [ele for ele in data if temp.match(ele)]
+            wls = np.array([self.load_wl_sampled(k, data) for k in keys]) * u.m
+            cube = [
+                self._fine_imac(k, data, parameters, sampling, delta_fine) for k in keys
+            ]
+        wls = wls.to(u.um).value
+        order = np.argsort(wls)
+        return wls[order], np.array(cube)[order]
+
+    def _fine_imac(self, wl, data, parameters, sampling, delta_fine):
+        """Fine-grid PSF of one PAOS wavelength, see :meth:`load_fine_psf`."""
+        data_wl_surfaces = sorted(data[wl].keys())
+        data_cube = data[wl][data_wl_surfaces[-1]]
+        dx = data_cube["dy"][()] * u.m
+        dy = data_cube["dx"][()] * u.m
+        ima = data_cube["amplitude"][()] * data_cube["amplitude"][()]
+
+        paos_x = (np.arange(0, ima.shape[0]) * dx.to(u.um)).value
+        paos_y = (np.arange(0, ima.shape[1]) * dy.to(u.um)).value
+        size = min(
+            parameters["detector"]["spatial_pix"],
+            parameters["detector"]["spectral_pix"],
+        )
+        n_fine = int(size * sampling)
+        h = delta_fine.value
+        fine_x = np.arange(0, n_fine - 1) * h
+        fine_y = np.arange(0, n_fine - 1) * h
+        fine_x -= fine_x[fine_x.size // 2] - paos_x[ima.shape[0] // 2]
+        fine_y -= fine_y[fine_y.size // 2] - paos_y[ima.shape[1] // 2]
+
+        # exact energy of the window: the PAOS cell i contributes the
+        # fraction of its area covered by the union of the fine cells
+        def covered(paos_c, paos_size, fine_c):
+            lo, hi = fine_c[0] - 0.5 * h, fine_c[-1] + 0.5 * h
+            p_lo, p_hi = paos_c - 0.5 * paos_size, paos_c + 0.5 * paos_size
+            return np.clip(np.minimum(hi, p_hi) - np.maximum(lo, p_lo), 0, None) / (
+                paos_size
+            )
+
+        ax = covered(paos_x, dx.to(u.um).value, fine_x)
+        ay = covered(paos_y, dy.to(u.um).value, fine_y)
+        target = ax @ ima @ ay
+
+        # cubic interpolation of the PAOS intensity: the bilinear one flattens
+        # the peak (-0.8% for a PSF of 0.56 pixel sigma and 2.5 um PAOS cells,
+        # -2.5 to -5.6% for 4.5-6.9 um cells), which the rescaling to the
+        # energy of the window cannot undo
+        f = RectBivariateSpline(paos_x, paos_y, ima, kx=3, ky=3)
+        img = f(fine_x, fine_y)
+        # no information beyond the PAOS samples: no energy there
+        outside_x = (fine_x < paos_x[0]) | (fine_x > paos_x[-1])
+        outside_y = (fine_y < paos_y[0]) | (fine_y > paos_y[-1])
+        img[outside_x, :] = 0.0
+        img[:, outside_y] = 0.0
+        # the cubic spline rings (negative lobes): clipped, the energy is
+        # restored by the rescaling below
+        negative = img < 0.0
+        positive_sum = img[~negative].sum()
+        self.last_clipped_fraction = (
+            float(-img[negative].sum() / positive_sum) if positive_sum > 0 else 0.0
+        )
+        img[negative] = 0.0
+        total = img.sum()
+        if total > 0:
+            img *= target / total
+        return img
 
     @staticmethod
     def _overlap_matrix(sub_centres, sub_size, paos_centres, paos_size):

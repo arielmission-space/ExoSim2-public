@@ -269,6 +269,14 @@ ExoSim tools |Tools|
 :ref:`tools`). The `example_tools.py` script shows how to run them, using the
 `tools_input_example.xml` configuration file.
 
+Driving ExoSim from an AI assistant
+-----------------------------------
+
+`ExoSim 2` ships an optional :doc:`MCP server <mcp>` (``pip install "exosim[mcp]"``).
+An MCP-compatible assistant can then answer questions about ExoSim grounded in
+this documentation, validate configuration files with the real loader, run the
+recipes above in a sandbox, and explain the outputs — see :ref:`mcp-per-client-setup`.
+
 .. _GitHub: https://github.com/arielmission-space/ExoSim2-public
 
 .. _HDF5: https://www.hdfgroup.org/solutions/hdf5/

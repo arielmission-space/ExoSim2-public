@@ -47,18 +47,19 @@ sub-pixels.
 .. note::
     The oversampling factor has two jobs. The first is the pixel integral: a
     pixel collects the light that falls on its whole area, not the value of the
-    PSF at its centre. `ExoSim` evaluates the PSF on the sub-pixels and then sums
-    them over a pixel-sized box with the intra-pixel response function (see
-    :ref:`irf`). With an oversampling of 1 there is nothing to sum: each pixel
-    holds the PSF sampled at its centre, and for an undersampled PSF
-    (:math:`F\lambda` comparable with the pixel) the brightest pixel is
-    overestimated by tens of per cent: 44% for FGS1 on the Ariel payload.
-    The second job is the pointing jitter (see :ref:`Instantaneous readout`),
-    which moves the PSF by fractions of a pixel.
+    PSF at its centre. With the sampled population, `ExoSim` evaluates the PSF
+    on the sub-pixels and then sums them over a pixel-sized box with the
+    intra-pixel response function (see :ref:`irf`). With an oversampling of 1
+    there is nothing to sum: each pixel holds the PSF sampled at its centre, and
+    for an undersampled PSF (:math:`F\lambda` comparable with the pixel) the
+    brightest pixel is overestimated by tens of per cent. The default PRF
+    population (:ref:`prf population`) does this integral exactly, at any
+    oversampling factor. The second job is the pointing jitter (see
+    :ref:`Instantaneous readout`), which moves the PSF by fractions of a pixel.
 
-    The result converges as the factor grows. For the Ariel channels an
-    oversampling of 3 gives the brightest pixel within about 2% of an
-    oversampling of 5. Odd factors are preferred: the centre of a physical pixel
+    With the sampled population the result converges as the factor grows: an
+    oversampling of 3 typically gives the brightest pixel within a few per cent
+    of an oversampling of 5. Odd factors are preferred: the centre of a physical pixel
     then falls on a sub-pixel centre, sub-pixel ``osf * m + osf // 2`` for pixel
     ``m``, which is where every reader takes the physical pixels from.
 
@@ -124,10 +125,52 @@ populates the `focal_plane` and `frg_focal_plane` attributes of
 :class:`~exosim.models.channel.Channel`.
 
 
+.. _focal plane population:
+
+Choose the population
+---------------------
+
+A focal plane can be populated in two ways, selected by ``<psf><population>``.
+The default is the *pixel response function* (PRF) population, `prf`. It
+computes the signal a pixel collects as the exact integral of the PSF over the
+pixel, with the intra-pixel response included, so the result does not depend on
+the oversampling factor. It is described in :ref:`prf population`.
+
+The alternative is the *sampled* population, `sampled`. It adds point-sampled
+monochromatic PSFs to the oversampled grid and then applies the IRF
+(:ref:`irf`), which sums the samples of each pixel. It only approximates the
+pixel integral, and the approximation improves with the oversampling factor.
+The sampled population is still available, and it is needed when the PRF cannot
+reproduce the configuration:
+
+- a custom `irf_task`, because a custom response cannot be folded into the
+  analytic one;
+- a time-dependent PSF, such as
+  :class:`~exosim.tasks.instrument.loadPsfPaosTimeInterp.LoadPsfPaosTimeInterp`;
+- a `psf_task` that is not
+  :class:`~exosim.tasks.instrument.load_psf_paos.LoadPsfPaos`;
+- a detector without `delta_pix`.
+
+If the `population` key is absent, `ExoSim` uses the PRF when it can and falls
+back to the sampled population when it cannot. In that case it logs a warning,
+once per channel, that gives the reason. Add
+``<population>sampled</population>`` to the `psf` section to choose the sampled
+population explicitly and silence the warning. If you set ``prf`` explicitly on
+a configuration that is not supported, `ExoSim` raises an error instead.
+
+For worked examples that compare the two populations, see :ref:`sampled vs prf`.
+
+The next sections describe the steps of the sampled population: the PRF shares
+the rescaling of the path radiances and the shape of the focal plane, but
+replaces the population and the IRF steps.
+
 .. _rescale contribution:
 
 Rescale contributions
 ---------------------
+
+This step belongs to the sampled population. The PRF population rescales only
+the path radiances (see below).
 
 With the focal-plane size and the wavelength solutions known, the incoming
 signals can be rescaled from signal densities (:math:`counts/s/\mu m`) to proper
@@ -156,10 +199,11 @@ after :func:`~exosim.models.channel.Channel.define_sources`, should call
 :func:`~exosim.models.channel.Channel.rescale_contributions` again would multiply
 the radiances by the wavelength step a second time.
 
-Populate the focal plane
-------------------------
+Populate the focal plane (sampled population)
+----------------------------------------------
 
-Next, populate the source focal plane, following this scheme:
+With the sampled population, populate the source focal plane following this
+scheme:
 
 .. image:: _static/focal_plane_population.png
     :align: center
@@ -363,6 +407,10 @@ oversampled focal plane.
 Intra-pixel response function
 -----------------------------
 
+The IRF is applied explicitly in the sampled population. The PRF population
+includes the same response in the pixel integral, so it does not apply it a
+second time.
+
 A pixel does not respond uniformly across its surface. The charge produced by a
 photon diffuses before it is collected, so a photon that lands near the centre
 of a pixel is almost always counted there, while one that lands near the edge is
@@ -505,6 +553,116 @@ task creates a kernel compatible with `fftconvolve`, `convolve` and
 :class:`~exosim.tasks.instrument.create_oversampled_intrapixel_response_function.CreateOversampledIntrapixelResponseFunction`
 task instead produces a kernel for `fast_convolution`, a method developed
 specifically for ExoSim.
+
+.. _prf population:
+
+Populate with the pixel response function
+-----------------------------------------
+
+The PRF population is the default, and the reason is accuracy. The sampled
+population, described above, discretises everything on the sub-pixel grid. The
+spectrum is resampled on the sub-columns, so that each sub-column carries a
+single wavelength; the PSF is sampled at the sub-pixel centres; the IRF then
+sums the samples of each pixel. Each of these steps is an approximation that
+improves with the oversampling factor, and so the result depends on it: the
+brightest pixel converges within a few per cent only at an oversampling of 3 to
+5, and the source can only sit on whole sub-pixels.
+
+The PRF does the pixel integral once, accurately, and then uses it
+where it is needed. The *pixel response function* (PRF) is the signal collected
+by a pixel whose centre is at a given offset from a point source:
+
+.. math::
+    \mathrm{PRF}_\lambda(\Delta x, \Delta y) = \iint \mathrm{PSF}_\lambda(x, y)\,
+    P(x - \Delta x)\, P(y - \Delta y)\, \mathrm{d}x\, \mathrm{d}y
+
+where :math:`P` is the collection probability of the IRF (:ref:`irf`), diffusion
+and inter-pixel gaps included. `ExoSim` tabulates it once per channel on a fine
+grid of offsets, at a set of wavelength nodes, starting from the analytic PSF or
+from the PAOS PSFs. Then every sample of the source spectrum, on its own fine
+wavelength grid and not on the sub-columns, deposits its flux on the focal plane
+by evaluating the PRF at its exact position: the wavelength solution for a
+spectrometer, the physical pixel ``N // 2`` of each axis for a photometer (where
+the apertures are centred, as in the sampled population), plus the pointing
+offset without rounding.
+
+The PRF is selected, and tuned, in the `psf` section of the channel. The
+`population` key is written here for clarity, but it can be omitted:
+
+.. code-block:: xml
+
+    <channel> channel_name
+        <psf>
+            <psf_task>LoadPsfPaos</psf_task>
+            <filename>__ConfigPath__/paos_file.h5</filename>
+            <population>prf</population>
+            <prf_sampling>10</prf_sampling>
+            <prf_nodes>24</prf_nodes>
+            <prf_cache>True</prf_cache>
+        </psf>
+    </channel>
+
+- `population`: `prf` (default) selects the PRF, `sampled` the scheme described
+  above. When the key is absent and the PRF cannot reproduce the configuration,
+  `ExoSim` uses `sampled` and logs a warning (:ref:`focal plane population`);
+- `prf_sampling`: fine samples per physical pixel in the PRF tables (default 10;
+  20 for very undersampled PSFs, at about three times the memory);
+- `prf_nodes`: number of wavelength nodes for an analytic PSF (default 24); for
+  PAOS PSFs the nodes are the PAOS wavelengths;
+- `prf_cache`: keep the tables of the channel in memory and reuse them for the
+  next targets or time steps (default `True`). The tables depend only on the PSF
+  and on the detector, not on the source.
+
+The analytic PSF of the tables is cut by a window with the rules given above for
+the `psf` section: `nzero`, `size_x` and `size_y` mean the same thing, and the
+light outside the window is lost and reported in the log. The only difference is
+the grid. The default window is a square as large as the shorter side of the
+detector in *physical* pixels, odd and centred on the source, counted in the fine
+samples of the table (``prf_sampling`` per pixel), so it does not depend on the
+oversampling. `size_x` and `size_y` are still given in sub-pixels and are
+converted to fine samples.
+
+For the PAOS PSFs the tables also cover the part of the band beyond the PAOS
+wavelengths: extra nodes (at most 5% apart in wavelength) are added up to the
+edges of the band, each one the edge PSF scaled in size with the wavelength, as
+described above, so that the two populations use the same PSFs.
+
+The PRF fills the same oversampled focal plane as the sampled population, with
+the same shape and the same `spectral` and `spatial` axes, but every sub-pixel
+already holds the signal that a pixel centred on it would collect, which is what
+the sampled population holds only after the IRF. Everything downstream, from the
+decimation at ``osf * m + osf // 2`` to the saturation, the apertures and the
+jitter of the sub-exposures, works unchanged; the IRF is not applied again (the
+plane carries the metadata ``pixel_response_applied``). The physical pixels are
+the same for any oversampling factor: an oversampling of 1 already gives the
+exact static focal plane, and a larger factor is needed only for the jitter,
+which moves the plane by whole sub-pixels.
+
+The PRF does not need more computing time in practice. The table build costs
+about one second per channel for typical PAOS PSFs, and it is paid once thanks
+to the cache; the deposit is fast, and the memory does not grow with the
+oversampling factor, unlike the PSF cube of the sampled population, whose size
+grows with the square of the factor.
+When the focal plane is written to an output file, the PRF population also
+stores there, once per channel, the PSF cube of the sampled population (the
+``psf`` group), because the instrument line shapes of the sub-exposures are read
+from it (:class:`~exosim.tasks.subexposures.load_ils.LoadILS`). That cube does
+grow with the oversampling factor.
+
+Wrappers that run their own sequence of channel steps should call
+:func:`~exosim.models.channel.Channel.populate_source_planes`, which runs the
+right steps for either population: the PRF needs the path radiances rescaled
+(:func:`~exosim.models.channel.Channel.rescale_radiances`) but the sources *not*
+rescaled to the sub-columns.
+
+.. caution::
+    The PRF does not support yet time-dependent PSFs
+    (:class:`~exosim.tasks.instrument.loadPsfPaosTimeInterp.LoadPsfPaosTimeInterp`),
+    custom PSF tasks or custom `irf_task` kernels. With ``<population>prf``
+    set explicitly these raise an error; with the key absent `ExoSim` uses the
+    sampled population instead and logs a warning. The `size_x` and `size_y`
+    keys of the PSF are given in sub-pixels, as for the sampled population, so
+    give the same physical size when you change the oversampling factor.
 
 Populate the foreground focal plane
 -----------------------------------

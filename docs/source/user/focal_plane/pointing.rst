@@ -17,7 +17,10 @@ fall in the field.
 The path of the target from the sky to the focal plane is handled in
 :class:`~exosim.tasks.instrument.populate_focal_plane.PopulateFocalPlane` by
 :class:`~exosim.tasks.instrument.compute_sources_pointing_offset.ComputeSourcesPointingOffset`.
-The offset resolution is an integer multiple of the sub-pixel size.
+With the default PRF population (:ref:`prf population`) the offset is used as
+it is, without rounding, and the source lands at its exact position for any
+oversampling factor. With the sampled population the offset is rounded to a
+whole number of sub-pixels, so its resolution is the sub-pixel size.
 
 Telescope pointing
 ------------------

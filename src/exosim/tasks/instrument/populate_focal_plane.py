@@ -89,6 +89,9 @@ class PopulateFocalPlane(Task):
     def load_psf(parameters, focal_plane, output):
         """
         Loads the PSF as indicated in the configuration file or it creates them.
+        It is shared with
+        :class:`~exosim.tasks.instrument.populate_focal_plane_prf.PopulateFocalPlanePrf`,
+        which calls it to store the PSF in the output file.
 
         Parameters
         ----------
@@ -154,16 +157,20 @@ class PopulateFocalPlane(Task):
             # store the psf
             if output is not None:
                 output_group = output.create_group("psf")
-                output_group.write_array(
-                    "psf_cube",
-                    psf,
-                    metadata={
-                        "spatial fp_axis": 2,
-                        "spectral_fp_axis": 3,
-                        "wavelength_axis": 1,
-                        "time_axis": 0,
-                    },
-                )
+                try:
+                    output_group.write_array(
+                        "psf_cube",
+                        psf,
+                        metadata={
+                            "spatial fp_axis": 2,
+                            "spectral_fp_axis": 3,
+                            "wavelength_axis": 1,
+                            "time_axis": 0,
+                        },
+                    )
+                except ValueError as e:
+                    if "name already exists" not in str(e):
+                        raise e
                 norms = psf.sum(axis=0).sum(axis=0)
                 try:
                     output_group.write_array("norm", norms)

@@ -11,10 +11,16 @@ class ComputeSourcesPointingOffset(Task):
 
     Returns
     -------
-    int
+    int or float
         offset to add to the spectral pixel index
-    int
+    int or float
         offset to add to the spatial pixel index
+
+    The offsets are rounded to a whole number of sub-pixels, unless the
+    ``exact`` parameter is ``True``: the exact (float) offsets are returned,
+    as needed by the pixel response function population
+    (``<psf><population>prf</population></psf>``), which places the source at
+    its true position.
 
     Notes
     -----
@@ -38,17 +44,22 @@ class ComputeSourcesPointingOffset(Task):
             dictionary containing :class:`~exosim.models.signal.Sed` metadata
         pointing: tuple
             telescope pointing direction, expressed as a tuple of RA and DEC. Default is ``None``
+        exact: bool (optional)
+            if ``True`` the offsets are returned as floats, not rounded to a whole
+            number of sub-pixels. Default is ``False``.
 
         """
 
         self.add_task_param("parameters", "channel parameters dict")
         self.add_task_param("source", "source source description dictionary")
         self.add_task_param("pointing", "telescope pointing")
+        self.add_task_param("exact", "return the offsets without rounding", False)
 
     def execute(self):
         parameters = self.get_task_param("parameters")
         source = self.get_task_param("source")
         pointing = self.get_task_param("pointing")
+        exact = self.get_task_param("exact")
 
         compute = bool(pointing)
         if "ra" in source["parsed_parameters"]:
@@ -102,6 +113,12 @@ class ComputeSourcesPointingOffset(Task):
         else:
             self.debug("Angle of View computation skipped: missing information")
             offset_along_spectral_axis = offset_along_spatial_axis = 0
+
+        if exact:
+            self.set_output(
+                [float(offset_along_spectral_axis), float(offset_along_spatial_axis)]
+            )
+            return
 
         # the offset is a whole number of sub-pixels: round to the nearest one
         self.set_output(

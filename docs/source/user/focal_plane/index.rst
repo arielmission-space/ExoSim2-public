@@ -28,6 +28,7 @@ detector focal plane.
    Optical paths <optical_paths>
    Channel <channel>
    Focal plane <focal_plane_array>
+   Sampled and PRF populations <sampled_vs_prf>
    Resulting focal planes <resulting_focal_plane>
    Automatic pipeline <pipeline>
 

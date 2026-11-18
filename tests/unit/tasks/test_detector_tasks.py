@@ -11,6 +11,7 @@ import os
 from copy import deepcopy
 
 import astropy.units as u
+import h5py
 import numpy as np
 import pytest
 from astropy.io import ascii
@@ -36,6 +37,7 @@ from exosim.tasks.detector import (
     ApplySimpleSaturation,
     MergeGroups,
 )
+from exosim.utils import RunConfig
 
 set_log_level(logging.DEBUG)
 
@@ -283,6 +285,29 @@ class TestNoiseOperations:
             np.testing.assert_allclose(np.mean(input_signal.dataset), 10000, rtol=0.001)
             np.testing.assert_allclose(np.std(input_signal.dataset), 100, rtol=0.1)
 
+        os.remove(fname)
+
+    def test_shot_noise_rejects_nan(self, test_data_dir):
+        """AddShotNoise raises a clear error on non-finite input."""
+        import pytest
+
+        fname = os.path.join(test_data_dir, "output_test_nan.h5")
+        output = SetOutput(fname)
+        data = np.ones((4, 4, 10)) * 100.0
+        data[0, 0, :3] = np.nan
+        with output.use(cache=True) as out:
+            input_signal = Counts(
+                spectral=np.arange(0, 10),
+                data=data,
+                shape=data.shape,
+                cached=True,
+                output=out,
+                dataset_name="SubExposures",
+                output_path=None,
+                dtype=np.float64,
+            )
+            with pytest.raises(ValueError, match=r"3 non-finite values \(3 NaN\)"):
+                AddShotNoise()(subexposures=input_signal)
         os.remove(fname)
 
     def test_read_noise_statistics(self, test_data_dir):
@@ -963,8 +988,11 @@ class TestCosmicRayOperations:
         """
         Test cosmic ray interaction rate and detection.
 
-        This test verifies that cosmic rays are generated at the
-        expected rate and produce the correct number of interactions.
+        With ``cosmic_rays_rate`` set so that the scaled rate is 1 ct/s over a
+        total integration time of 11 s (10 frames, one of them doubled), the
+        model must generate exactly 11 single-pixel events. The event count is
+        read from the cosmic-ray table so that two events landing on the same
+        pixel do not undercount it.
         """
         fname = os.path.join(self.test_data_dir, "output_test_cr.h5")
         output = SetOutput(fname)
@@ -982,35 +1010,55 @@ class TestCosmicRayOperations:
         }
         integration_times = np.ones(10)
         integration_times[1] *= 2  # Double integration time for one frame
+        expected_total_events = 11  # 10 frames + 1 extra for the doubled frame
 
-        with output.use(cache=True) as out:
-            input_signal = Counts(
-                spectral=np.arange(0, 10),
-                data=data,
-                shape=data.shape,
-                cached=True,
-                output=out,
-                dataset_name="SubExposures",
-                output_path=None,
-                dtype=np.float64,
-            )
+        original_seed = RunConfig.random_seed
+        RunConfig.random_seed = 42
+        try:
+            with output.use(cache=True) as out:
+                input_signal = Counts(
+                    spectral=np.arange(0, 10),
+                    data=data,
+                    shape=data.shape,
+                    cached=True,
+                    output=out,
+                    dataset_name="SubExposures",
+                    output_path=None,
+                    dtype=np.float64,
+                )
 
-            addCosmicRays = AddCosmicRays()
-            addCosmicRays(
-                subexposures=input_signal,
-                parameters=parameters,
-                integration_times=integration_times,
-            )
+                addCosmicRays = AddCosmicRays()
+                addCosmicRays(
+                    subexposures=input_signal,
+                    parameters=parameters,
+                    integration_times=integration_times,
+                    output=out,
+                )
 
-            # Count cosmic ray events (saturated pixels)
-            total_detected_events = sum(
-                len(np.where(input_signal.dataset[t] == 10000)[0])
-                for t in range(input_signal.dataset.shape[0])
-            )
-            expected_total_events = 11  # 10 frames + 1 extra for doubled integration
-            assert total_detected_events == expected_total_events, (
-                f"Expected {expected_total_events} events, but detected {total_detected_events}"
-            )
+                saturated_per_frame = [
+                    np.count_nonzero(input_signal.dataset[t] == 10000)
+                    for t in range(input_signal.dataset.shape[0])
+                ]
+
+            with h5py.File(fname, "r") as stored:
+                group = stored["cosmic rays"]
+                events_counter = group["cosmic events counter"][...]
+                n_event_rows = group["cosmic rays events"].shape[0]
+
+            # One table row per generated event, and the per-frame counter sums
+            # to the same total, independent of where the pixels land.
+            assert n_event_rows == expected_total_events
+            assert int(np.sum(events_counter)) == expected_total_events
+
+            # Every event is a single-pixel saturation, so a frame can never show
+            # more saturated pixels than events assigned to it (two events on the
+            # same pixel would show fewer).
+            for saturated, assigned in zip(
+                saturated_per_frame, events_counter, strict=True
+            ):
+                assert saturated <= assigned
+        finally:
+            RunConfig.random_seed = original_seed
 
         os.remove(fname)
 

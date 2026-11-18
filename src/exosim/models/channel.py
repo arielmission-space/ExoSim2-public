@@ -8,6 +8,7 @@ import exosim.models.signal as signal
 import exosim.tasks.instrument as instrument
 import exosim.tasks.parse as parse
 from exosim.utils.klass_factory import find_and_run_task
+from exosim.utils.prf import get_population
 from exosim.utils.types import ArrayType, OutputType, ValueType
 
 
@@ -40,6 +41,9 @@ class Channel(log.Logger):
         dictionary of :class:`~exosim.models.signal.Signal`. It contains the sub focal planes produced by the radiances.
         This dictionary is produced only if at least one optical surface has ``isolate=True``.
         The sum of the sub focal planes returns the frg_focal_plane. If not surface has ``isolate=True``, the dictionary is empty.
+    prf: :class:`~exosim.utils.prf.PrfTables`
+        pixel response function tables, built by :meth:`populate_focal_plane_prf`
+        (with the ``prf`` population, the default)
     output: :class:`~exosim.output.output.Output`
         output file
     target_source: str
@@ -81,6 +85,8 @@ class Channel(log.Logger):
             None,
             None,
         )
+        # pixel response function tables, see populate_focal_plane_prf
+        self.prf = None
         (
             self.focal_plane,
             self.bkg_focal_plane,
@@ -418,6 +424,175 @@ class Channel(log.Logger):
 
         return self.bkg_focal_plane
 
+    @property
+    def psf_population(self) -> str:
+        """
+        How the focal plane is populated: ``"prf"`` (default, pixel response
+        function) or ``"sampled"`` (monochromatic point-sampled PSFs followed by
+        the IRF), from ``<psf><population>``.
+
+        When the key is absent and the configuration is one the PRF cannot
+        reproduce, the population is ``"sampled"`` and a warning is logged
+        once per channel.
+        """
+        return get_population(self.parameters, on_fallback=self._warn_fallback)
+
+    def _warn_fallback(self, reason: str) -> None:
+        if getattr(self, "_fallback_warned", False):
+            return
+        self._fallback_warned = True
+        self.warning(
+            f"Channel {self.ch_name}: <psf><population> is not set and the PRF "
+            f"population cannot be used ({reason}). Falling back to the sampled "
+            "population. Add <population>sampled</population> to the <psf> "
+            "section to silence this warning."
+        )
+
+    def populate_focal_plane_prf(
+        self, pointing: tuple[u.Quantity, u.Quantity] | None = None
+    ) -> signal.Signal:
+        """
+        It populates the empty focal plane with the pixel response function
+        (PRF) of the target source, see
+        :class:`~exosim.tasks.instrument.populate_focal_plane_prf.PopulateFocalPlanePrf`.
+
+        Every sub-pixel of the plane holds the signal that a physical pixel
+        centred on it collects: the IRF must *not* be applied afterwards (see
+        :meth:`apply_irf_to`), and the physical pixels are
+        ``focal_plane.data[:, osf // 2 :: osf, osf // 2 :: osf]``. The source
+        is used on its own wavelength grid: only the path radiances must be
+        rescaled onto the focal plane (:meth:`rescale_radiances`), *not* the
+        sources (:meth:`rescale_sources`).
+
+        Parameters
+        -----------
+        pointing: (:class:`astropy.units.Quantity`, :class:`astropy.units.Quantity`) (optional)
+            telescope pointing direction, expressed ad a tuple of RA and DEC in degrees. Default is ``None``
+
+        Returns
+        -------
+        :class:`~exosim.models.signal.Signal`
+            focal plane array populated
+        """
+        target = self.target_source
+
+        if target is None:
+            self.info("No sources defined, skipping focal plane population.")
+            return self.focal_plane
+
+        # storing the target source binned on the focal plane columns, as in
+        # the sampled population (the sub-exposures weight the signal by it)
+        self._write_binned_source(target)
+
+        populate = instrument.PopulateFocalPlanePrf()
+        focal_plane, prf = populate(
+            parameters=self.parameters,
+            focal_plane=self.focal_plane,
+            sources={target: self.sources[target]},
+            pointing=pointing,
+            prf=self.prf,
+            output=self.output,
+        )
+        self.prf = prf
+        self.focal_plane = focal_plane
+        return focal_plane
+
+    def populate_bkg_focal_plane_prf(
+        self, pointing: tuple[u.Quantity, u.Quantity] | None = None
+    ) -> signal.Signal:
+        """
+        It populates the empty background focal plane with the PRF of each of
+        the background sources. See :meth:`populate_focal_plane_prf`.
+
+        Parameters
+        -----------
+        pointing: (:class:`astropy.units.Quantity`, :class:`astropy.units.Quantity`) (optional)
+            telescope pointing direction, expressed ad a tuple of RA and DEC in degrees. Default is ``None``
+
+        Returns
+        -------
+        :class:`~exosim.models.signal.Signal`
+            background focal plane array populated
+        """
+        if len(self.sources) > 1:
+            # removing target source from source dictionary
+            target = self.target_source
+            self.sources.pop(target)
+
+            for source in self.sources:
+                self._write_binned_source(source)
+
+            populate = instrument.PopulateFocalPlanePrf()
+            bkg_focal_plane, self.prf = populate(
+                parameters=self.parameters,
+                focal_plane=self.bkg_focal_plane,
+                sources=self.sources,
+                pointing=pointing,
+                prf=self.prf,
+                output=self.output,
+            )
+            self.bkg_focal_plane = bkg_focal_plane
+
+        return self.bkg_focal_plane
+
+    def _write_binned_source(self, source: str) -> None:
+        """
+        It stores a source rebinned onto the focal plane wavelength grid and
+        multiplied by the column width (the form of the sources in the sampled
+        population) without touching the source itself.
+        """
+        if self.output is None:
+            return
+        binned = self.sources[source].copy()
+        binned.spectral_rebin(self.focal_plane.spectral)
+        binned *= self._focal_plane_wavelength_step()
+        binned.write(self.output.create_group("sources"), name=source)
+
+    def populate_source_planes(
+        self, pointing: tuple[u.Quantity, u.Quantity] | None = None
+    ) -> tuple[signal.Signal, signal.Signal | None]:
+        """
+        It populates the source and background focal planes in the way
+        selected by ``<psf><population>``, with the right sequence of steps:
+
+        - ``sampled``: :meth:`rescale_contributions`,
+          :meth:`populate_focal_plane`, :meth:`populate_bkg_focal_plane` and,
+          when the oversampling is larger than 1, :meth:`apply_irf` (the
+          default IRF task if ``irf_task`` is not given);
+        - ``prf`` (default): :meth:`rescale_radiances` (the sources are *not*
+          rescaled), :meth:`populate_focal_plane_prf` and
+          :meth:`populate_bkg_focal_plane_prf`; no IRF.
+
+        The foreground plane is populated separately
+        (:meth:`populate_foreground_focal_plane`).
+
+        Parameters
+        -----------
+        pointing: (:class:`astropy.units.Quantity`, :class:`astropy.units.Quantity`) (optional)
+            telescope pointing direction, expressed ad a tuple of RA and DEC in degrees. Default is ``None``
+
+        Returns
+        -------
+        :class:`~exosim.models.signal.Signal`
+            source focal plane
+        :class:`~exosim.models.signal.Signal`
+            background focal plane (``None`` if there are no background sources)
+        """
+        if self.psf_population == "prf":
+            self.rescale_radiances()
+            self.populate_focal_plane_prf(pointing)
+            # TODO test if no other stars are present
+            self.populate_bkg_focal_plane_prf(pointing)
+        else:
+            self.rescale_contributions()
+            self.populate_focal_plane(pointing)
+            # TODO test if no other stars are present
+            self.populate_bkg_focal_plane(pointing)
+            detector = self.parameters["detector"]
+            if detector.get("oversampling", 1) > 1:
+                self.apply_irf()
+        return self.focal_plane, self.bkg_focal_plane
+
     def apply_irf_to(
         self, focal_plane: signal.Signal, _kernel: tuple | None = None
     ) -> signal.Signal:
@@ -447,6 +622,13 @@ class Channel(log.Logger):
         :class:`~exosim.models.signal.Signal`
             focal plane array with the IRF applied
         """
+        if focal_plane.metadata.get("pixel_response_applied"):
+            self.info(
+                f"{focal_plane.dataset_name}: the pixel response is already applied "
+                "(PRF population), skipping the IRF."
+            )
+            return focal_plane
+
         kernel, delta_kernel = _kernel or self._create_irf_kernel()
 
         if "convolution_method" in self.parameters["detector"]:
@@ -499,6 +681,10 @@ class Channel(log.Logger):
         :class:`~exosim.models.signal.Signal`
             focal plane array
         """
+        if self.psf_population == "prf":
+            self.info("PRF population: the pixel response is already applied.")
+            return self.focal_plane, self.bkg_focal_plane
+
         kernel = self._create_irf_kernel()
         focal_plane = self.apply_irf_to(self.focal_plane, _kernel=kernel)
 

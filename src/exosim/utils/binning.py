@@ -19,7 +19,12 @@ def rebin(
     This function can resample multidimensional array along a given axis.
     Resample a function fp(xp) over the new grid x, rebinning if necessary,
     otherwise interpolates. Interpolation is done using 'linear' method.
-    This function doesn't perform extrapolation: unsample coordinates will be filled with filled value.
+    The two paths treat unsampled coordinates differently.
+    When interpolating, coordinates outside the data are filled with
+    ``fill_value`` (a number, or ``"extrapolate"`` for linear extrapolation).
+    When binning, ``fill_value`` is not used: every output point whose bin
+    contains no sample, in particular points beyond the data, is NaN.
+    Callers that need finite values must fill those NaN themselves.
 
 
     Parameters
@@ -36,7 +41,8 @@ def rebin(
         the mode indicates the statistic to use for binning by :func:`scipy.stats.binned_statistic`.
         Default is 'mean'.
     fill_value: float or str (optional)
-        fill value for unsampled coordinates. Default is 0.0.
+        fill value for unsampled coordinates, used by the interpolation path
+        only (see above). Default is 0.0.
 
 
     Returns

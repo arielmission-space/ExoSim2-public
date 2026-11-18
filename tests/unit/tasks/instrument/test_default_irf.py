@@ -168,12 +168,13 @@ def test_default_irf_integrates_the_psf_over_the_pixel(osf):
 class TestRadiometricRecipeGate:
     """``populate_source_focal_plane`` applies the IRF for any osf > 1."""
 
-    def _run(self, detector):
+    def _run(self, detector, population="sampled"):
         rm = object.__new__(RadiometricModel)
         log.Logger.__init__(rm)
         rm.payloadConfig = {"Telescope": {"Atel": 1.0}}
         channel = MagicMock()
         channel.parameters = {"detector": detector}
+        channel.psf_population = population
         rm.populate_source_focal_plane({}, channel)
         return channel
 
@@ -184,3 +185,17 @@ class TestRadiometricRecipeGate:
     def test_not_applied_at_osf_one(self):
         ch = self._run(_detector(1))
         ch.apply_irf_to.assert_not_called()
+
+    def test_prf_population_uses_the_prf_path_without_irf(self):
+        ch = self._run(_detector(3), population="prf")
+        ch.rescale_radiances.assert_called_once_with()
+        ch.populate_focal_plane_prf.assert_called_once_with()
+        ch.rescale_contributions.assert_not_called()
+        ch.populate_focal_plane.assert_not_called()
+        ch.apply_irf_to.assert_not_called()
+
+    def test_sampled_population_does_not_use_the_prf_path(self):
+        ch = self._run(_detector(3), population="sampled")
+        ch.rescale_contributions.assert_called_once_with()
+        ch.populate_focal_plane.assert_called_once_with()
+        ch.populate_focal_plane_prf.assert_not_called()

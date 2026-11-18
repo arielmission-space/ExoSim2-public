@@ -19,7 +19,7 @@ import sys
 import time
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, TextIO
 
 import structlog
 
@@ -36,6 +36,37 @@ _active_prefix_filters = {}
 
 # Global variable to store current logging context for task inheritance
 _current_logging_context = "exosim"  # Default to exosim
+
+
+# Stream the console logs are written to; ``None`` means ``sys.stdout``.
+_log_stream: TextIO | None = None
+
+
+# Whether the development console renderer emits ANSI colour codes.
+# ``EXOSIM_LOG_COLORS=false`` turns them off from the start, before anything is
+# logged at import time (used by the MCP job worker, whose logs go to a file).
+_log_colors: bool = os.environ.get("EXOSIM_LOG_COLORS", "true").lower() != "false"
+
+
+def set_log_colors(enabled: bool) -> None:
+    """Enable or disable ANSI colours in the development console renderer.
+
+    Takes effect at the next :func:`configure_structlog` call. Used by hosts that
+    capture the logs into a file (e.g. the MCP job worker).
+    """
+    global _log_colors
+    _log_colors = bool(enabled)
+
+
+def set_log_stream(stream: TextIO | None) -> None:
+    """Choose the stream console logs go to (``None`` restores ``sys.stdout``).
+
+    Takes effect at the next :func:`configure_structlog` call. Embedding
+    applications that own stdout (e.g. the MCP stdio server, where stdout is
+    the JSON-RPC channel) point it at ``sys.stderr``.
+    """
+    global _log_stream
+    _log_stream = stream
 
 
 def configure_structlog(
@@ -73,7 +104,7 @@ def configure_structlog(
     # Configure standard library logging
     logging.basicConfig(
         format="%(message)s",
-        stream=sys.stdout,
+        stream=_log_stream or sys.stdout,
         level=numeric_level,
     )
 
@@ -97,16 +128,24 @@ def configure_structlog(
     if development and not json_logs:
         # Development: Human-readable with colors
         # Custom colors for different log levels
-        level_styles = structlog.dev.ConsoleRenderer.get_default_level_styles()
-        level_styles["graphics"] = "\033[1;36m"  # Bright cyan, bold - for ASCII art
-        level_styles["announcement"] = "\033[1;35m"  # Bright magenta, bold - stands out
+        # (explicit level styles are applied even when colors=False, so they are
+        # only built when colours are on)
+        level_styles = None
+        if _log_colors:
+            level_styles = structlog.dev.ConsoleRenderer.get_default_level_styles()
+            level_styles["graphics"] = "\033[1;36m"  # Bright cyan, bold - ASCII art
+            level_styles["announcement"] = "\033[1;35m"  # Bright magenta, bold
 
         processors.extend(
             [
                 structlog.dev.set_exc_info,
                 structlog.dev.ConsoleRenderer(
-                    colors=True,
-                    exception_formatter=structlog.dev.better_traceback,
+                    colors=_log_colors,
+                    exception_formatter=(
+                        structlog.dev.better_traceback
+                        if _log_colors
+                        else structlog.dev.plain_traceback
+                    ),
                     level_styles=level_styles,
                 ),
             ]
@@ -121,7 +160,7 @@ def configure_structlog(
     structlog.configure(
         processors=processors,
         context_class=dict,
-        logger_factory=structlog.WriteLoggerFactory(),
+        logger_factory=structlog.WriteLoggerFactory(file=_log_stream),
         wrapper_class=structlog.make_filtering_bound_logger(numeric_level),
         cache_logger_on_first_use=False,  # Disable caching for dynamic levels
     )

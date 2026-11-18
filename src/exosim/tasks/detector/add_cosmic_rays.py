@@ -259,8 +259,12 @@ class AddCosmicRays(Task):
         integration_weights = integration_times / total_integration_time
         probabilities = integration_weights  # Convert to simple float array
 
-        # Generate a random multinomial distribution of events across sub-exposures
-        events_counter = np.random.multinomial(int(total_events), probabilities)
+        # Generate a random multinomial distribution of events across sub-exposures.
+        # Use ``RunConfig.random_generator`` (not the global NumPy RNG) so a run
+        # with a fixed ``random_seed`` reproduces the same cosmic-ray placement.
+        events_counter = RunConfig.random_generator.multinomial(
+            int(total_events), probabilities
+        )
 
         self.debug(f"Probabilities: {probabilities}")
         self.debug(f"Probabilities sum: {np.sum(probabilities)}")

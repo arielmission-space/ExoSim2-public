@@ -81,3 +81,5 @@ ships a set of :doc:`tools <tools/index>` that help you prepare the inputs.
    NDRs <ndrs/index>
    Plotter <plotter/index>
    Tools <tools/index>
+   Common configuration edits <common_edits>
+   MCP server <mcp>

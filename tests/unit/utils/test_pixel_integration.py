@@ -182,7 +182,9 @@ def _channel(osf):
             "delta_pix": PIX * u.um,
             "diffusion_length": 0.0 * u.um,
             "intra_pix_distance": 0.0 * u.um,
-        }
+        },
+        # pinned: with the default (prf) population apply_irf is a no-op
+        "psf": {"population": "sampled"},
     }
     ch = object.__new__(Channel)
     Channel.__bases__[0].__init__(ch)

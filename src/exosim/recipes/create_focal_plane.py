@@ -314,12 +314,9 @@ class CreateFocalPlane(TimedClass, log.Logger):
         )
         channel.propagate_sources(Atel=self.payloadConfig["Telescope"]["Atel"])
         channel.create_focal_planes()
-        channel.rescale_contributions()
-        channel.populate_focal_plane(pointing)
-        # TODO test if no other stars are present
-        channel.populate_bkg_focal_plane(pointing)
-        if description["detector"].get("oversampling", 1) > 1:
-            channel.apply_irf()
+        # pixel response function (default) or sampled PSFs + IRF, see
+        # ``<psf><population>``
+        channel.populate_source_planes(pointing)
 
         channel.populate_foreground_focal_plane()
 

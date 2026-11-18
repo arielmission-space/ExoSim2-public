@@ -12,6 +12,240 @@ Unreleased changes live as fragments in ``changelog.d/`` and are merged here by
 
 .. scriv-insert-here
 
+.. _changelog-2.3.0:
+
+[2.3.0_] - MCP server and PRF population
+========================================
+
+Added
+-----
+
+- ``exosim-mcp``: an optional Model Context Protocol (MCP) server that lets an
+  MCP client (a desktop app, an IDE extension, an orchestrator) ask questions
+  about ExoSim grounded in its documentation and source, validate and draft
+  configurations, run pipelines as supervised background jobs and inspect the
+  results. It is an access layer around the existing API and CLI and adds no
+  scientific capability. Install it with ``pip install "exosim[mcp]"``; it needs
+  the ``mcp`` SDK 2.x (``mcp>=2,<3``, the 1.x SDK is not supported). The guide
+  is ``docs/source/user/mcp.rst``: per-client setup (Claude Desktop, Claude
+  Code, VS Code, Cursor, opencode, Cline, Continue), troubleshooting, the safety
+  model, verified example conversations and the known limits.
+- 21 tools, 16 of them without execution: ``capabilities``,
+  ``search_knowledge_base``, ``knowledge_base_manifest``,
+  ``exosim_project_context``, ``customisation_guide``, ``validate_config``,
+  ``compare_configs``, ``config_requirements``, ``draft_config``,
+  ``list_pipelines``, ``describe_pipeline``, ``list_examples``,
+  ``inspect_output``, ``explain_output``, ``suggest_next_steps`` and
+  ``diagnose_error``; plus the execution tools ``run_pipeline``,
+  ``get_job_status``, ``cancel_job``, ``list_jobs`` and ``plot_output``. Also
+  the resources ``exosim://kb`` and ``exosim://kb/{+path}`` and the prompts
+  ``new_simulation``, ``set_up_channel``, ``diagnose_failed_run`` and
+  ``explain_output``. The pipelines are ``focalplane``, ``subexposures``,
+  ``ndrs`` and ``radiometric``, discovered from the recipe classes.
+- Self-contained install: the wheel ships the knowledge base, the example
+  configurations and the reference configurations (142 files under
+  ``exosim/mcp/_data``, 2.06 MB unpacked and 0.79 MB compressed), so no
+  checkout is needed. The content root is ``--repo-root`` /
+  ``EXOSIM_MCP_REPO_ROOT``, else the current directory or the installed
+  checkout if it is an ExoSim checkout, else the packaged content;
+  ``capabilities()`` reports which and warns when the knowledge base is empty.
+- Grounded answers: ``search_knowledge_base`` ranks structure-aware chunks with
+  BM25 and returns ``status="insufficient_evidence"`` when nothing matches. The
+  search is lexical, so an off-topic question that shares ordinary words with
+  the documentation can still return ``ok``. Optional hybrid retrieval with
+  sentence embeddings needs ``pip install "exosim[mcp,mcp-embeddings]"`` (the
+  extra does not include ``mcp`` and pulls in PyTorch) and
+  ``EXOSIM_MCP_RETRIEVAL=hybrid``. ``nox -s retrieval-eval`` guards the ranking.
+- Safety summary: the sandbox confines the paths the tools accept to the
+  content root (read), the working directory (``--work-dir``, all writes) and
+  ``EXOSIM_MCP_ALLOW_DIRS``. With execution enabled, which is the default, a
+  client that can write a configuration and run it can execute arbitrary code
+  through the Python tasks a configuration references: the sandbox does not
+  confine what a run does. ``exosim-mcp --no-exec`` (``EXOSIM_MCP_NO_EXEC``)
+  removes the five execution tools. Runs are separate processes, limited by
+  ``EXOSIM_MCP_MAX_RUNTIME`` (default 3600 s), ``EXOSIM_MCP_MAX_JOBS`` (default
+  2, beyond which ``run_pipeline`` returns ``status="refused"``) and
+  ``EXOSIM_MCP_MAX_THREADS``, and are terminated when the server exits. The
+  default transport is stdio; ``--transport http|sse`` listens on
+  ``127.0.0.1:8000`` by default and has no authentication, so do not expose it
+  on an untrusted network. Two runs never write the same output (a second
+  ``run_pipeline`` on a running job's output is refused), ``wait_seconds`` is
+  capped at 50 s so a call stays below client tool timeouts, and a work
+  directory that cannot be created falls back to ``~/.exosim/mcp-runs`` with a
+  warning (an explicit one that cannot be used is a clear error).
+- Tool errors reach the client with their message
+  (``Error executing tool X: <message>``), and ExoSim's console logs go to
+  stderr so that they never corrupt the stdio protocol stream. Job logs hold
+  everything a run printed, without colour codes.
+- ``AGENTS.md`` and the guides under ``docs/ai-agents/`` for AI coding
+  assistants, checked by ``nox -s check-agent-docs``, and a "Common
+  configuration edits" user guide page.
+
+- Pixel response function (PRF) population of the focal plane, selected with
+  ``<psf><population>prf</population></psf>`` (it is the default, see the
+  ``prf-default`` entry; ``<population>sampled</population>`` gives the
+  previous population, unchanged bit by bit). Instead of adding
+  point-sampled monochromatic PSFs and convolving the oversampled plane with
+  the intra pixel response (the IRF), the signal of a pixel centred at
+  :math:`r_p` from a source at :math:`r_s` is computed as
+  :math:`\int PSF(r - r_s) P(r - r_p) d^2 r`, with :math:`P` the extended
+  Barron et al. (2007) response (diffusion length, inter-pixel gap and
+  neighbouring pixels as in the IRF). The PSF is tabulated on a fine grid
+  (``<prf_sampling>``, default 10 samples per pixel), convolved with the
+  response with a third order quadrature, and deposited for every sample of
+  the source spectrum, on the wavelength grid of the source (the source is
+  *not* rescaled onto the focal plane columns), at its exact position: the
+  continuous wavelength solution for the spectrometers, the physical pixel
+  ``N // 2`` for the photometers (where the apertures are centred) and the
+  unrounded pointing offset. The signal does not
+  depend on the oversampling factor (``osf = 1`` gives the physical pixels
+  exactly, a larger factor is only needed to jitter the plane), the pixel
+  integration and the charge diffusion are exact up to the tabulation (against
+  a brute-force integration of PSF x pixel response: 0.02-0.06% per pixel for
+  ``F*lambda/d = 2.5``; for the undersampled ``F*lambda/d = 0.73`` 0.2-0.3%
+  for the pixels above 0.1% of the peak with ``prf_sampling = 20`` and 0.7% with
+  the default 10, always below 0.05% of the peak), and the flux is the source
+  flux times the energy inside the PSF
+  window (by default a square as large as the shorter side of the detector, odd
+  and centred, as for the sampled population; ``nzero`` or ``size_x`` and
+  ``size_y`` override it, and the light outside the window is lost). The PSF is the analytic Airy or Gauss one (tabulated at
+  ``<prf_nodes>`` wavelengths, default 24) or the PAOS one (resampled on the fine
+  grid from the PAOS wavelengths, flux exact). Every sub-pixel of the plane holds
+  the signal of a pixel centred on it, as after the IRF, hence the readers
+  (decimation ``[osf // 2 :: osf]``, saturation, apertures, jitter) are
+  unchanged; the plane is flagged with
+  ``metadata["pixel_response_applied"] = True`` and ``apply_irf`` /
+  ``apply_irf_to`` / ``ApplyIntraPixelResponseFunction`` leave it untouched.
+  A custom ``irf_task`` (it cannot be folded into the analytic response), time
+  dependent PSFs and custom PSF tasks are refused with a clear error. The
+  oversampling of a channel with the PRF population does not require an
+  ``irf_task``.
+
+  New API: ``Channel.populate_source_planes(pointing)`` (the right sequence of
+  steps for both populations, now used by ``CreateFocalPlane.run_channel``),
+  ``Channel.populate_focal_plane_prf`` and
+  ``Channel.populate_bkg_focal_plane_prf`` (for wrappers),
+  ``exosim.tasks.instrument.PopulateFocalPlanePrf``, ``exosim.utils.prf``,
+  ``LoadPsfPaos.load_fine_psf`` and ``ComputeSourcesPointingOffset(...,
+  exact=True)``, which returns the offsets in sub-pixels as floats (the
+  rounded values remain the default).
+
+- The PRF population is independent of the oversampling also for a real
+  wavelength solution: the wavelength nodes of the tables, the size of the PSF
+  window when it is set with ``nzero`` (proportional to the longest wavelength
+  and rounded to a number of fine cells) and the part of the source spectrum that falls on the focal plane are
+  defined on the *physical* pixels (the wavelengths of their outer edges,
+  ``exosim.utils.prf.physical_axis_edges``; the range of the axis for a
+  photometer), not on the centres of the first and last sub-pixels, which depend
+  on the oversampling. Before, for a spectrometer with an Airy PSF
+  (``F*lambda/d = 2.5``) and a spectrum starting at 1 um, the window of
+  ``osf = 3`` and ``5`` was one fine cell larger than for ``osf = 1`` and the
+  signal differed by up to 0.8% above 5% of the peak; now the three agree
+  within 1e-4 of the peak.
+
+- The shape of the PAOS PSFs resampled on the fine grid of the PRF tables is
+  now the cubic (bicubic spline) interpolation of the PAOS intensity instead of
+  the bilinear one, with the negative values (ringing) clipped to zero; the
+  image is then rescaled to the exact energy of the window, as before. For an
+  analytic Gaussian of 0.56 pixel sigma written in PAOS format, the bilinear
+  interpolation flattened the fine image by 2% (PAOS cell of 2.5 um) to 12%
+  (6.9 um) per fine cell above 10% of the peak; the cubic one is within 0.7%
+  (0.3% on the peak).
+
+- The PRF tables depend only on the PSF configuration of the channel (the PSF
+  file or the analytic parameters, F-numbers, pixel size, diffusion length,
+  inter-pixel gap, ``prf_sampling``, ``prf_nodes`` and the window),
+  not on the source, the target or the time: they are kept in a process-level
+  cache (``exosim.utils.prf.cached_tables``, keyed by a hash of exactly those
+  inputs, the last 4 channels and at most 1 GiB), so that populating several
+  targets or time steps with the same channel builds them once (AIRS-CH0 of
+  Ariel: 0.9 s for the first target, 0 s for the following ones, out of
+  1.2 s and 0.3 s). ``<psf><prf_cache>False</prf_cache></psf>`` disables it.
+  Every worker process of a joblib or multiprocessing pool has its own cache.
+  New helpers: ``clear_prf_cache`` and ``prf_cache_info``.
+
+- For PAOS PSFs the PRF tables get extra wavelength nodes (at most 5% apart)
+  beyond the PAOS wavelengths, up to the edges of the band, each one the edge
+  PSF scaled in size with the wavelength as in the sampled population; the band
+  edges are part of the cache key also for PAOS PSFs.
+
+- The PRF population stores the point-sampled PSF cube in the ``psf`` group of
+  the focal plane file (``psf_cube``, ``norm`` and ``wavelength``), as the
+  sampled population does. The sub-exposures read the instrument line shapes
+  from it (``LoadILS``), so ``CreateSubExposures`` with an astronomical signal
+  now works with the PRF population.
+
+- ``exosim.utils.prf.prf_unsupported_reason`` returns why the PRF population
+  cannot be used for a channel configuration (``None`` if it can).
+
+Changed
+-------
+
+- ``setuptools`` is now a runtime dependency (``batman`` needs ``distutils`` on
+  Python 3.12). Nothing else in the ExoSim library, its CLI or its configuration
+  format changes: the MCP server is only loaded by ``exosim-mcp``.
+
+- The pixel response function (PRF) population is now the default focal plane
+  population. Without ``<psf><population>`` in the channel, the focal plane is
+  populated with the exact pixel integral of the PSF instead of point-sampled
+  PSFs followed by the IRF, and the result no longer depends on the
+  oversampling factor. ``<population>sampled</population>`` selects the old
+  scheme. The radiometric model (``RadiometricModel.populate_source_focal_plane``)
+  follows the population of the channel too. **This changes the absolute
+  signals.** For undersampled PSFs the brightest pixel, and with it the
+  saturation time and the frame time, changes by up to a few per cent with
+  respect to the sampled population, while the signal in the aperture changes
+  by much less.
+- If ``<psf><population>`` is absent and the configuration is one the PRF
+  cannot reproduce, ExoSim falls back to the sampled population and logs a
+  warning, once per channel, with the reason. The unsupported configurations
+  are a custom ``irf_task``, a time-dependent PSF or a ``psf_task`` other than
+  ``LoadPsfPaos``, and a detector without ``delta_pix``. Add
+  ``<population>sampled</population>`` to silence the warning. An explicit
+  ``<population>prf</population>`` on such a configuration still raises an
+  error.
+
+Removed
+-------
+
+- ``safety`` from the ``dev`` extra: it pinned ``filelock<4`` (no patched
+  release possible) and pulled in Authlib, joserfc and nltk. It was not run by
+  ``nox`` or CI; dependency advisories come from GitHub Dependabot.
+
+Fixed
+-----
+
+- cosmic-ray event distribution across sub-exposures now draws from
+  ``RunConfig.random_generator`` instead of the global NumPy RNG, so a run with
+  a fixed ``random_seed`` reproduces the same cosmic-ray placement; this also
+  removes an order-dependent flake in the detector test suite
+
+- ``EstimatePlanetarySignal`` no longer produces NaN limb darkening
+  coefficients or planet radii when the requested wavelength grid extends beyond
+  the table (for example the example spectrometer, which reaches 3.72 um, with
+  a table ending at 3.499 um). The NaN propagated to the signal model, to the
+  sub-exposures and, in ``exosim-ndrs``, to a misleading numpy ``lam value too
+  large`` error. Values outside the table are now linearly extrapolated, empty
+  bins inside it are linearly interpolated, and a warning gives the file, the
+  table range and the requested range.
+- ``AddShotNoise`` raises a ``ValueError`` that names the dataset and counts
+  the non-finite values, instead of numpy's ``lam value too large``.
+- The documentation of ``exosim.utils.binning.rebin`` now states that, when it
+  bins, empty bins (including output points beyond the data) are NaN and
+  ``fill_value`` is used by the interpolation path only. The behaviour is
+  unchanged.
+
+Security
+--------
+
+- ``uv.lock`` refreshed to patched releases flagged by GitHub security
+  advisories: Pillow 13.0.0, certifi 2026.10.23, filelock 4.2.10, tornado
+  6.6.1, urllib3 2.8.0, virtualenv 21.15.6, setuptools 84.2.1, jupyterlab
+  4.6.6, notebook 7.6.5 and nbconvert 7.17.2. The lock is what ``uv sync``,
+  CI and development environments install; the requirements declared by the
+  package are unchanged, so a ``pip install`` already resolves to current
+  releases.
+
 .. _changelog-2.2.5:
 
 [2.2.5_] - Focal-plane fixes
@@ -539,6 +773,8 @@ Cleaned repository
 .. _2.2.4: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.4
 
 .. _2.2.5: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.5
+
+.. _2.3.0: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.3.0
 
 .. _keepachangelog: https://keepachangelog.com/en/1.0.0/
 .. _semver: https://semver.org/spec/v2.0.0.html

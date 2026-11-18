@@ -110,6 +110,28 @@ class TestFocalPlanePlotter:
         """
         assert hasattr(FocalPlanePlotter, "_prepare_figure")
 
+    def test_prepare_figure_reads_the_channels_group(self, tmp_path):
+        """_prepare_figure must read ``<channels_path>`` directly, not
+        ``<channels_path>/channels`` (regression: a normal focal-plane output
+        has no nested ``channels/channels`` group)."""
+        import h5py
+
+        output = tmp_path / "fp.h5"
+        with h5py.File(output, "w") as handle:
+            fp = handle.create_group("channels/Photometer/focal_plane")
+            fp.create_dataset("spectral", shape=(12,))
+            fp.create_dataset("spatial", shape=(8,))
+
+        with (
+            patch.object(FocalPlanePlotter, "set_log_name"),
+            patch.object(FocalPlanePlotter, "graphics"),
+            patch.object(FocalPlanePlotter, "announce"),
+        ):
+            plotter = FocalPlanePlotter(input=str(output))
+            _fig, _spec, ch_list = plotter._prepare_figure()
+
+        assert ch_list == ["Photometer"]
+
 
 class TestRadiometricPlotter:
     """Test suite for RadiometricPlotter class."""

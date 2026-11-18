@@ -7,8 +7,18 @@ include pyproject.toml
 
 prune tests
 prune test_suite
+# docs and examples: only what the MCP server ships (see src/exosim/mcp/assets.py,
+# which copies them into the wheel at build time); no images, notebooks or big data.
 prune docs
 prune examples
+include AGENTS.md
+include docs/ai-agents/*.md
+recursive-include docs/source *.rst
+recursive-include examples *.xml *.csv *.ecsv *.h5 *.py *.yaml *.yml *.txt
+exclude examples/customsed.csv
+exclude docs/ai-agents/mcp-hardening-roadmap.md
+exclude docs/ai-agents/mcp-recipe-metadata.md
+exclude docs/ai-agents/mcp-release-plan.md
 prune .github
 prune changelog.d
 prune .benchmarks

@@ -107,15 +107,36 @@ ExoSim 2 includes repository-local guidance for LLM and coding-agent tools. Thes
 
 The support includes:
 
-- `AGENTS.md`: canonical shared guide for OpenCode, Warp and generic repository-aware agents.
-- `CLAUDE.md`: Claude Code entry point.
-- `WARP.md`: Warp compatibility entry point.
-- `.github/copilot-instructions.md` and `.github/instructions/`: GitHub Copilot repository and path-specific instructions.
+- `AGENTS.md`: the canonical shared guide ([agents.md](https://agents.md) standard), for any repository-aware agent.
 - `docs/ai-agents/codebase-map.md`: source, documentation, examples and validation map.
 - `docs/ai-agents/parameter-setup-guide.md`: XML/YAML parameter setup workflow, including `__ConfigPath__`, `<config>` includes and unit handling.
 - `docs/ai-agents/agent-playbooks.md`: reusable roles for parameter setup, pipeline selection, scientific review and developer maintenance.
 
 The rendered documentation page is `docs/source/agentic_support.rst`.
+
+### MCP server integration
+
+ExoSim 2 provides an optional Model Context Protocol (MCP) server that lets an MCP-compatible AI client interact with ExoSim in a controlled way:
+
+- Ask questions grounded in ExoSim documentation and source code (not guessing)
+- Validate configuration files
+- Run simulation pipelines
+- Inspect output files
+- Get customisation guidance
+
+The MCP server is a wrapper around existing ExoSim APIs for AI tools. It does not add new scientific features to ExoSim.
+
+Install with (the wheel ships the documentation, examples and reference configurations the server answers from, so no checkout is needed):
+
+    pip install "exosim[mcp]"
+
+Start the server:
+
+    exosim-mcp
+
+With execution enabled the server runs ExoSim recipes and configuration-referenced Python tasks on your machine; use `exosim-mcp --no-exec` for a question-and-validation-only server. The HTTP/SSE transports (`--transport http|sse`) have no authentication and bind to `127.0.0.1` by default. Semantic search is optional: `pip install "exosim[mcp,mcp-embeddings]"` and `EXOSIM_MCP_RETRIEVAL=hybrid`.
+
+See `docs/source/user/mcp.rst` for client setup, the available tools, the safety model and the known limits.
 
 ## How to contribute <a name="how-to-contribute"></a>
 

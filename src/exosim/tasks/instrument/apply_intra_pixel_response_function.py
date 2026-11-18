@@ -51,6 +51,14 @@ class ApplyIntraPixelResponseFunction(Task):
         irf_kernel_delta = self.get_task_param("irf_kernel_delta")
         convolution_method = self.get_task_param("convolution_method")
 
+        if focal_plane.metadata.get("pixel_response_applied"):
+            self.info(
+                f"{focal_plane.dataset_name}: the pixel response is already applied "
+                "(PRF population), the IRF is not applied again"
+            )
+            self.set_output(focal_plane)
+            return
+
         self.info(f"applying pixel response function to {focal_plane.dataset_name}")
 
         output_file = self.get_task_param("output")

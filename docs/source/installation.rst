@@ -145,6 +145,27 @@ now also available on the command line:
     exosim
 
 
+Optional extras
+----------------
+
+ExoSim declares a few optional dependency groups. Install the ones you need with
+``pip install "exosim[<name>]"`` or, from a checkout, ``uv sync --extra <name>``:
+
+``mcp``
+    The :doc:`MCP server <user/mcp>` (``exosim-mcp``) that lets AI assistants
+    query ExoSim's documentation and run its pipelines. Self-contained: the
+    wheel ships the knowledge base, examples and reference configurations.
+    Uses the ``mcp`` SDK 2.x.
+
+``mcp-embeddings``
+    Adds a semantic retrieval backend to the MCP server (sentence-transformers,
+    which pulls in PyTorch). It does not include ``mcp``: install both with
+    ``pip install "exosim[mcp,mcp-embeddings]"``.
+
+``dev`` / ``docs``
+    Development tooling (linting, tests, ``nox``) and the documentation build.
+
+
 Uninstall ExoSim
 ----------------
 

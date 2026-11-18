@@ -182,4 +182,18 @@ For the :class:`~exosim.models.signal.Signal` class, use
         signal_group = input_file['first_level']['stored_signal_name']
         signal = load_signal(signal_group)
 
+
+Can I use ExoSim with an AI assistant?
+--------------------------------------
+
+Yes. ExoSim has an optional :doc:`MCP server <user/mcp>`
+(``pip install "exosim[mcp]"``) that exposes its documentation, the real
+configuration loader, the pipelines and output inspection as tools an
+MCP-compatible assistant can call — grounded in the repository, with a sandbox
+around every file access. It works with Claude Desktop, Claude Code, VS Code
+(GitHub Copilot), Cursor and opencode; see :ref:`mcp-per-client-setup`.
+
+The repository also carries static, tool-neutral guidance for AI assistants
+(``AGENTS.md`` and ``docs/ai-agents/``) — see :ref:`agentic_support`.
+
 .. _h5py: https://docs.h5py.org/en/stable/

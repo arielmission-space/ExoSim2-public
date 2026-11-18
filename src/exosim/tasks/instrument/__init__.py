@@ -15,5 +15,6 @@ from .load_psf_paos_time_interp import LoadPsfPaosTimeInterp
 from .load_responsivity import LoadResponsivity
 from .load_wavelength_solution import LoadWavelengthSolution
 from .populate_focal_plane import PopulateFocalPlane
+from .populate_focal_plane_prf import PopulateFocalPlanePrf
 from .propagate_foregrounds import PropagateForegrounds
 from .propagate_sources import PropagateSources

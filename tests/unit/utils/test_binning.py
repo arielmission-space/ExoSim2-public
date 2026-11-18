@@ -196,3 +196,23 @@ class TestBinning:
             assert len(result_empty) == 0
         except (ValueError, IndexError):
             pass  # Expected behavior for empty arrays
+
+
+class TestBinningEmptyBins:
+    """The binning path leaves empty bins NaN: fill_value is for interpolation only."""
+
+    def test_binning_empty_bins_are_nan(self):
+        xp = np.linspace(0, 10, 101)
+        fp = np.sin(xp)
+        x = np.array([0.0, 2.0, 4.0, 6.0, 8.0, 10.0, 20.0, 30.0])
+        out = rebin(x, xp, fp, fill_value=5.0)
+        assert np.isnan(out[-2:]).all()
+        assert np.isfinite(out[:-2]).all()
+
+    def test_interpolation_honours_fill_value(self):
+        xp = np.linspace(0, 10, 11)
+        x = np.linspace(0, 12, 49)
+        out = rebin(x, xp, xp, fill_value=-1.0)
+        assert out[-1] == -1.0
+        out = rebin(x, xp, xp, fill_value="extrapolate")
+        np.testing.assert_allclose(out, x)

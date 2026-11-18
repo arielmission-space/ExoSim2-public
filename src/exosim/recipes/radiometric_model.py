@@ -385,6 +385,11 @@ class RadiometricModel(CreateFocalPlane):
         channel.propagate_sources(
             sources=sources, Atel=self.payloadConfig["Telescope"]["Atel"]
         )
+        if channel.psf_population == "prf":
+            # the PRF is the pixel integral of the PSF: no IRF afterwards
+            channel.rescale_radiances()
+            channel.populate_focal_plane_prf()
+            return
         channel.rescale_contributions()
         channel.populate_focal_plane()
         detector = channel.parameters["detector"]

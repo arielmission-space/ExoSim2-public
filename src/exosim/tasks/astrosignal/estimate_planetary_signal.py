@@ -5,6 +5,7 @@ import astropy.units as u
 import numpy as np
 from astropy.io import ascii
 from joblib import Parallel, delayed
+from scipy.interpolate import interp1d
 from tqdm.auto import tqdm
 
 from exosim.tasks.astrosignal.estimate_astronomical_signal import (
@@ -194,12 +195,39 @@ class EstimatePlanetarySignal(EstimateAstronomicalSignal):
         wl_key = find_key(rp_data.keys(), ["wavelength", "wl"], self)
         rp_data[wl_key] = check_units(rp_data[wl_key], wl.unit, self, True).value
 
-        return rebin(
-            wl,
-            rp_data[wl_key],
-            rp_data["rp/rs"],
-            fill_value="extrapolate",
-        )
+        return self._rebin_table(path, wl, rp_data[wl_key], rp_data["rp/rs"])
+
+    def _rebin_table(self, path, wl, table_wl, table_values):
+        """
+        Rebin a table onto the wavelength grid ``wl``, without leaving NaN.
+
+        :func:`~exosim.utils.binning.rebin` leaves empty bins as NaN when it
+        bins (see its documentation). Here the table is the truth: values
+        requested outside the table range are linearly extrapolated and
+        empty bins inside the range are linearly interpolated. Bins with data
+        are returned unchanged. A warning is logged whenever this happens.
+        """
+        wl_v = np.asarray(getattr(wl, "value", wl), dtype=float)
+        tw = np.asarray(getattr(table_wl, "value", table_wl), dtype=float)
+        tv = np.asarray(table_values, dtype=float)
+        out = np.array(rebin(wl_v, tw, tv, fill_value="extrapolate"), dtype=float)
+        # rebin drops NaN and duplicate samples from its inputs: do the same
+        ok = ~(np.isnan(tw) | np.isnan(tv))
+        tw, tv = tw[ok], tv[ok]
+        bad = np.isnan(out)
+        if bad.any():
+            lo, hi = tw.min(), tw.max()
+            n_out = int(np.count_nonzero(bad & ((wl_v < lo) | (wl_v > hi))))
+            n_in = int(np.count_nonzero(bad)) - n_out
+            func = interp1d(tw, tv, fill_value="extrapolate", kind="linear")
+            out[bad] = func(wl_v[bad])
+            self.warning(
+                f"{path}: table covers {lo:g}-{hi:g} but "
+                f"{wl_v.min():g}-{wl_v.max():g} was requested: "
+                f"{n_out} values extrapolated linearly outside the table range"
+                f", {n_in} empty bins inside it interpolated linearly"
+            )
+        return out
 
     def load_ldc(self, path: str, wl: ArrayType) -> np.ndarray:
         """
@@ -237,7 +265,7 @@ class EstimatePlanetarySignal(EstimateAstronomicalSignal):
         self.debug("binning ldc to the input wavelength grid")
         for k in ldc_data.colnames:
             if "ldc" in k:
-                ldc = rebin(wl, ldc_wl, ldc_data[k], fill_value="extrapolate")
+                ldc = self._rebin_table(path, wl, ldc_wl, ldc_data[k])
                 ldc_out.append(ldc)
         return ldc_out
 

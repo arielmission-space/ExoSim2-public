@@ -38,6 +38,16 @@ class AddShotNoise(Task):
             subexposures.dataset, desc="adding shot noise"
         ):
             data = deepcopy(subexposures.dataset[chunk])
+            finite = np.isfinite(data)
+            if not finite.all():
+                n_bad = int(data.size - np.count_nonzero(finite))
+                n_nan = int(np.count_nonzero(np.isnan(data)))
+                name = getattr(subexposures.dataset, "name", "sub-exposures")
+                raise ValueError(
+                    f"cannot add shot noise: dataset '{name}' contains {n_bad} "
+                    f"non-finite values ({n_nan} NaN) in chunk {chunk}; "
+                    "the upstream signal is invalid"
+                )
             idx = np.where(data <= 0)
             if len(idx[0]) > 0:
                 data[idx] = 1e-10

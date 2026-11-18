@@ -101,6 +101,14 @@ how to configure ExoSim 2 for the instrument you want to model.
         ^^^
         What changed in each release
 
+    .. grid-item-card:: AI Assistants
+        :text-align: center
+        :shadow: md
+        :link: agentic_support
+        :link-type: doc
+
+        Learn ExoSim faster with AI: MCP server + LLM guidance.
+
 .. toctree::
     :hidden:
     :maxdepth: 1
@@ -109,6 +117,7 @@ how to configure ExoSim 2 for the instrument you want to model.
     User guide <user/index>
     Developer guide <contributing/index>
     API guide <api/index>
+    Agentic support <agentic_support>
     FAQs <FAQs>
     License <license>
     Changelog <CHANGELOG>

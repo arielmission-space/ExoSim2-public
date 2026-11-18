@@ -56,6 +56,10 @@ dependencies = [
     "structlog>=24.4.0",
     "tomli>=1.2.0; python_version<'3.11'", # TOML parsing for Python < 3.11
     "openpyxl>=3.1.5",
+    # batman imports ``distutils`` (openmp.py), which Python 3.12 removed from the
+    # standard library; setuptools provides the shim (checked working with 80.x, 81.0
+    # and 84.0), so no upper bound.
+    "setuptools>=64",
 ]
 
 # Optional dependencies for different use cases
@@ -77,8 +81,7 @@ dev = [
     "scriv>=1.5.0",
     "nox>=2024.4.15",
 
-    # Security
-    "safety>=3.2.11",
+    # Security (dependency advisories come from GitHub Dependabot)
     "bandit>=1.8.0",
 ]
 
@@ -95,9 +98,19 @@ jupyter = [
     "notebook",
     "jupyter",
 ]
+mcp = [
+    # Only the 2.x SDK (MCPServer) is supported; see
+    # exosim.mcp.server._load_server_class.
+    "mcp>=2,<3",
+]
+
+mcp-embeddings = [
+    # Optional semantic retrieval backend (EXOSIM_MCP_RETRIEVAL=hybrid).
+    "sentence-transformers>=3,<6",
+]
 
 all = [
-    "exosim[dev,docs,jupyter]"
+    "exosim[dev,docs,jupyter,mcp]"
 ]
 
 # Console scripts
@@ -108,6 +121,7 @@ exosim-radiometric = "exosim.exosim:radiometric"
 exosim-sub-exposures = "exosim.exosim:subexposures"
 exosim-ndrs = "exosim.exosim:ndrs"
 exosim-plot = "exosim.plots.plotter:main"
+exosim-mcp = "exosim.mcp.server:main"
 
 # Project URLs
 [project.urls]
@@ -128,6 +142,9 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 exosim = ["py.typed"]
+# exosim/mcp/_data (MCP knowledge base, examples, reference configs) is generated
+# from the repository files by setup.py's build_py (see src/exosim/mcp/assets.py);
+# it is copied into the build tree, never committed.
 
 # ============================================================================
 # Version Management - setuptools-scm (git-tag driven, PEP 440)
@@ -239,6 +256,8 @@ max-complexity = 12  # Slightly increased for scientific code
 [tool.ruff.lint.per-file-ignores]
 # File-specific permissions
 "src/exosim/**/__init__.py" = ["F401"]  # unused imports ok in __init__ files
+"src/exosim/mcp/server.py" = ["T20"]  # CLI entry point: startup banner on stderr
+"src/exosim/mcp/jobs.py" = ["T20"]  # writes to the per-job log via print()
 "examples/**" = ["T20"]  # print statements ok in examples
 "scripts/**" = ["T20", "S603", "S607"]  # CLI scripts: prints and subprocess calls
 "docs/**" = ["ALL"]  # ignore everything in documentation

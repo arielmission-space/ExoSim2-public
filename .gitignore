@@ -74,6 +74,9 @@ instance/
 # Sphinx documentation
 docs/build/
 
+# MCP server default work directory
+mcp-runs/
+
 # PyBuilder
 target/
 
