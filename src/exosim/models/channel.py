@@ -260,6 +260,17 @@ class Channel(log.Logger):
         d_x_wav_osr[idx] = np.gradient(x_wav_osr[idx])
         if np.any(d_x_wav_osr < 0):
             d_x_wav_osr *= -1.0
+        if (
+            str(self.parameters.get("type", "")).lower() == "photometer"
+            and idx[0].size > 1
+        ):
+            # The axis of a photometer runs from the first to the last
+            # wavelength of its band, the two ends included: the samples are
+            # the nodes of a trapezoid rule, the end ones weigh half a step.
+            # With a full step each, the band would be widened by one step
+            # (3% for 32 samples, ``1 / osf`` of it with oversampling).
+            d_x_wav_osr[idx[0][0]] *= 0.5
+            d_x_wav_osr[idx[0][-1]] *= 0.5
         return d_x_wav_osr * self.focal_plane.spectral_units
 
     def rescale_sources(self) -> None:
@@ -407,27 +418,36 @@ class Channel(log.Logger):
 
         return self.bkg_focal_plane
 
-    def apply_irf(self) -> signal.Signal:
+    def apply_irf_to(
+        self, focal_plane: signal.Signal, _kernel: tuple | None = None
+    ) -> signal.Signal:
         """
-        It applies the intra pixel response function (IRF) to the focal plane
+        It applies the intra pixel response function (IRF) to an arbitrary
+        focal plane.
 
+        The IRF is what integrates the PSF over the area of a detector pixel.
+        The kernel is built with the configured ``irf_task`` and convolved with
+        the oversampled focal plane through the configured ``apply_irf_task``
+        and ``convolution_method``. After the convolution every sub-pixel holds
+        the flux integrated over a pixel-sized box, so readers must decimate
+        the plane afterwards (``[osf // 2 :: osf]``) to obtain the physical
+        pixels. Without it, an oversampled plane only samples the PSF at
+        points and the brightest pixel of undersampled PSFs is overestimated.
+
+        Parameters
+        ----------
+        focal_plane: :class:`~exosim.models.signal.Signal`
+            oversampled focal plane to convolve (modified in place and returned)
+        _kernel: tuple (optional)
+            ``(kernel, delta_kernel)`` already built, to avoid recreating (and
+            re-writing to the output) the kernel for several planes.
 
         Returns
         -------
         :class:`~exosim.models.signal.Signal`
-            focal plane array
+            focal plane array with the IRF applied
         """
-
-        irf_instance = find_and_run_task(
-            self.parameters["detector"],
-            "irf_task",
-            instrument.CreateIntrapixelResponseFunction,
-        )
-
-        self.parameters["psf_shape"] = self.psf.shape[1:]
-        kernel, delta_kernel = irf_instance(
-            parameters=self.parameters, output=self.output
-        )
+        kernel, delta_kernel = _kernel or self._create_irf_kernel()
 
         if "convolution_method" in self.parameters["detector"]:
             convolution_method = self.parameters["detector"]["convolution_method"]
@@ -440,22 +460,50 @@ class Channel(log.Logger):
             instrument.ApplyIntraPixelResponseFunction,
         )
 
-        # apply IRF to target focal plane
-        focal_plane = applyIntraPixelResponseFunction(
-            focal_plane=self.focal_plane,
+        return applyIntraPixelResponseFunction(
+            focal_plane=focal_plane,
             irf_kernel=kernel,
             irf_kernel_delta=delta_kernel,
             convolution_method=convolution_method,
         )
 
+    def _create_irf_kernel(self) -> tuple:
+        """
+        Builds the IRF kernel with the configured ``irf_task``.
+
+        The kernel depends only on the channel parameters, so it is built (and
+        written to the output) once per channel and reused afterwards: writing
+        it a second time would collide on the existing output dataset.
+        """
+        cached = getattr(self, "_irf_kernel", None)
+        if cached is not None:
+            return cached
+        irf_instance = find_and_run_task(
+            self.parameters["detector"],
+            "irf_task",
+            instrument.CreateIntrapixelResponseFunction,
+        )
+
+        self.parameters["psf_shape"] = self.psf.shape[1:]
+        self._irf_kernel = irf_instance(parameters=self.parameters, output=self.output)
+        return self._irf_kernel
+
+    def apply_irf(self) -> signal.Signal:
+        """
+        It applies the intra pixel response function (IRF) to the focal plane
+        and to the background focal plane (if any).
+        See :func:`~exosim.models.channel.Channel.apply_irf_to`.
+
+        Returns
+        -------
+        :class:`~exosim.models.signal.Signal`
+            focal plane array
+        """
+        kernel = self._create_irf_kernel()
+        focal_plane = self.apply_irf_to(self.focal_plane, _kernel=kernel)
+
         if self.bkg_focal_plane is not None:
-            # apply IRF to background focal plane
-            bkg_focal_plane = applyIntraPixelResponseFunction(
-                focal_plane=self.bkg_focal_plane,
-                irf_kernel=kernel,
-                irf_kernel_delta=delta_kernel,
-                convolution_method=convolution_method,
-            )
+            bkg_focal_plane = self.apply_irf_to(self.bkg_focal_plane, _kernel=kernel)
         else:
             bkg_focal_plane = None
 

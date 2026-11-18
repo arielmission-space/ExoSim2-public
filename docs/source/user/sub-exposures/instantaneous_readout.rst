@@ -73,10 +73,14 @@ sub-exposures at a time. Each sub-exposure in the slice has a set of simulation
 time steps, one per `high_frequencies_resolution` unit, associated with it. For
 each of these time steps, `ExoSim`:
 
-- recovers the jitter offsets in the spectral and spatial directions;
+- recovers the jitter offsets in the spectral and spatial directions and
+  rounds them to the nearest sub-pixel (earlier versions truncated them toward
+  zero, which shrank the jitter amplitude by 7 to 12%);
 - selects the low-frequency-sampled focal plane for that time step;
 - removes the focal-plane oversampling factor by shifting the focal plane by the
-  offset.
+  offset and reading one sub-pixel per physical pixel. Without jitter the
+  physical pixel ``m`` is read on its centre sub-pixel, ``osf * m + osf // 2``,
+  the same convention used by every other reader of the focal plane.
 
 Because the focal plane is sampled at a different cadence from the
 sub-exposures, the sub-exposure signal carries a new metadata key,
@@ -153,6 +157,13 @@ method of
 :class:`~exosim.tasks.subexposures.instantaneousReadOut.InstantaneousReadOut`,
 which uses :class:`scipy.interpolate.RectBivariateSpline`. If the original
 oversampled focal plane is Nyquist sampled, the signal information is conserved.
+The resampling keeps the centre of each physical pixel fixed. With a base
+oversampling factor :math:`n` and a magnification :math:`m`, the centre of the
+pixel :math:`k` is the sub-pixel :math:`n k + \lfloor n/2 \rfloor` before the
+resampling and the sub-pixel :math:`n m k + \lfloor n m / 2 \rfloor` after it,
+and the two are the same position on the focal plane for any :math:`n` and
+:math:`m`. When the optional force of the power conservation is enabled, the
+total power is the one of the focal plane before the magnification.
 
 You can also impose the magnification:
 

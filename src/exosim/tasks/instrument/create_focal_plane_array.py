@@ -41,16 +41,10 @@ class CreateFocalPlaneArray(Task):
         )
         self.debug(f"focal plane dimensions: {focal_plane_dimension}")
 
-        if "oversampling" in parameters["detector"]:
-            if "irf_task" in parameters["detector"]:
-                oversampling = parameters["detector"]["oversampling"]
-            else:
-                self.warning(
-                    "The oversampling factor is set but irf_task is not provided in detector configuration. Oversampling factor is set to 1."
-                )
-                oversampling = 1
-        else:
-            oversampling = 1
+        # the configured oversampling is always kept: the intra pixel response
+        # function (the default task if ``irf_task`` is not given) integrates
+        # the sub-pixels over the pixel area afterwards
+        oversampling = parameters["detector"].get("oversampling", 1)
         self.debug(f"pixel over sampling factor: {oversampling}")
 
         focal_plane_dimension = tuple([d * oversampling for d in focal_plane_dimension])
@@ -67,8 +61,12 @@ class CreateFocalPlaneArray(Task):
             wl_solution = wl_instance(parameters=parameters)
 
             # estimate spectral dispersion law
+            # The axis is anchored so that sub-pixel ``osf * m + osf // 2``
+            # (the one read for physical pixel m by the decimation
+            # ``[osf // 2 :: osf]``) sits at ``m * delta_pix``, as with osf=1.
             spectral_pix_osr = (
-                np.arange(focal_plane_array.shape[1]) * focal_plane_delta
+                (np.arange(focal_plane_array.shape[1]) - oversampling // 2)
+                * focal_plane_delta
             ).to(u.um)
             spectral_wav_osr = self._wav_osr(
                 wl_solution, "spectral", parameters, spectral_pix_osr
@@ -76,7 +74,8 @@ class CreateFocalPlaneArray(Task):
 
             # estimate spatial dispersion law
             spatial_pix_osr = (
-                np.arange(focal_plane_array.shape[0]) * focal_plane_delta
+                (np.arange(focal_plane_array.shape[0]) - oversampling // 2)
+                * focal_plane_delta
             ).to(u.um)
             spatial_wav_osr = self._wav_osr(
                 wl_solution, "spatial", parameters, spatial_pix_osr

@@ -17,8 +17,8 @@ class LoadPsfPaosTimeInterp(load_psf_paos.LoadPsfPaos):
     The task loads the PSF cubes provided by the `filename` parameter.
     The PSFs are then interpolated over a grid matching the one used to produce the focal planes,
     to convert them into the physical units.
-    Then the total volume of the interpolated PSF is rescaled to the total volume of the original one.
-    This allow to take into account for loss in the transmission due to the optical path.
+    The resampling is flux conserving (see :class:`~exosim.tasks.instrument.load_psf_paos.LoadPsfPaos`),
+    so the energy outside the window is not put back into the core.
     The PSF are then interpolated over a wavelength grid matching the one used to for the focal plane, producing the cube.
 
     Then an example of time dependency is implemented in the model method.
@@ -61,31 +61,8 @@ class LoadPsfPaosTimeInterp(load_psf_paos.LoadPsfPaos):
         del psfs
         gc.collect()
 
-        # crop image stack
-        psf_out_cropped = self.crop_image_stack(psf_out, time_iteration=True)
-
-        # re-normalize output
-        return self.normalise(psf_out, psf_out_cropped)
-
-    @staticmethod
-    def normalise(psf_out, psf_out_cropped):
-        old_norms = psf_out.sum(axis=-1).sum(axis=-1)
-        new_norms = psf_out_cropped.sum(axis=-1).sum(axis=-1)
-        dim_array = np.ones((1, psf_out.ndim), int).ravel()
-        dim_array[0] = psf_out.shape[0]
-        dim_array[1] = psf_out.shape[1]
-
-        del psf_out  # clean memory
-        gc.collect()
-
-        old_norms_reshaped = old_norms.reshape(dim_array)
-        new_norms_reshaped = new_norms.reshape(dim_array)
-        psf_out_cropped_norm_ = psf_out_cropped / new_norms_reshaped
-
-        del psf_out_cropped  # clean memory
-        gc.collect()
-
-        return psf_out_cropped_norm_ * old_norms_reshaped
+        # crop image stack (the energy cropped away is not put back)
+        return self.crop_image_stack(psf_out, time_iteration=True)
 
     def load_psfs(self, filename, wavelength, parameters):
         """

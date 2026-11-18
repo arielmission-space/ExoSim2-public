@@ -230,6 +230,13 @@ Set with `auto_mode` equal to `elliptical`. This runs
 elliptical aperture on the focal plane that encloses at least the encircled
 energy set by the `EnE` keyword, with the fewest pixels.
 
+The `spectral_size` and `spatial_size` columns of an elliptical aperture are the
+semi-axes :math:`a` and :math:`b` of the ellipse, as used by
+:class:`photutils.aperture.EllipticalAperture`, and `aperture_size`, the number
+of pixels used for the dark current and the read noise, is :math:`\pi a b`.
+Aperture tables written before version 2.2.3 used :math:`\pi (a/2)(b/2)`, four
+times too small, and should be regenerated.
+
 .. code-block:: xml
 
     <channel> channel_name

@@ -12,6 +12,224 @@ Unreleased changes live as fragments in ``changelog.d/`` and are merged here by
 
 .. scriv-insert-here
 
+.. _changelog-2.2.5:
+
+[2.2.5_] - Focal-plane fixes
+============================
+
+Added
+-----
+
+- ``Channel.apply_irf_to(focal_plane)`` applies the intra pixel response
+  function to an arbitrary focal plane; ``Channel.apply_irf()`` uses it for the
+  focal plane and the background focal plane.
+
+Fixed
+-----
+
+- Radiometric target-list mode no longer forces an oversampling of 1 by
+  default. With ``osf = 1`` the PSF is point-sampled at the pixel centres and
+  not integrated over the pixel, so the brightest pixel of an undersampled PSF
+  was overestimated (about 30% for an FGS-like Airy PSF). The payload
+  oversampling is now kept and the intra pixel response function is applied, as
+  in the full simulator.
+- ``locate_wavelength_windows`` placed the PSF centre on an edge sub-pixel when
+  ``osf > 1`` (photometer axes and spectrometer spatial axis without spatial
+  wavelength solution), so the source sat ``(osf // 2) / osf`` pixel off the
+  centre of the physical pixel read by the decimation ``[osf // 2 :: osf]``.
+  The PSF is now centred on the centre sub-pixel of the same physical pixel
+  used with ``osf = 1``, independently of the oversampling. Results for
+  ``osf = 1`` are unchanged.
+- The intra pixel response function kernel
+  (``CreateIntrapixelResponseFunction``, and
+  ``CreateOversampledIntrapixelResponseFunction``) was sampled only inside the
+  pixel and then renormalised to ``osf**2``. With a non-zero diffusion length
+  the Barron et al. (2007) response has tails outside the pixel (about 11% of
+  the 1D response for 18 um pixels and 1.7 um diffusion length): the charge
+  diffusing into the neighbours was put back into the pixel, so the signal of a
+  centred star was overestimated (about +3% for ``F*lambda/d = 2.5`` and
+  +19-20% for ``F*lambda/d = 0.73``, not converging with the oversampling). The
+  kernel now covers the pixel and as many neighbours as needed (response below
+  1e-6 of the peak, ``K = 0`` without diffusion), the inter-pixel gap is zeroed
+  around every pixel boundary, and it is still normalised to sum ``osf**2``
+  (flat field flux is conserved). The central pixel now agrees with a direct
+  integration of the PSF times the pixel response within 1% at ``osf = 7``.
+  ``ApplyAstronomicalSignal`` decimates the model by the oversampling factor
+  rather than by the kernel size. **This changes the output of the full
+  focal-plane simulator (every focal plane, hence every simulated image and
+  light curve of a channel using the IRF with diffusion), not only the
+  radiometric model.** Results with ``diffusion_length = 0`` are unchanged.
+- ``LoadPsfPaos.load_imac`` (and ``LoadPsfPaosTimeInterp``) aligned the PAOS PSF
+  centre with the sample ``size * osf // 2`` of an array of ``size * osf - 1``
+  samples, while the focal plane population and
+  ``locate_wavelength_windows`` take ``shape // 2`` as the PSF centre. With an
+  even ``size * osf`` the PSF was therefore placed one sample off on both axes:
+  one full pixel with ``osf = 1`` and ``1/osf`` pixel otherwise (the AIRS-CH0
+  spectrum of the Ariel payload was shifted by one column at ``osf = 1``).
+  The PSF is now aligned at the index actually used as its centre. **This
+  changes the output of the full focal-plane simulator (position of every PAOS
+  PSF on the focal plane), not only the radiometric model.**
+- The wavelength (and spatial) axes of the focal plane were anchored on the
+  first sub-pixel (``x_j = j * delta / osf``), while physical pixel ``m`` is
+  read on sub-pixel ``osf * m + osf // 2``: the spectrum was shifted by
+  ``(osf // 2) / osf`` pixel with respect to ``osf = 1`` and the wavelength of
+  a physical pixel depended on the oversampling. The axes are now
+  ``x_j = (j - osf // 2) * delta / osf``, so the wavelength read at physical
+  pixel ``m`` is the same for every ``osf``. Results for ``osf = 1`` (and for
+  ``center: auto`` with odd ``osf``) are unchanged. **This changes the
+  wavelength axis of the full focal-plane simulator for ``osf > 1``.**
+- ``InstantaneousReadOut`` (no-jitter branch) and ``AddForegrounds``
+  decimated the oversampled focal plane with ``[::osf]``, while every other
+  reader uses ``[osf // 2 :: osf]``. The sub-exposures were therefore read
+  ``(osf // 2) / osf`` pixel off. Both now use ``[osf // 2 :: osf]``. The jitter
+  branch already sampled the plane centred on ``osf // 2`` and is unchanged.
+- ``InstantaneousReadOut`` converted the pointing jitter to sub-pixels with
+  ``astype(int)`` (truncation toward zero), which shrank the jitter amplitude
+  (rms of the brightest-pixel series 7-12% too low). The offsets are now
+  rounded to the nearest sub-pixel (``floor(x + 0.5)``, symmetric in sign, no
+  bias). **This changes the jittered sub-exposures.**
+- The wavelength widths used to turn the spectral densities of the sources
+  and of the path radiances into signals per focal-plane column
+  (``Channel.rescale_sources`` / ``rescale_radiances``) gave a full step to the
+  two end samples of a photometer axis, although the axis runs from the first
+  to the last wavelength of the band, the two ends included. The band was
+  widened by one step, hence the photometer signal was too high by about
+  ``3.2% / osf`` (+2.1% at ``osf = 1`` and +0.3% at ``osf = 7`` for the example
+  photometer, against the independent integral of the spectrum over the band).
+  The end samples now weigh half a step (trapezoid rule): the signal agrees
+  with the integral within 0.04% at any oversampling. Spectrometers are
+  unchanged. **This lowers the photometer signal and background by a few
+  per cent at small oversampling.**
+
+- **The absolute signals of the focal-plane simulator change** (every focal
+  plane, hence every simulated image and light curve, and the radiometric
+  model built on it): PSFs truncated to a finite window were normalised to
+  unit sum *inside* the window, so the energy falling outside it was put back
+  into the core.
+
+  - ``create_psf`` (analytic Airy and Gauss PSFs) now sets the sum of each PSF
+    to the fraction of the *total* analytic energy that falls inside the
+    window (the shape is the sampled profile, rescaled). The fraction is
+    computed analytically and does not use the samples, so it is independent
+    of the sampling (also for undersampled PSFs, ``F wl < delta``, where the
+    sum of the point samples differs from the integral): exact
+    ``erf(wx/(sqrt(2) sx)) erf(wy/(sqrt(2) sy))`` for the Gaussian, and for the
+    Airy pattern a lazily built table of the energy inside a rectangle,
+    interpolated in ``log(u), log(v)`` (``u, v`` the window half widths in
+    ``F wl``). With the default ``nzero = 4`` the Airy window holds 91-97% of
+    the energy, hence every pixel and aperture received 3-9% too much light
+    (3.5-5.5% in fixed apertures of the Ariel channels). The fraction of
+    energy outside the window is logged per channel (INFO), with a WARNING
+    above 1% suggesting a larger ``nzero``.
+  - ``LoadPsfPaos.load_imac`` (and ``LoadPsfPaosTimeInterp``) rebin the PAOS
+    PSF with an exact flux-conserving separable overlap of the PAOS cells with
+    the sub-pixels (each PAOS sample is the integral over its own cell), so
+    the window holds its true share of the PAOS volume at any oversampling,
+    instead of the volume of the whole PAOS array. Each sub-pixel holds the
+    flux in its cell (the IRF box sum then gives exact pixel integrals). The
+    subtraction of the minimum of the window is removed, the PSF is zero
+    outside the PAOS array, and ``LoadPsfPaosTimeInterp`` does not
+    renormalise the cube after cropping it. For the Ariel PAOS files the
+    window holds 99.0-100% of the PAOS energy at ``osf = 1`` and ``3``.
+
+- PAOS PSFs outside the wavelengths of the PAOS file. A channel can have light
+  at wavelengths where the PAOS file has no PSF (for instance a photometer with
+  a red leak in its efficiency: the Ariel FGS-VISPhot has PSFs from 0.40 to
+  0.70 um and light up to 2 um). The PSF images were extrapolated linearly,
+  which gives negative, unphysical images (at 1.5 to 2 um the negative energy
+  was two to three times the total energy): with a 3330 K star the brightest
+  pixel of VISPhot was 10% too low and did not converge with the oversampling.
+  Now, inside the PAOS range the images are interpolated linearly as before,
+  and outside it the PSF of the nearest PAOS wavelength is scaled in size in
+  proportion to the wavelength, conserving its energy
+  (``exosim.utils.psf.scale_psf_image``). This is exact for the diffraction
+  pattern and keeps the aberrations of the edge wavelength.
+  ``LoadPsfPaosTimeInterp`` is fixed too. A PAOS file with a single wavelength
+  is now the edge PSF scaled at every other wavelength, instead of a constant
+  PSF.
+
+- A channel with an ``<oversampling>`` in its ``<detector>`` but no
+  ``<irf_task>`` ran silently at an oversampling of 1:
+  ``CreateFocalPlaneArray`` set it to 1 with only a warning, and the
+  recipes (``CreateFocalPlane``, ``RadiometricModel``) applied the intra pixel
+  response function (IRF) only if ``irf_task`` was present. The PSF was then
+  sampled at the pixel centres and not integrated over the pixel, so the
+  brightest pixel of an undersampled Airy PSF was 18-29% too high. A pixel
+  always integrates the light over its area, so the configured oversampling is
+  now always kept and, whenever it is larger than 1, the IRF is applied with the
+  default task, ``CreateIntrapixelResponseFunction``, if ``irf_task`` is not
+  given. Without ``diffusion_length`` the default kernel is a top-hat over the
+  pixel (``osf x osf`` equal values, summing to ``osf**2``). There is no switch
+  to restore the old behaviour: use an earlier release. **This changes the
+  results for payloads that set an oversampling without ``irf_task``: the focal
+  planes, the signals and the saturation times of every such channel.**
+
+- **The absolute signals of channels with an analytic (Airy or Gauss) PSF
+  change.** Two faults of the PSF window are fixed. There is no switch to
+  restore the old behaviour: use an earlier release.
+
+  - ``create_psf``: the window was half as wide as documented. Its half width
+    was :math:`j_{1,n} F\lambda / (2\pi)`, but the Airy pattern of the code,
+    :math:`J_1(\pi r / F\lambda)`, has its n-th dark ring at
+    :math:`j_{1,n} F\lambda / \pi`. With the default ``nzero = 4`` the window
+    reached :math:`2.1 F\lambda` and held 91% of the light, not
+    the fourth dark ring at :math:`4.2 F\lambda`. The half width is now
+    :math:`j_{1,n} F\lambda / \pi`, so ``nzero`` is the number of dark rings
+    that the window reaches. The Gaussian PSF uses the same window and it is
+    also twice as wide. **A configuration with an explicit ``nzero`` gets a
+    window twice as wide, and more light.**
+  - ``PopulateFocalPlane``: the default window lost light that lands on the
+    detector. Without ``nzero`` and ``size_x``/``size_y`` in ``<psf>``, the
+    window is now a square whose side is the shorter side of the oversampled
+    focal plane (made odd and centred, never larger than the focal plane), the
+    rule that ``LoadPsfPaos`` already uses. The light lost is now only the
+    light that falls outside the detector square, computed by the same
+    analytic energy fraction. An explicit ``nzero`` or ``size_x``/``size_y`` is
+    respected. ``size_x`` and ``size_y`` were also ignored unless a ``size``
+    key was present; they are now read as documented.
+
+  On the Ariel payload (1 h, oversampling 3), the NIRSpec total star signal
+  rises by 2.6% (7.705e6 to 7.902e6 in the sum of the decimated focal plane)
+  and the brightest pixel holds 1.145% of it instead of 1.174%. The PSF cube of
+  a channel grows from the old default window to the detector square (NIRSpec:
+  47 x 71 to 179 x 179 sub-pixels), and with it the memory of the PSF cube and
+  the run time of the population step. Channels with a PAOS PSF are unchanged.
+
+- The source of a `photometer` was placed on physical pixel ``N // 2 - 1``, one
+  pixel below and to the left of the pixel ``N // 2`` on which every aperture
+  is centred (``EstimateApertures`` and ``find_elliptical_aperture`` use
+  ``shape / 2``, which in the :mod:`photutils` convention is the centre of pixel
+  ``N // 2``; the aperture files of the Ariel payload do the same). The offset
+  dates back to the first version of the code and most likely compensated the
+  PAOS PSF being one sample off, fixed earlier in this release: with both, the
+  star sat on pixel ``N // 2`` at ``osf = 1``. After that fix the offset moved
+  the star one pixel away from the aperture centre, and the star signal in the
+  aperture of the photometers was 2.5 to 4.5% too low (toy payload of the
+  ArielRad2 comparison). The source of a photometer is now on pixel
+  ``N // 2``, as for the spectrometers. **This changes the star signal in the
+  aperture and the brightest pixel of the photometers.**
+
+- The jitter magnification grid of ``InstantaneousReadOut.oversample`` did not
+  keep the centre of the pixels fixed. The centre of the physical pixel ``m``
+  is the sub-pixel ``osf * m + osf // 2`` of the focal plane, and
+  ``o * m + o // 2`` after the magnification ``mag``, with ``o = osf * mag``.
+  The old grid placed the new sub-pixels at ``-(mag - 1) / (2 * mag)`` from the
+  old ones, which matches the pixel centres only when ``osf`` and ``mag`` are
+  both odd. In the other cases the jittered scene was shifted by a fraction of
+  an old sub-pixel (for ``osf = 3`` and ``mag = 4``, about 0.04 pixels). The new
+  sub-pixel ``n`` now samples the old focal plane at
+  ``osf // 2 + (n - o // 2) / mag``, so that the centres coincide for any
+  ``osf`` and ``mag``. ``get_oversample_factors`` and ``oversample`` take the
+  base oversampling factor ``osf`` as a new required argument. For odd ``osf``
+  and odd ``mag`` the result is unchanged. **This changes the position of the
+  jittered scene when ``osf`` or ``mag`` is even.**
+- ``force_power_conservation`` divided the power of the original focal plane by
+  the square of the magnified oversampling factor ``osf * mag`` instead of
+  ``osf``, so the target power was wrong by a factor ``mag**2`` whenever the
+  jitter magnification was larger than one. It now uses the base oversampling
+  factor. **This changes the signal of the jittered channels when
+  ``force_power_conservation`` is enabled and the magnification is above one.**
+
 .. _changelog-2.2.4:
 
 [2.2.4_] - Rescale sources API
@@ -319,6 +537,8 @@ Cleaned repository
 .. _2.2.3: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.3
 
 .. _2.2.4: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.4
+
+.. _2.2.5: https://github.com/arielmission-space/ExoSim2.0/releases/tag/v2.2.5
 
 .. _keepachangelog: https://keepachangelog.com/en/1.0.0/
 .. _semver: https://semver.org/spec/v2.0.0.html

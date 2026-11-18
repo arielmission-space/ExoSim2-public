@@ -3,6 +3,8 @@ import numpy as np
 
 from exosim.tasks.instrument.create_intrapixel_response_function import (
     CreateIntrapixelResponseFunction,
+    irf_axis_response,
+    irf_extent_pixels,
 )
 
 
@@ -16,6 +18,9 @@ class CreateOversampledIntrapixelResponseFunction(CreateIntrapixelResponseFuncti
 
         Estimate the detector pixel response function with the prescription of
         Barron et al., PASP, 119, 466-475 (2007).
+        As in :class:`CreateIntrapixelResponseFunction` the response is sampled
+        over the pixel and its neighbours (diffusion tails) and normalised to
+        sum ``osf**2``.
 
         Parameters
         ----------
@@ -66,32 +71,22 @@ class CreateOversampledIntrapixelResponseFunction(CreateIntrapixelResponseFuncti
         kernel = np.zeros((psf_shape[0] * osf, psf_shape[1] * osf))
         self.debug(f"kernel size: {kernel.shape}")
 
-        # prepare the kernel stamp grid
+        # prepare the kernel stamp grid: the pixel and K neighbouring pixels on
+        # each side (the diffusion tails fall outside the pixel footprint)
         kernel_delta = delta / osf
         yc, xc = np.array(kernel.shape) // 2
-        yy = (np.arange(-1 * osf, 1 * osf)) * kernel_delta
-        xx = (np.arange(-1 * osf, 1 * osf)) * kernel_delta
+        n_ext = irf_extent_pixels(delta, lx)
+        half = osf * (n_ext + 1)
+        half_y = min(half, kernel.shape[0] // 2)
+        half_x = min(half, kernel.shape[1] // 2)
+        yy = np.arange(-half_y, half_y) * kernel_delta
+        xx = np.arange(-half_x, half_x) * kernel_delta
 
-        # inverse mask to select every other pixel but the central one
-        i_mask_xx = np.where(np.abs(xx) > 0.5 * (delta - ipd))
-        i_mask_yy = np.where(np.abs(yy) > 0.5 * (delta - ipd))
+        resp_y = irf_axis_response(yy, delta, lx, ipd)
+        resp_x = irf_axis_response(xx, delta, lx, ipd)
+        kernel_stamp = np.outer(resp_y, resp_x)
 
-        xx, yy = np.meshgrid(xx, yy)
-
-        # compute kernel stamp
-        kernel_stamp = np.arctan(
-            np.tanh((0.5 * (0.5 * delta - xx) / lx).value)
-        ) - np.arctan(np.tanh((0.5 * (-0.5 * delta - xx) / lx).value))
-
-        kernel_stamp *= np.arctan(
-            np.tanh((0.5 * (0.5 * delta - yy) / lx).value)
-        ) - np.arctan(np.tanh((0.5 * (-0.5 * delta - yy) / lx).value))
-
-        # set the unused area of kernel stamp to zero
-        kernel_stamp[i_mask_yy, ...] = 0.0
-        kernel_stamp[..., i_mask_xx] = 0.0
-
-        # Normalise the kernel such that the pixel has QE=1
+        # Normalise the kernel such that a flat field is conserved
         kernel_stamp *= osf * osf / kernel_stamp.sum()
         # put back the kernel stamp
         x_off = kernel.shape[1] // 2 - kernel_stamp.shape[1] // 2

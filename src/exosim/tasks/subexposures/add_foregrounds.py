@@ -54,8 +54,9 @@ class AddForegrounds(Task):
         index = searchsorted(frg_time, ndrs_time)
         self.debug(f"time indexes: {index}")
 
-        # decimate the frg to the subexposure size (take every osf-th pixel)
-        frg = frg[:, ::osf, ::osf]
+        # decimate the frg to the subexposure size: physical pixel m is read
+        # on sub-pixel osf * m + osf // 2, as everywhere else
+        frg = frg[:, osf // 2 :: osf, osf // 2 :: osf]
 
         for chunk in iterate_over_chunks(
             subexposures.dataset, desc="adding foregrounds"

@@ -360,7 +360,7 @@ class TestInstantaneousReadOutNoJitter:
     def test_each_ndr_is_the_undersampled_focal_plane_times_its_int_time(self):
         data, integration_time, fp, _p = self._run("test_data/no_jit2.h5")
         osf = fp.metadata["oversampling"]
-        undersampled = fp.data[0, 0::osf, 0::osf]
+        undersampled = fp.data[0, osf // 2 :: osf, osf // 2 :: osf]
         for i, t in enumerate(integration_time.to_value(u.s)):
             np.testing.assert_allclose(data[i], undersampled * t, rtol=1e-6)
 

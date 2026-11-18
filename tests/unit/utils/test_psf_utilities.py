@@ -75,7 +75,10 @@ class TestPSFCreation:
             PSF profile shape ("airy" or "gauss")
         """
         psf = create_psf(wl_grid, 15.5, 18 * u.um, shape=shape)
-        assert psf.shape == (len(wl_grid), 15, 15)
+        # nzero = 4: the window half width is the radius of the 4th dark ring,
+        # j_{1,4} / pi * F * wl_max / delta = 14.1 samples (it was 7.0 when the
+        # window was half as wide as documented), so 2 * 14 + 1 samples
+        assert psf.shape == (len(wl_grid), 29, 29)
 
     @pytest.mark.parametrize("nzero", [4, 8])
     def test_create_psf_nzero(self, wl_grid, nzero):
@@ -341,8 +344,10 @@ class TestPAOSIntegration:
             filename=paos_data, parameters=parameters, wavelength=wl, time=tt
         )
         assert cube.shape[:2] == (len(tt), len(wl))
-        # every PSF slab is normalised to unit sum
-        np.testing.assert_allclose(cube.sum(axis=(-1, -2)), 1.0, rtol=1e-3)
+        # the PAOS volume is 1: the flux-conserving resampling gives the
+        # fraction of it that falls inside the window (<= 1)
+        sums = cube.sum(axis=(-1, -2))
+        assert np.all(sums <= 1.0 + 1e-3)
 
     def test_load_paos_time_interp(self, project_root):
         ab0 = os.path.join(project_root, "tests", "data", "PAOS_ab0.h5")

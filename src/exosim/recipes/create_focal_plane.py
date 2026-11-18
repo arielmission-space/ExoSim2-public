@@ -318,11 +318,7 @@ class CreateFocalPlane(TimedClass, log.Logger):
         channel.populate_focal_plane(pointing)
         # TODO test if no other stars are present
         channel.populate_bkg_focal_plane(pointing)
-        if (
-            "irf_task" in description["detector"]
-            and "oversampling" in description["detector"]
-            and description["detector"]["oversampling"] > 1
-        ):
+        if description["detector"].get("oversampling", 1) > 1:
             channel.apply_irf()
 
         channel.populate_foreground_focal_plane()

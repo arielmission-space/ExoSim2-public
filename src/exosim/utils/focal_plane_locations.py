@@ -8,6 +8,31 @@ from exosim.models.signal import Signal
 logger = logging.getLogger(__name__)
 
 
+def _oversampling(focal_plane: Signal) -> int:
+    """Oversampling factor stored in the focal plane metadata (1 if missing)."""
+    metadata = getattr(focal_plane, "metadata", None) or {}
+    try:
+        osf = int(metadata.get("oversampling", 1))
+    except (TypeError, ValueError):
+        osf = 1
+    return max(osf, 1)
+
+
+def _centre_subpixel(shape: int, osf: int) -> int:
+    """
+    Index of the centre sub-pixel of the physical pixel ``N // 2``.
+
+    ``shape`` is the oversampled size of the axis, so ``N = shape // osf`` is the
+    number of physical pixels. Placing the PSF centre on the centre sub-pixel of
+    a fixed physical pixel makes the physical source position independent of
+    ``osf``. Pixel ``N // 2`` is the one the apertures are centred on
+    (``shape / 2`` in the :mod:`photutils` convention, where the centre of pixel
+    ``i`` is at ``i``), for photometers and spectrometers alike.
+    """
+    n_pix = shape // osf
+    return osf * (n_pix // 2) + osf // 2
+
+
 def locate_wavelength_windows(
     psf: np.array, focal_plane: Signal, parameters: dict
 ) -> tuple[np.array, np.array]:
@@ -34,8 +59,9 @@ def locate_wavelength_windows(
                 int
             )
         else:  # photometer
+            osf = _oversampling(focal_plane)
             j0_ = np.repeat(
-                focal_plane_shape[2] // 2 - psf.shape[2] // 2 - 1,
+                _centre_subpixel(focal_plane_shape[2], osf) - psf.shape[2] // 2,
                 focal_plane.spectral.size,
             )
         return None, j0_
@@ -62,8 +88,9 @@ def _locate_spectral_and_spatial(
                 size = focal_plane_shape[1] // 2
                 psf = psf[:, :, center - size : center + size, :]
 
+            osf = _oversampling(focal_plane)
             i0_ = np.repeat(
-                focal_plane_shape[1] // 2 - psf.shape[2] // 2,
+                _centre_subpixel(focal_plane_shape[1], osf) - psf.shape[2] // 2,
                 focal_plane.spectral.size,
             )
         else:
@@ -77,12 +104,13 @@ def _locate_spectral_and_spatial(
             ).astype(int)
 
     else:  # photometer
+        osf = _oversampling(focal_plane)
         j0_ = np.repeat(
-            focal_plane_shape[2] // 2 - psf.shape[3] // 2 - 1,
+            _centre_subpixel(focal_plane_shape[2], osf) - psf.shape[3] // 2,
             focal_plane.spectral.size,
         )
         i0_ = np.repeat(
-            focal_plane_shape[1] // 2 - psf.shape[2] // 2 - 1,
+            _centre_subpixel(focal_plane_shape[1], osf) - psf.shape[2] // 2,
             focal_plane.spectral.size,
         )
     return i0_, j0_

@@ -119,14 +119,24 @@ class PopulateFocalPlane(Task):
             )
         # create the psf
         else:
-            nzero = parameters["psf"].get("nzero", 4)
-            if "size" in parameters["psf"]:
-                array_size = [
-                    parameters["psf"]["size_y"],
-                    parameters["psf"]["size_x"],
-                ]
-            else:
+            psf_options = parameters["psf"]
+            nzero = psf_options.get("nzero", 4)
+            focal_plane_shape = focal_plane.data[0].shape
+            if "size_x" in psf_options or "size_y" in psf_options:
+                # explicit window, in sub-pixels: respected as given
+                array_size = [psf_options["size_y"], psf_options["size_x"]]
+            elif "nzero" in psf_options:
+                # explicit number of rings: the window is set by nzero
                 array_size = None
+            else:
+                # default: a square window as large as the shorter side of the
+                # (oversampled) focal plane, so that the light that falls on
+                # the detector is not cut by the window. The window has an odd
+                # number of samples (it is centred on the PSF) and it does not
+                # exceed the focal plane.
+                side = min(focal_plane_shape)
+                side = side if side % 2 == 1 else side - 1
+                array_size = [side, side]
 
             psf = create_psf(
                 focal_plane.spectral * focal_plane.spectral_units,
@@ -134,8 +144,9 @@ class PopulateFocalPlane(Task):
                 focal_plane.metadata["focal_plane_delta"],
                 shape=parameters["psf"]["shape"].lower(),
                 nzero=nzero,
-                max_array_size=focal_plane.data[0].shape,
+                max_array_size=focal_plane_shape,
                 array_size=array_size,
+                name=parameters.get("value"),
             )
             psf = psf[np.newaxis, ...]
             psf = np.repeat(psf, focal_plane.time.size, axis=0)

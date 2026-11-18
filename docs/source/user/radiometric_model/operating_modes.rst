@@ -69,6 +69,13 @@ For each target the pipeline:
 3. computes its apertures, signals and noise,
 4. stores its radiometric table and plots.
 
+The focal planes are built with the payload oversampling and the intra-pixel
+response function, as in the other modes, so the pixel signals are integrals of
+the PSF over the pixel area (see :ref:`irf`). Earlier versions forced the
+oversampling to 1 in this mode, so that the PSF was sampled at the pixel centres
+and not integrated; for undersampled PSFs the brightest pixel, and with it the
+saturation time and the frame time, was wrong by tens of per cent.
+
 Configuration
 ~~~~~~~~~~~~~~
 

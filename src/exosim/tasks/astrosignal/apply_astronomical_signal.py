@@ -92,6 +92,9 @@ class ApplyAstronomicalSignal(Task):
         # preparing the intrapixel response function
         iprf = self._bild_intrapixel(ch_parameters)
         iprf /= iprf.sum()
+        # the kernel may extend over neighbouring pixels (diffusion tails):
+        # the decimation step is the oversampling factor, not the kernel size
+        osf = int(ch_parameters["detector"].get("oversampling", 1))
 
         # locate the instrument line shape on the focal plane relative to the source
         _, j0 = locate_wavelength_windows(ils, focal_plane, ch_parameters)
@@ -143,9 +146,7 @@ class ApplyAstronomicalSignal(Task):
                         multiplicative_signal[t], iprf, mode="same"
                     )
                 # downsample the model to the subexposure time resolution
-                multiplicative_signal = multiplicative_signal[
-                    :, iprf.shape[0] // 2 :: iprf.shape[0]
-                ]
+                multiplicative_signal = multiplicative_signal[:, osf // 2 :: osf]
 
                 # multiply the model with the subexposure
                 subexposures.dataset[chunk] *= multiplicative_signal[:, np.newaxis, :]

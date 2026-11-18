@@ -202,6 +202,12 @@ class RadiometricModel(CreateFocalPlane):
             If True, the configuration for each target will be stored in its respective output group.
         slim_output: bool
             If True, only the necessary data will be stored in the output file to reduce its size
+
+        Notes
+        -----
+        The payload oversampling is always kept. Channels are populated by
+        :func:`~exosim.recipes.create_focal_plane.CreateFocalPlane.run_channel`,
+        which applies the IRF when ``osf > 1``.
         """
 
         self.mainConfig["time_grid"] = {
@@ -209,8 +215,10 @@ class RadiometricModel(CreateFocalPlane):
             "end_time": 1 * u.hr,
             "low_frequencies_resolution": 1 * u.hr,
         }
-        self.mainConfig = self.remove_oversampling(self.mainConfig)
-        self.PayloadConfig = self.remove_oversampling(self.payloadConfig)
+        self.info(
+            "Keeping the payload oversampling; the IRF integrates the PSF "
+            "over the pixel area."
+        )
 
         sky_src = self.mainConfig["sky"]["source"]
         self.info("Target-list config: loading source list")
@@ -379,6 +387,9 @@ class RadiometricModel(CreateFocalPlane):
         )
         channel.rescale_contributions()
         channel.populate_focal_plane()
+        detector = channel.parameters["detector"]
+        if detector.get("oversampling", 1) > 1 and channel.focal_plane is not None:
+            channel.apply_irf_to(channel.focal_plane)
 
     def _isolate_every_opt(self) -> None:
         """

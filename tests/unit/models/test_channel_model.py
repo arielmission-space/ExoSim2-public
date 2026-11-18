@@ -703,3 +703,63 @@ class TestChannelSourcelessOperation:
         result = channel.populate_focal_plane()
 
         assert result is sentinel
+
+
+class TestPhotometerBandFlux:
+    """The flux of a photometer source is the integral of its spectrum over the band."""
+
+    @staticmethod
+    def make_channel(osf, a=0.7, b=1.05):
+        import astropy.units as u
+
+        from exosim.models.signal import Signal
+
+        channel = Channel(
+            parameters={"value": "phot", "type": "photometer", "optical_path": {}},
+            wavelength=np.linspace(a, b, 50) * u.um,
+            time=np.linspace(0, 1, 2) * u.hr,
+            output=None,
+        )
+        # the axis of a photometer: 32 * osf samples from the first to the last
+        # wavelength of the band, both included
+        axis = np.linspace(a, b, 32 * osf)
+        channel.focal_plane = MagicMock()
+        channel.focal_plane.spectral = axis
+        channel.focal_plane.spectral_units = u.um
+        # a smooth spectrum (density per um) on a much finer grid
+        wl = np.linspace(a - 0.05, b + 0.05, 20001)
+        density = 3.0 + np.sin(4.0 * wl) + 2.0 * (wl - 0.8) ** 2
+        channel.sources = {
+            "star": Signal(
+                spectral=wl * u.um,
+                data=density[np.newaxis, np.newaxis, :],
+                time=np.array([0.0]) * u.hr,
+            )
+        }
+        channel.path = {}
+        return channel, wl, density
+
+    @pytest.mark.parametrize("osf", [1, 3, 5])
+    def test_band_flux_is_the_integral_over_the_band(self, osf):
+        a, b = 0.7, 1.05
+        channel, wl, density = self.make_channel(osf, a, b)
+        grid = np.linspace(a, b, 2000001)
+        expected = np.trapezoid(np.interp(grid, wl, density), grid)
+        channel.rescale_sources()
+        total = np.asarray(channel.sources["star"].data).sum()
+        # independent of the oversampling, within the binning error (a full
+        # step for the end samples would give +3.2% / osf)
+        assert total == pytest.approx(expected, rel=1.5e-3)
+
+    def test_step_of_a_photometer_axis_sums_to_the_band(self):
+        channel, *_ = self.make_channel(2, 0.7, 1.05)
+        step = channel._focal_plane_wavelength_step().value
+        assert step.sum() == pytest.approx(0.35, rel=1e-12)
+        assert step[0] == pytest.approx(0.5 * step[1])
+        assert step[-1] == pytest.approx(0.5 * step[-2])
+
+    def test_step_of_a_spectrometer_axis_is_unchanged(self):
+        channel, *_ = self.make_channel(2, 0.7, 1.05)
+        channel.parameters["type"] = "spectrometer"
+        step = channel._focal_plane_wavelength_step().value
+        np.testing.assert_allclose(step, step[0])

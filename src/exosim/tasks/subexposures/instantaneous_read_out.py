@@ -107,19 +107,21 @@ class InstantaneousReadOut(Task):
             y_jit = (readout_parameters["y_jit"] * osf / u.pix).value
             x_jit = (readout_parameters["x_jit"] * osf / u.pix).value
 
-            y_jit = y_jit.astype(int)
-            x_jit = x_jit.astype(int)
+            # round to the nearest sub-pixel (ties up, also for negative
+            # values): int() truncates toward zero and shrinks the amplitude
+            y_jit = self.round_to_subpixel(y_jit)
+            x_jit = self.round_to_subpixel(x_jit)
 
             if saveMemory:
                 """
                 debug=False
                 if debug:
-                    new_focal = [self.oversample(fp, mag) for fp in focal]
+                    new_focal = [self.oversample(fp, mag, base_osf) for fp in focal]
                 """
 
                 if mag != 1:
                     _xin, _yin, xout, yout = self.get_oversample_factors(
-                        focal[0, ...], mag
+                        focal[0, ...], mag, base_osf
                     )
 
                     yshape = int(yout.shape[0] // osf)
@@ -168,7 +170,7 @@ class InstantaneousReadOut(Task):
                             fp = fp_cache
                         else:
                             if mag != 1:
-                                fp = self.oversample(fp_slice, mag)
+                                fp = self.oversample(fp_slice, mag, base_osf)
                             else:
                                 fp = fp_slice
                             t_cache = t
@@ -204,7 +206,7 @@ class InstantaneousReadOut(Task):
                     self.info(f"resampling the focal plane: magnification factor {mag}")
 
                     # resampling the focal plane and replace it with a new array
-                    new_focal = [self.oversample(fp, mag) for fp in focal]
+                    new_focal = [self.oversample(fp, mag, base_osf) for fp in focal]
                     # focal = np.array(new_focal)
                     focal = copy.deepcopy(np.array(new_focal))
 
@@ -234,7 +236,7 @@ class InstantaneousReadOut(Task):
             if parameters.get("force_power_conservation"):
                 self.warning("forcing power conservation")
                 self.force_power_conservation(
-                    out, parameters, focal_plane, fp_time, osf
+                    out, parameters, focal_plane, fp_time, base_osf
                 )
 
             # applying integtation time to the jittered focal planes
@@ -255,7 +257,11 @@ class InstantaneousReadOut(Task):
             self.info(
                 "no jitter in {} for {}".format(dataset_name, parameters["value"])
             )
-            focal = deepcopy(focal_plane.data[:, 0::base_osf, 0::base_osf])
+            focal = deepcopy(
+                focal_plane.data[
+                    :, int(base_osf // 2) :: base_osf, int(base_osf // 2) :: base_osf
+                ]
+            )
             for chunk in out.dataset.iter_chunks():
                 dset = self.replicating_the_focalplane(
                     focal, start_index[chunk[0]], fp_time[chunk[0]]
@@ -272,8 +278,11 @@ class InstantaneousReadOut(Task):
 
         self.set_output(out)
 
-    def force_power_conservation(self, out, parameters, focal_plane, fp_time, osf):
-        # to compute the total power on the focal plane I use the undersampled focal plane
+    def force_power_conservation(self, out, parameters, focal_plane, fp_time, base_osf):
+        # ``focal_plane`` is the original (not magnified) focal plane, sampled
+        # with the oversampling factor ``base_osf``: the power of one pixel
+        # is the sum of its ``base_osf**2`` sub-pixels divided by ``base_osf**2``.
+        # The jitter magnification does not enter here.
 
         total_power = np.empty(out.dataset.shape[0])
         desired_power = np.empty(out.dataset.shape[0])
@@ -293,7 +302,7 @@ class InstantaneousReadOut(Task):
                 mask = np.where(fp_time_ == time_id)[0]
                 # I estimated the expected power from the oversampled focal plane
                 desired_power[chunk[0]][mask] = (
-                    np.sum(focal_plane.data[time_id]) / osf**2
+                    np.sum(focal_plane.data[time_id]) / base_osf**2
                 )
 
         # applying integration time to the jittered focal planes
@@ -315,15 +324,48 @@ class InstantaneousReadOut(Task):
         )
 
     @staticmethod
-    def get_oversample_factors(fp, ad_osf):
+    def round_to_subpixel(jitter: np.ndarray) -> np.ndarray:
         """
-        Used in oversample method to determine the shape of the arrays .
+        Converts a jitter offset, in units of sub-pixels, to the nearest
+        integer sub-pixel (``floor(x + 0.5)``: ties go up, for negative values
+        too). Truncating toward zero instead would shrink the jitter amplitude.
+
+        Parameters
+        ----------
+        jitter: :class:`~numpy.ndarray`
+            offsets in sub-pixels
+
+        Returns
+        -------
+        :class:`~numpy.ndarray`
+            integer offsets
+        """
+        return np.floor(np.asarray(jitter, dtype=np.float64) + 0.5).astype(int)
+
+    @staticmethod
+    def get_oversample_factors(fp, ad_osf, osf):
+        """
+        Used in oversample method to determine the shape of the arrays.
+
+        The focal plane has a base oversampling factor ``osf`` and is
+        magnified by ``ad_osf``, so that the readout oversampling factor is
+        ``o = osf * ad_osf``. The centre of the physical pixel ``m`` is the
+        sub-pixel ``osf * m + osf // 2`` of the input and the sub-pixel
+        ``o * m + o // 2`` of the output. The output grid is built so that
+        these two sub-pixels coincide on the sky: the new sub-pixel ``n``
+        samples the input at the coordinate
+        ``osf // 2 + (n - o // 2) / ad_osf``, in units of input sub-pixels.
+        Therefore the pixel centres do not move whatever the parity of
+        ``osf`` and ``ad_osf``.
+
         Parameters
         ----------
         fp: :class:`~numpy.ndarray`
             2D focal plane
         ad_osf: int
             magnification factor
+        osf: int
+            base oversampling factor of ``fp``
 
         Returns
         -------
@@ -333,30 +375,22 @@ class InstantaneousReadOut(Task):
         """
         xin = np.linspace(0, fp.shape[1] - 1, fp.shape[1])
         yin = np.linspace(0, fp.shape[0] - 1, fp.shape[0])
-        x_step = abs(xin[1]) - abs(xin[0])
-        y_step = abs(yin[1]) - abs(yin[0])
 
-        # calculates the new step sizes for new grid
-        x_step_new = np.float64(x_step / ad_osf)
-        y_step_new = np.float64(y_step / ad_osf)
-
-        # new grid must start with an exact offset to produce correct number of new points
-        x_start = -x_step_new * np.float64((ad_osf - 1) / 2)
-        y_start = -y_step_new * np.float64((ad_osf - 1) / 2)
-
-        # new grid points- with correct start, end and spacing
-        xout = np.arange(
-            x_start, x_start + x_step_new * fp.shape[1] * ad_osf, x_step_new
-        )
-        yout = np.arange(
-            y_start, y_start + y_step_new * fp.shape[0] * ad_osf, y_step_new
-        )
+        # the output grid has ad_osf points per input sub-pixel; the new
+        # sub-pixel o // 2 sits on the input sub-pixel osf // 2
+        centre = (int(osf) * int(ad_osf)) // 2
+        xout = int(osf) // 2 + (np.arange(fp.shape[1] * ad_osf) - centre) / ad_osf
+        yout = int(osf) // 2 + (np.arange(fp.shape[0] * ad_osf) - centre) / ad_osf
         return xin, yin, xout, yout
 
     @staticmethod
-    def oversample(fp: np.array, ad_osf: int) -> np.array:
+    def oversample(fp: np.array, ad_osf: int, osf: int) -> np.array:
         """
         It increases the oversampling factor of the focal plane.
+        The centres of the physical pixels are preserved: the sub-pixel
+        ``osf * m + osf // 2`` of the input and the sub-pixel
+        ``o * m + o // 2`` of the output, with ``o = osf * ad_osf``, are the
+        same position (see :meth:`get_oversample_factors`).
 
         Parameters
         ----------
@@ -364,13 +398,17 @@ class InstantaneousReadOut(Task):
             2D focal plane
         ad_osf: int
             magnification factor
+        osf: int
+            base oversampling factor of ``fp``
 
         Returns
         -------
         :class:`~numpy.ndarray`
             2D focal plane sampled with the new oversampling factor
         """
-        xin, yin, xout, yout = InstantaneousReadOut.get_oversample_factors(fp, ad_osf)
+        xin, yin, xout, yout = InstantaneousReadOut.get_oversample_factors(
+            fp, ad_osf, osf
+        )
 
         # interpolate fp onto new grid
         fn = RectBivariateSpline(yin, xin, fp)
